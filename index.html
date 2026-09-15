@@ -3,15 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Privacy Policy — Authenticator X</title>
+<title>Authenticator X — two-factor codes that stay on your device</title>
+<meta name="description" content="Authenticator X is a Chrome extension that generates two-factor codes locally. No account, no server, and no access to the websites you visit. Includes the full privacy policy.">
 <style>
   :root {
     --bg: #fbfbfa; --fg: #1a1a18; --muted: #6b6b66;
-    --rule: #e3e3df; --accent: #2f5d50;
+    --rule: #e3e3df; --accent: #2f5d50; --card: #f4f4f1;
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg: #16161a; --fg: #e8e8e4; --muted: #9a9a94;
-            --rule: #2c2c32; --accent: #7fc3ae; }
+            --rule: #2c2c32; --accent: #7fc3ae; --card: #1e1e24; }
   }
   * { box-sizing: border-box; }
   body {
@@ -19,16 +20,18 @@
     font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  main { max-width: 42rem; margin: 0 auto; padding: 3.5rem 1.25rem 5rem; }
-  h1 { font-size: 1.85rem; line-height: 1.25; letter-spacing: -0.02em; margin: 0 0 .4rem; }
+  main { max-width: 44rem; margin: 0 auto; padding: 3.5rem 1.25rem 5rem; }
+  h1 { font-size: 2.1rem; line-height: 1.2; letter-spacing: -0.025em; margin: 0 0 .5rem; }
   h2 {
-    font-size: 1.1rem; letter-spacing: -0.01em; margin: 2.75rem 0 .75rem;
-    padding-top: 1.25rem; border-top: 1px solid var(--rule);
+    font-size: 1.15rem; letter-spacing: -0.01em; margin: 3rem 0 .85rem;
+    padding-top: 1.35rem; border-top: 1px solid var(--rule);
   }
-  .updated { color: var(--muted); font-size: .9rem; margin: 0 0 2rem; }
+  h3 { font-size: 1rem; margin: 1.75rem 0 .5rem; }
+  .tagline { font-size: 1.15rem; color: var(--muted); margin: 0 0 1.25rem; }
+  .jump { font-size: .9rem; margin: 0 0 2.5rem; }
   .lede {
-    font-size: 1.05rem; color: var(--fg); border-left: 3px solid var(--accent);
-    padding: .1rem 0 .1rem 1rem; margin: 0;
+    font-size: 1.05rem; border-left: 3px solid var(--accent);
+    padding: .1rem 0 .1rem 1rem; margin: 0 0 1.5rem;
   }
   ul { padding-left: 1.15rem; }
   li { margin: .55rem 0; }
@@ -37,8 +40,16 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: .875em; background: var(--rule); padding: .1em .35em; border-radius: 3px;
   }
+  .card {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 10px; padding: 1.1rem 1.25rem; margin: 1.5rem 0;
+  }
+  .card p:last-child { margin-bottom: 0; }
+  .card p:first-child { margin-top: 0; }
+  .policy { margin-top: 1rem; }
+  .updated { color: var(--muted); font-size: .9rem; margin: 0 0 1.5rem; }
   footer {
-    margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--rule);
+    margin-top: 3.5rem; padding-top: 1.35rem; border-top: 1px solid var(--rule);
     color: var(--muted); font-size: .9rem;
   }
   a { color: var(--accent); }
@@ -46,72 +57,116 @@
 </head>
 <body>
 <main>
-  <h1>Privacy Policy — Authenticator X</h1>
-  <p class="updated">Last updated: 11 September 2026</p>
+  <h1>Authenticator X</h1>
+  <p class="tagline">Two-factor codes that stay on your device.</p>
+  <p class="jump"><a href="#privacy">Jump to the privacy policy →</a></p>
 
-  <p class="lede">Authenticator X does not collect, transmit or sell any of your
-  data. There is no server. Everything the extension stores stays in your own
-  browser profile on your own computer.</p>
+  <p class="lede">Authenticator X generates the six-digit codes you need to sign
+  in to GitHub, Google, your bank, and anything else that supports an
+  authenticator app. It runs entirely in your browser. There is no account and
+  no server.</p>
 
-  <h2>What the extension stores</h2>
+  <h2>It cannot read the websites you visit</h2>
+
+  <p>Most extensions that fill something in for you ask to read and change your
+  data on every site you visit. This one does not ask for that, and could not
+  use it if it were granted.</p>
+
+  <p>It declares <strong>no host permissions</strong> and installs
+  <strong>no content scripts</strong>. Scanning a QR code or filling in a code
+  uses Chrome's <code>activeTab</code> permission, which Chrome grants for a
+  single tab, only when you open the extension on it, and only until that tab
+  navigates somewhere else.</p>
+
+  <div class="card">
+    <p>You do not have to take that on trust. Chrome lists every permission an
+    extension asks for, on the install prompt and on its entry in
+    <code>chrome://extensions</code>. If this one ever asks to read your data on
+    all websites, something has changed that should not have.</p>
+  </div>
+
+  <h2>What it does</h2>
   <ul>
-    <li><strong>Your two-factor accounts</strong> — the issuer, the account name,
-    and the shared secret needed to generate codes. These are encrypted with
-    AES-256-GCM before they are written to disk and can only be decrypted on the
-    device that created them, using either that device's key or your master
-    password.</li>
-    <li><strong>Your preferences</strong> — theme, sort order, auto-lock delay,
-    and whether autofill is enabled.</li>
-  </ul>
-  <p>All of this lives in Chrome's local extension storage. None of it is sent
-  anywhere.</p>
-
-  <h2>What the extension can see</h2>
-  <ul>
-    <li><strong>The page you open the extension on.</strong> When you scan a QR
-    code, the extension takes a picture of the visible part of that tab and looks
-    for a QR code in it. When you fill a code, it looks for a one-time-code field
-    on that tab and types into it. Both use Chrome's <code>activeTab</code>
-    permission, which Chrome grants only for the tab you invoked the extension on,
-    and only until that tab navigates away.</li>
-    <li>The extension declares <strong>no host permissions</strong> and installs
-    <strong>no persistent content scripts</strong>, so it has no standing access
-    to any website.</li>
-  </ul>
-  <p>Nothing seen this way is stored or transmitted. The screenshot is decoded in
-  memory and discarded.</p>
-
-  <h2>What the extension does not do</h2>
-  <ul>
-    <li>No analytics, telemetry, crash reporting or usage statistics.</li>
-    <li>No advertising, and no advertising identifiers.</li>
-    <li>No accounts, sign-in or email collection.</li>
-    <li>No selling or sharing of data with third parties, because there is no data
-    leaving your device to sell or share.</li>
-    <li>No remotely hosted code. Everything that runs is in the package Chrome
-    installed, enforced by the extension's Content Security Policy.</li>
+    <li>Scans the QR code straight from the page you are setting up</li>
+    <li>Imports every account from Google Authenticator in one scan</li>
+    <li>Fills a code into a site with one click</li>
+    <li>Encrypted backups you can restore anywhere</li>
+    <li>A recovery key, for when a master password is forgotten</li>
+    <li>Standard <code>otpauth://</code> export, so you can leave whenever you like</li>
   </ul>
 
-  <h2>Data you export yourself</h2>
-  <p>The backup and export features write files to wherever you choose. An
-  encrypted backup is protected by the password you set for it. A plain-text
-  <code>otpauth://</code> export is <strong>not</strong> encrypted and contains
-  your secrets in readable form — delete it as soon as you have finished using
-  it.</p>
+  <p>Your accounts are encrypted with AES-256-GCM before anything is written to
+  disk. The key never leaves your device.</p>
 
-  <h2>Deleting your data</h2>
-  <p>Settings → Security → Delete this vault removes the encrypted vault and its
-  encryption key from the device. Removing the extension from Chrome also removes
-  its storage. Neither is recoverable, and neither needs a request to us, because
-  we never had a copy.</p>
+  <h2 id="privacy">Privacy Policy</h2>
 
-  <h2>Future versions</h2>
-  <p>A later version will offer an optional account so your vault can sync between
-  your devices. That is opt-in, it does not exist in this version, and this policy
-  will be updated before it ships.</p>
+  <div class="policy">
+    <p class="updated">Last updated: 11 September 2026</p>
 
-  <h2>Contact</h2>
-  <p><a href="mailto:brickitall.hi@gmail.com">brickitall.hi@gmail.com</a></p>
+    <p class="lede">Authenticator X does not collect, transmit or sell any of
+    your data. There is no server. Everything the extension stores stays in your
+    own browser profile on your own computer.</p>
+
+    <h3>What the extension stores</h3>
+    <ul>
+      <li><strong>Your two-factor accounts</strong> — the issuer, the account
+      name, and the shared secret needed to generate codes. These are encrypted
+      with AES-256-GCM before they are written to disk and can only be decrypted
+      on the device that created them, using either that device's key or your
+      master password.</li>
+      <li><strong>Your preferences</strong> — theme, sort order, auto-lock
+      delay, and whether autofill is enabled.</li>
+    </ul>
+    <p>All of this lives in Chrome's local extension storage. None of it is sent
+    anywhere.</p>
+
+    <h3>What the extension can see</h3>
+    <ul>
+      <li><strong>The page you open the extension on.</strong> When you scan a
+      QR code, the extension takes a picture of the visible part of that tab and
+      looks for a QR code in it. When you fill a code, it looks for a
+      one-time-code field on that tab and types into it. Both use Chrome's
+      <code>activeTab</code> permission, which Chrome grants only for the tab you
+      invoked the extension on, and only until that tab navigates away.</li>
+      <li>The extension declares <strong>no host permissions</strong> and
+      installs <strong>no persistent content scripts</strong>, so it has no
+      standing access to any website.</li>
+    </ul>
+    <p>Nothing seen this way is stored or transmitted. The screenshot is decoded
+    in memory and discarded.</p>
+
+    <h3>What the extension does not do</h3>
+    <ul>
+      <li>No analytics, telemetry, crash reporting or usage statistics.</li>
+      <li>No advertising, and no advertising identifiers.</li>
+      <li>No accounts, sign-in or email collection.</li>
+      <li>No selling or sharing of data with third parties, because there is no
+      data leaving your device to sell or share.</li>
+      <li>No remotely hosted code. Everything that runs is in the package Chrome
+      installed, enforced by the extension's Content Security Policy.</li>
+    </ul>
+
+    <h3>Data you export yourself</h3>
+    <p>The backup and export features write files to wherever you choose. An
+    encrypted backup is protected by the password you set for it. A plain-text
+    <code>otpauth://</code> export is <strong>not</strong> encrypted and contains
+    your secrets in readable form — delete it as soon as you have finished using
+    it.</p>
+
+    <h3>Deleting your data</h3>
+    <p>Settings → Security → Delete this vault removes the encrypted vault and
+    its encryption key from the device. Removing the extension from Chrome also
+    removes its storage. Neither is recoverable, and neither needs a request to
+    us, because we never had a copy.</p>
+
+    <h3>Future versions</h3>
+    <p>A later version will offer an optional account so your vault can sync
+    between your devices. That is opt-in, it does not exist in this version, and
+    this policy will be updated before it ships.</p>
+
+    <h3>Contact</h3>
+    <p><a href="mailto:brickitall.hi@gmail.com">brickitall.hi@gmail.com</a></p>
+  </div>
 
   <footer>Authenticator X — two-factor codes that stay on your device.</footer>
 </main>
