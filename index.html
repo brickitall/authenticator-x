@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Authenticator X</title>
+<style>
+  :root {
+    --bg: #fbfbfa; --fg: #1a1a18; --muted: #6b6b66;
+    --rule: #e3e3df; --accent: #2f5d50;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #16161a; --fg: #e8e8e4; --muted: #9a9a94;
+            --rule: #2c2c32; --accent: #7fc3ae; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 42rem; margin: 0 auto; padding: 3.5rem 1.25rem 5rem; }
+  h1 { font-size: 1.85rem; line-height: 1.25; letter-spacing: -0.02em; margin: 0 0 .4rem; }
+  h2 {
+    font-size: 1.1rem; letter-spacing: -0.01em; margin: 2.75rem 0 .75rem;
+    padding-top: 1.25rem; border-top: 1px solid var(--rule);
+  }
+  .updated { color: var(--muted); font-size: .9rem; margin: 0 0 2rem; }
+  .lede {
+    font-size: 1.05rem; color: var(--fg); border-left: 3px solid var(--accent);
+    padding: .1rem 0 .1rem 1rem; margin: 0;
+  }
+  ul { padding-left: 1.15rem; }
+  li { margin: .55rem 0; }
+  strong { font-weight: 600; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .875em; background: var(--rule); padding: .1em .35em; border-radius: 3px;
+  }
+  footer {
+    margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--rule);
+    color: var(--muted); font-size: .9rem;
+  }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Privacy Policy — Authenticator X</h1>
+  <p class="updated">Last updated: 11 September 2026</p>
+
+  <p class="lede">Authenticator X does not collect, transmit or sell any of your
+  data. There is no server. Everything the extension stores stays in your own
+  browser profile on your own computer.</p>
+
+  <h2>What the extension stores</h2>
+  <ul>
+    <li><strong>Your two-factor accounts</strong> — the issuer, the account name,
+    and the shared secret needed to generate codes. These are encrypted with
+    AES-256-GCM before they are written to disk and can only be decrypted on the
+    device that created them, using either that device's key or your master
+    password.</li>
+    <li><strong>Your preferences</strong> — theme, sort order, auto-lock delay,
+    and whether autofill is enabled.</li>
+  </ul>
+  <p>All of this lives in Chrome's local extension storage. None of it is sent
+  anywhere.</p>
+
+  <h2>What the extension can see</h2>
+  <ul>
+    <li><strong>The page you open the extension on.</strong> When you scan a QR
+    code, the extension takes a picture of the visible part of that tab and looks
+    for a QR code in it. When you fill a code, it looks for a one-time-code field
+    on that tab and types into it. Both use Chrome's <code>activeTab</code>
+    permission, which Chrome grants only for the tab you invoked the extension on,
+    and only until that tab navigates away.</li>
+    <li>The extension declares <strong>no host permissions</strong> and installs
+    <strong>no persistent content scripts</strong>, so it has no standing access
+    to any website.</li>
+  </ul>
+  <p>Nothing seen this way is stored or transmitted. The screenshot is decoded in
+  memory and discarded.</p>
+
+  <h2>What the extension does not do</h2>
+  <ul>
+    <li>No analytics, telemetry, crash reporting or usage statistics.</li>
+    <li>No advertising, and no advertising identifiers.</li>
+    <li>No accounts, sign-in or email collection.</li>
+    <li>No selling or sharing of data with third parties, because there is no data
+    leaving your device to sell or share.</li>
+    <li>No remotely hosted code. Everything that runs is in the package Chrome
+    installed, enforced by the extension's Content Security Policy.</li>
+  </ul>
+
+  <h2>Data you export yourself</h2>
+  <p>The backup and export features write files to wherever you choose. An
+  encrypted backup is protected by the password you set for it. A plain-text
+  <code>otpauth://</code> export is <strong>not</strong> encrypted and contains
+  your secrets in readable form — delete it as soon as you have finished using
+  it.</p>
+
+  <h2>Deleting your data</h2>
+  <p>Settings → Security → Delete this vault removes the encrypted vault and its
+  encryption key from the device. Removing the extension from Chrome also removes
+  its storage. Neither is recoverable, and neither needs a request to us, because
+  we never had a copy.</p>
+
+  <h2>Future versions</h2>
+  <p>A later version will offer an optional account so your vault can sync between
+  your devices. That is opt-in, it does not exist in this version, and this policy
+  will be updated before it ships.</p>
+
+  <h2>Contact</h2>
+  <p><a href="mailto:brickitall.hi@gmail.com">brickitall.hi@gmail.com</a></p>
+
+  <footer>Authenticator X — two-factor codes that stay on your device.</footer>
+</main>
+</body>
+</html>
