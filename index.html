@@ -88,7 +88,9 @@
   <h2>What it does</h2>
   <ul>
     <li>Scans the QR code straight from the page you are setting up</li>
-    <li>Imports every account from Google Authenticator in one scan</li>
+    <li>Or reads one from your phone with your camera</li>
+    <li>Brings every account over from Google Authenticator — scan its export
+    with your camera, or pick screenshots of it</li>
     <li>Fills a code into a site with one click</li>
     <li>Encrypted backups you can restore anywhere</li>
     <li>A recovery key, for when a master password is forgotten</li>
@@ -101,7 +103,7 @@
   <h2 id="privacy">Privacy Policy</h2>
 
   <div class="policy">
-    <p class="updated">Last updated: 11 September 2026</p>
+    <p class="updated">Last updated: 23 September 2026</p>
 
     <p class="lede">Authenticator X does not collect, transmit or sell any of
     your data. There is no server. Everything the extension stores stays in your
@@ -128,12 +130,19 @@
       one-time-code field on that tab and types into it. Both use Chrome's
       <code>activeTab</code> permission, which Chrome grants only for the tab you
       invoked the extension on, and only until that tab navigates away.</li>
+      <li><strong>Your camera, only when you ask it to scan.</strong> Chrome asks
+      for your permission the first time and remembers your answer. The
+      extension reads each frame on your device to find a QR code in it, and
+      switches the camera off as soon as the scan finishes or you leave it.</li>
+      <li><strong>Pictures you choose.</strong> A screenshot or photo of a QR code
+      that you pick is read on your device to find the code in it.</li>
       <li>The extension declares <strong>no host permissions</strong> and
       installs <strong>no persistent content scripts</strong>, so it has no
       standing access to any website.</li>
     </ul>
-    <p>Nothing seen this way is stored or transmitted. The screenshot is decoded
-    in memory and discarded.</p>
+    <p>Nothing seen this way is stored or transmitted. Screenshots of the page,
+    camera frames and the pictures you choose are decoded in memory and
+    discarded — none of them is recorded, kept or uploaded.</p>
 
     <h3>What the extension does not do</h3>
     <ul>
