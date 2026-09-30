@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": "./.tsbuild-node",
+    "types": [
+      "node"
+    ],
+    "moduleResolution": "bundler"
+  },
+  "include": [
+    "vite.config.ts",
+    "vite.content.config.ts"
+  ]
+}

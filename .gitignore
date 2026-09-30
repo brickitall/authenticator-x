@@ -1,0 +1,17 @@
+node_modules/
+dist/
+release/
+*.log
+.DS_Store
+.env
+.env.local
+*.tsbuildinfo
+.tsbuild*/
+test-results/
+playwright-report/
+.tmp/
+apps/server/dist/
+.tmp/
+
+# The open-source tree scripts/export-oss.mjs builds; published elsewhere.
+.oss/

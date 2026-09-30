@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Authenticator X — popup harness</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #e4e4e7;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+      #frame {
+        width: 380px;
+        background: white;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgb(0 0 0 / 0.18);
+      }
+      #bar {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        display: flex;
+        gap: 8px;
+        font-size: 12px;
+      }
+      #bar button,
+      #bar a {
+        border: 1px solid #d4d4d8;
+        background: white;
+        border-radius: 8px;
+        padding: 5px 10px;
+        cursor: pointer;
+        color: #3f3f46;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bar">
+      <button id="reset" type="button">Reset dev storage</button>
+      <a href="/dev/options.html">Options page →</a>
+    </div>
+    <div id="frame"><div id="root"></div></div>
+    <script type="module" src="/dev/popup-main.ts"></script>
+  </body>
+</html>

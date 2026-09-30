@@ -1,0 +1,81 @@
+import { useState } from 'react';
+import { recoveryKitDocument } from '@authx/core';
+import { Button, Callout } from '../ui/primitives.js';
+
+/**
+ * A freshly issued recovery key, shown the one time it exists anywhere.
+ *
+ * "Done" waits for the user to say it is saved: the key is stored nowhere, so
+ * closing this without keeping it throws it away. There is deliberately no
+ * "skip": by the time this shows, the key is already the account's, and an
+ * account whose key nobody kept looks exactly like one that is safe.
+ */
+export function RecoveryKeySheet({
+  recoveryKey,
+  onDone,
+  wide = false,
+}: {
+  recoveryKey: string;
+  onDone: () => void;
+  /** Full-width actions, for a narrow card rather than a settings row. */
+  wide?: boolean;
+}) {
+  const [acknowledged, setAcknowledged] = useState(false);
+
+  function downloadSheet() {
+    const url = URL.createObjectURL(
+      new Blob([recoveryKitDocument(recoveryKey)], { type: 'text/plain' }),
+    );
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'authenticator-x-recovery-key.txt';
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <Callout tone="warning">
+        This is the only time this key is shown. It is not stored anywhere — if you lose it, issue a
+        new one.
+      </Callout>
+      <code className="code-digits block rounded-xl bg-zinc-100 px-4 py-3.5 text-center text-[15px] font-semibold dark:bg-zinc-900">
+        <KeyHalves recoveryKey={recoveryKey} />
+      </code>
+      <div className={wide ? 'grid grid-cols-2 gap-2' : 'flex flex-wrap gap-2'}>
+        <Button onClick={downloadSheet}>Download the sheet</Button>
+        <Button onClick={() => void navigator.clipboard.writeText(recoveryKey)}>Copy</Button>
+      </div>
+      <label className="flex items-start gap-2.5 text-[13px] text-zinc-600 dark:text-zinc-300">
+        <input
+          type="checkbox"
+          checked={acknowledged}
+          onChange={(event) => setAcknowledged(event.target.checked)}
+          className="mt-0.5 h-4 w-4 accent-brand-600"
+        />
+        I have saved this somewhere I will still have if this computer does not.
+      </label>
+      <div>
+        <Button variant="primary" className={wide ? 'w-full' : undefined} disabled={!acknowledged} onClick={onDone}>
+          Done
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The key in two halves of four groups, so a narrow box breaks it between
+ * groups rather than inside one — a sheet copied by hand from "…E4GE-Y" and
+ * "5AD…" is a key typed wrong later.
+ */
+function KeyHalves({ recoveryKey }: { recoveryKey: string }) {
+  const groups = recoveryKey.split('-');
+  const middle = Math.ceil(groups.length / 2);
+  return (
+    <>
+      <span className="inline-block">{groups.slice(0, middle).join('-')}-</span>
+      <span className="inline-block">{groups.slice(middle).join('-')}</span>
+    </>
+  );
+}

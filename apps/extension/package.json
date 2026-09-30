@@ -1,0 +1,47 @@
+{
+  "name": "@authx/extension",
+  "version": "0.1.3",
+  "private": true,
+  "type": "module",
+  "description": "Authenticator X — Chrome MV3 extension.",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:watch": "node scripts/build.mjs && vite build --watch",
+    "dev": "vite",
+    "icons": "node ../../scripts/gen-icons.mjs public/icons",
+    "icons:brands": "node --experimental-strip-types ../../scripts/gen-brands.mjs",
+    "shots": "npm run build && playwright test --project=shots",
+    "test:e2e": "npm run build && playwright test --project=e2e",
+    "zip": "node scripts/build.mjs --zip"
+  },
+  "dependencies": {
+    "@authx/core": "*",
+    "jsqr": "^1.4.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@fortawesome/fontawesome-free": "^7.3.1",
+    "@iconify-json/arcticons": "^1.2.57",
+    "@iconify-json/bxl": "^1.2.4",
+    "@iconify-json/cib": "^1.2.3",
+    "@iconify-json/cryptocurrency-color": "^1.2.4",
+    "@iconify-json/devicon": "^1.2.62",
+    "@iconify-json/logos": "^1.2.14",
+    "@iconify-json/mdi": "^1.2.3",
+    "@iconify-json/streamline-logos": "^1.2.0",
+    "@iconify-json/token-branded": "^1.2.44",
+    "@lobehub/icons-static-svg": "^1.95.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/chrome": "^0.0.280",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "qrcode": "^1.5.4",
+    "simple-icons": "^16.30.0",
+    "tailwindcss": "^4.0.0",
+    "vite": "^6.0.0"
+  }
+}

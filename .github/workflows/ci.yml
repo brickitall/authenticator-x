@@ -1,0 +1,78 @@
+# Type-check, unit tests, the extension in a real Chromium, and the store zip
+# with its permission check — on every push and pull request.
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Typecheck and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npx vitest run
+
+  e2e:
+    name: Extension in Chromium
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - id: playwright
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      # Extensions need the full Chromium build in new headless mode.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -w @authx/extension
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: apps/extension/test-results
+          retention-days: 7
+
+  release-build:
+    name: Store zip
+    runs-on: ubuntu-latest
+    needs: [check, e2e]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run zip
+      # No host permissions, no content scripts, connect-src reaching nothing
+      # but itself — what a store reviewer checks first, checked here first.
+      - run: node scripts/check-release.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: authenticator-x-${{ github.sha }}
+          path: release/*.zip
+          retention-days: 30

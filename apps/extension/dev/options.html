@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Authenticator X — options harness</title>
+    <style>
+      body {
+        margin: 0;
+      }
+      #bar {
+        position: fixed;
+        right: 12px;
+        bottom: 12px;
+        font-size: 12px;
+        z-index: 100;
+      }
+      #bar button {
+        border: 1px solid #d4d4d8;
+        background: white;
+        border-radius: 8px;
+        padding: 5px 10px;
+        cursor: pointer;
+        color: #3f3f46;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bar"><button id="reset" type="button">Reset dev storage</button></div>
+    <div id="root"></div>
+    <script type="module" src="/dev/options-main.ts"></script>
+  </body>
+</html>

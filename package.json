@@ -1,0 +1,31 @@
+{
+  "name": "authenticator-x",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Authenticator X — cross-platform 2FA/TOTP authenticator. Chrome extension first.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @authx/extension",
+    "build": "npm run build -w @authx/extension",
+    "zip": "npm run zip -w @authx/extension",
+    "typecheck": "tsc -b --pretty",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22.20.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9"
+  },
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brickitall/authenticator-x.git"
+  }
+}
