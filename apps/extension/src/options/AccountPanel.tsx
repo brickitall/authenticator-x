@@ -5,7 +5,7 @@ import {
   type DeviceSummary,
   type VaultData,
 } from '@authx/core';
-import { ACCOUNT_URL, SYNC_ENABLED } from '../lib/config.js';
+import { SYNC_ENABLED } from '../lib/config.js';
 import { send, type SignInResult, type SyncSummary } from '../lib/messaging.js';
 import { Button, Callout, Field, Spinner } from '../ui/primitives.js';
 import { RecoveryKeySheet } from './RecoveryKeySheet.js';
@@ -170,25 +170,14 @@ function LocalVaultFacts({ compact = false }: { compact?: boolean }) {
   );
 }
 
+/** Only in a build made with sync switched off: the store's builds have it. */
 function NotAvailableYet() {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div>
-        <p className="text-[13px] font-medium">Local only — not signed in</p>
-        <p className="mt-0.5 text-[12px] text-zinc-500 dark:text-zinc-400">
-          Sync is not live yet. This build has no server to talk to, so nothing you add here leaves
-          your machine.
-        </p>
-      </div>
-      {ACCOUNT_URL ? (
-        <Button variant="primary" onClick={() => window.open(ACCOUNT_URL, '_blank')}>
-          Create an account
-        </Button>
-      ) : (
-        <Button disabled title="Sync is still being built">
-          Coming soon
-        </Button>
-      )}
+    <div>
+      <p className="text-[13px] font-medium">Local only — not signed in</p>
+      <p className="mt-0.5 text-[12px] text-zinc-500 dark:text-zinc-400">
+        This build was made without a sync server, so nothing you add here leaves your machine.
+      </p>
     </div>
   );
 }

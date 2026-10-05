@@ -1,9 +1,11 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { accountPasswordProblem, isWellFormedRecoveryKey } from '@authx/core';
 import { send, type SignInResult, type SyncSummary } from '../lib/messaging.js';
 import { AlertIcon, ArrowLeftIcon, CheckIcon, CloudLockIcon, KeyIcon } from '../ui/icons.js';
 import { PasswordField } from '../ui/password.js';
 import { Button, Callout, Field, Spinner } from '../ui/primitives.js';
+import { PRIVACY_URL, SECURITY_MODEL_URL } from '../lib/links.js';
+import { SourceLink } from '../ui/SourceLink.js';
 
 type Step = 'intro' | 'create' | 'signIn' | 'recover';
 
@@ -170,6 +172,12 @@ function Intro({ onCreate, onSignIn }: { onCreate: () => void; onSignIn: () => v
           Sign in
         </Button>
       </div>
+
+      {/* The moment someone decides whether to hand their codes to a server
+          is the moment to show them exactly what leaves the device. */}
+      <div className="flex justify-center text-[12px]">
+        <SourceLink href={SECURITY_MODEL_URL}>Open source — see how your codes are encrypted</SourceLink>
+      </div>
     </div>
   );
 }
@@ -271,8 +279,11 @@ function CreateForm({
   onSignIn: () => void;
   onSignedUp: (recoveryKey: string | null) => void;
 }) {
+  const [stage, setStage] = useState<'details' | 'code'>('details');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [code, setCode] = useState('');
+  const [resendIn, setResendIn] = useState(0);
   const { busy, error, run } = useSubmit();
 
   // A vault with a master password signs up with it — one password, not two.
@@ -284,6 +295,86 @@ function CreateForm({
     password.length >= 8 &&
     (!choosing || (!tooWeak && password === confirm));
 
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const timer = setTimeout(() => setResendIn((seconds) => seconds - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendIn]);
+
+  const askForCode = () =>
+    run(async () => {
+      await send({ type: 'account/startSignUp', email, password });
+      setCode('');
+      setStage('code');
+      // The server allows one email a minute per address; say so on the
+      // button rather than letting a second click fail.
+      setResendIn(60);
+    });
+
+  if (stage === 'code') {
+    return (
+      <FormShell
+        onBack={() => setStage('details')}
+        title="Check your email"
+        subtitle={
+          <>
+            We sent a six-digit code to <span className="font-medium text-zinc-700 dark:text-zinc-200">{email}</span>.
+            It works once, for 15 minutes.
+          </>
+        }
+        onSubmit={() =>
+          void run(async () => {
+            if (!/^\d{6}$/.test(code)) return;
+            const { recoveryKey } = await send({ type: 'account/signUp', email, password, code });
+            onSignedUp(recoveryKey);
+          })
+        }
+      >
+        <Field
+          label="Code"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          autoFocus
+          maxLength={6}
+          placeholder="000000"
+          value={code}
+          // Pasted codes often arrive with a space or a dash in them.
+          onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+          className="text-center font-mono text-[20px] tracking-[0.4em]"
+        />
+
+        {/* A new sender often lands in spam at first. Saying where to look
+            keeps people from stalling here, and each "Not spam" teaches the
+            mail provider to deliver the next code properly. */}
+        <Callout tone="info">
+          Not in your inbox? Look in <strong>Spam</strong> for a message from{' '}
+          <strong>Authenticator X</strong>, and mark it <strong>Not spam</strong>.
+        </Callout>
+
+        {error && <Callout tone="danger">{error}</Callout>}
+
+        <div className="flex flex-col gap-3">
+          <Button type="submit" variant="primary" className="w-full" disabled={code.length !== 6 || busy}>
+            {busy ? <Spinner /> : null} Create account
+          </Button>
+          <Footnote>
+            If this address already has an account, the email says so instead — then sign in there.
+          </Footnote>
+        </div>
+
+        <Footnote>
+          Still nothing?{' '}
+          {resendIn > 0 ? (
+            <span>Send a new code in {resendIn}s</span>
+          ) : (
+            <TextLink onClick={() => void askForCode()}>Send a new code</TextLink>
+          )}
+          . Wrong address? <TextLink onClick={() => setStage('details')}>Change it</TextLink>
+        </Footnote>
+      </FormShell>
+    );
+  }
+
   return (
     <FormShell
       onBack={onBack}
@@ -293,13 +384,9 @@ function CreateForm({
           ? 'You will need this password on a new device. This one keeps opening without it.'
           : 'Your master password becomes your account password too — still just one.'
       }
-      onSubmit={() =>
-        void run(async () => {
-          if (!ready) return;
-          const { recoveryKey } = await send({ type: 'account/signUp', email, password });
-          onSignedUp(recoveryKey);
-        })
-      }
+      onSubmit={() => {
+        if (ready) void askForCode();
+      }}
     >
       <div className="flex flex-col gap-4">
         <EmailField email={email} onEmail={onEmail} autoFocus />
@@ -335,9 +422,24 @@ function CreateForm({
 
       <div className="flex flex-col gap-3">
         <Button type="submit" variant="primary" className="w-full" disabled={!ready || busy}>
-          {busy ? <Spinner /> : null} Create account
+          {busy ? <Spinner /> : null} Continue
         </Button>
-        <Footnote>Next, you will save a recovery key — the only way back if you forget the password.</Footnote>
+        <Footnote>
+          Next, we email you a code to confirm the address, then you save a recovery key — the only
+          way back if you forget the password.
+        </Footnote>
+        <Footnote>
+          Creating an account means agreeing to the{' '}
+          <a
+            href={PRIVACY_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-brand-600 hover:underline dark:text-brand-400"
+          >
+            privacy policy
+          </a>
+          .
+        </Footnote>
       </div>
 
       <Footnote>

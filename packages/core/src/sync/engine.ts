@@ -218,6 +218,11 @@ export interface SyncOutcome {
   deleted: number;
   serverRev: number;
   /**
+   * The server had been restored from a backup. This cycle read everything it
+   * holds again and sent back what it had lost.
+   */
+  serverRestored: boolean;
+  /**
    * A newer account recovery-kit state than this device had, for the caller to
    * install in its vault file. Its `issuedAt` is already the new floor in
    * `data.sync.recoveryAt`.
@@ -258,21 +263,46 @@ async function newerRecoveryState(
  * Pull-then-push is deliberate. Pushing first would let this device overwrite a
  * change it has not seen yet, and the conflict it would then be handed is the
  * one it just caused.
+ *
+ * A server restored from a backup has forgotten whatever changed after the
+ * backup, and its revision counter has gone back with it. Pulling from where
+ * this device left off would then skip everything written since the restore
+ * below that point, and what this device sent before it would sit here marked
+ * as synced while no other device could ever get it. So when the server's
+ * epoch changes, the cycle starts from zero and sends back every account the
+ * server holds an older copy of, or none.
  */
 export async function syncOnce(data: VaultData, options: SyncOptions): Promise<SyncOutcome> {
   const { adapter, dataKey, maxPages = 100 } = options;
 
   let working = data;
   let serverRev = data.sync.serverRev;
+  let epoch = data.sync.epoch;
   let pulled = 0;
   let conflicts = 0;
   let rejectedRecords = 0;
   let deleted = 0;
   let recovery: AccountRecoveryState | undefined;
   let recoveryFloor = data.sync.recoveryAt ?? 0;
+  /** After a restore: the revision of each record the server still holds. */
+  let held: Map<string, number> | null = null;
 
   for (let page = 0; page < maxPages; page++) {
-    const result = await adapter.pull(serverRev);
+    let result = await adapter.pull(serverRev);
+    if (page === 0 && result.epoch !== undefined && result.epoch !== epoch) {
+      // A device that has never synced simply learns the epoch. Otherwise the
+      // server's history is not the one this device was in step with.
+      if (epoch !== undefined) {
+        held = new Map();
+        if (serverRev !== 0) {
+          serverRev = 0;
+          result = await adapter.pull(0);
+        }
+      }
+      epoch = result.epoch;
+    }
+    if (held) for (const record of result.records) held.set(record.id, record.rev);
+
     const incoming = await newerRecoveryState(result.recovery ?? null, dataKey, recoveryFloor);
     if (incoming === 'rejected') {
       // Counted with the records that would not open: the same signal, from
@@ -292,6 +322,22 @@ export async function syncOnce(data: VaultData, options: SyncOptions): Promise<S
     }
     serverRev = result.serverRev;
     if (!result.hasMore) break;
+  }
+
+  if (held) {
+    // What this device holds at a newer revision than the restored server
+    // goes back up. A hostile server gains nothing by claiming a restore: the
+    // merge above still refused to let anything older replace a local copy,
+    // and what is sent is what the server was already given once.
+    const restored = held;
+    working = {
+      ...working,
+      items: working.items.map((item) =>
+        (restored.get(item.id) ?? 0) < item.rev && item.syncedRev === item.rev
+          ? { ...item, syncedRev: 0 }
+          : item,
+      ),
+    };
   }
 
   const pending = pendingItems(working);
@@ -331,7 +377,13 @@ export async function syncOnce(data: VaultData, options: SyncOptions): Promise<S
   return {
     data: {
       ...working,
-      sync: { ...working.sync, serverRev, lastSyncAt: Date.now(), recoveryAt: recoveryFloor },
+      sync: {
+        ...working.sync,
+        serverRev,
+        lastSyncAt: Date.now(),
+        recoveryAt: recoveryFloor,
+        ...(epoch !== undefined ? { epoch } : {}),
+      },
     },
     pulled,
     pushed,
@@ -340,6 +392,7 @@ export async function syncOnce(data: VaultData, options: SyncOptions): Promise<S
     rejectedRecords,
     deleted,
     serverRev,
+    serverRestored: held !== null,
     ...(recovery ? { recovery } : {}),
   };
 }

@@ -1,6 +1,6 @@
 import { formatCode, itemSubtitle, itemTitle, totpWindow, type VaultItem } from '@authx/core';
 import { BrandMark } from '../ui/BrandMark.js';
-import { CheckIcon, CopyIcon, RefreshIcon, StarIcon } from '../ui/icons.js';
+import { CheckIcon, CopyIcon, QrIcon, RefreshIcon, StarIcon } from '../ui/icons.js';
 import { Button, cx } from '../ui/primitives.js';
 import { CountdownRing } from '../ui/CountdownRing.js';
 
@@ -15,6 +15,7 @@ export interface AccountRowProps {
   onFill: () => void;
   onToggleFavorite: () => void;
   onAdvanceCounter: () => void;
+  onShare: () => void;
 }
 
 export function AccountRow({
@@ -28,6 +29,7 @@ export function AccountRow({
   onFill,
   onToggleFavorite,
   onAdvanceCounter,
+  onShare,
 }: AccountRowProps) {
   const subtitle = itemSubtitle(item);
   const window_ = totpWindow(item.period, now);
@@ -70,6 +72,15 @@ export function AccountRow({
         </button>
 
         <div className="flex shrink-0 items-center gap-0.5">
+          <button
+            type="button"
+            onClick={onShare}
+            aria-label="Move to another app"
+            title="Show its QR code, to move it to another app"
+            className="rounded-lg p-1.5 text-base text-zinc-300 opacity-0 transition group-hover:opacity-100 hover:text-zinc-600 focus-visible:opacity-100 dark:text-zinc-700 dark:hover:text-zinc-400"
+          >
+            <QrIcon />
+          </button>
           <button
             type="button"
             onClick={onToggleFavorite}

@@ -1,4 +1,4 @@
-import { isValidBase32 } from '../util/base32.js';
+import { canonicalSecret, isValidBase32 } from '../util/base32.js';
 import { DEFAULT_OTP_PARAMS, type OtpAlgorithm, type OtpParams, type OtpType } from './types.js';
 
 /** A parsed `otpauth://` URI: OTP parameters plus the human-facing naming. */
@@ -90,16 +90,22 @@ export function buildOtpUri(item: ParsedOtpUri): string {
     ? `${encodeURIComponent(item.issuer)}:${encodeURIComponent(item.label)}`
     : encodeURIComponent(item.label);
 
-  const params = new URLSearchParams();
-  params.set('secret', item.secret);
-  if (item.issuer) params.set('issuer', item.issuer);
-  if (item.algorithm !== DEFAULT_OTP_PARAMS.algorithm) params.set('algorithm', item.algorithm);
-  if (item.digits !== DEFAULT_OTP_PARAMS.digits) params.set('digits', String(item.digits));
+  // Canonical whatever form the key arrived in: apps stricter than this one
+  // turn a whole code away over padding or spare bits.
+  const params: [string, string][] = [['secret', canonicalSecret(item.secret)]];
+  if (item.issuer) params.push(['issuer', item.issuer]);
+  if (item.algorithm !== DEFAULT_OTP_PARAMS.algorithm) params.push(['algorithm', item.algorithm]);
+  if (item.digits !== DEFAULT_OTP_PARAMS.digits) params.push(['digits', String(item.digits)]);
   if (item.type === 'totp') {
-    if (item.period !== DEFAULT_OTP_PARAMS.period) params.set('period', String(item.period));
+    if (item.period !== DEFAULT_OTP_PARAMS.period) params.push(['period', String(item.period)]);
   } else {
-    params.set('counter', String(item.counter));
+    params.push(['counter', String(item.counter)]);
   }
 
-  return `otpauth://${item.type}/${label}?${params.toString()}`;
+  // Percent-encoded, never URLSearchParams: that writes a space as `+`, which
+  // the Key URI format does not have. An app that reads `+` literally sees
+  // the issuer "Amazon+Web+Services", unequal to the label's "Amazon Web
+  // Services" — and refuses the code, or files it under the wrong name.
+  const query = params.map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&');
+  return `otpauth://${item.type}/${label}?${query}`;
 }

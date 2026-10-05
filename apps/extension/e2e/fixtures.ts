@@ -18,11 +18,21 @@ const PROFILE_ROOT = resolve(import.meta.dirname, '../.tmp/profiles');
  * Launch one Chromium with the built extension loaded. Exported separately so a
  * test can run two at once — two profiles is the only honest way to test sync.
  */
-export async function launchExtension(extraArgs: string[] = []) {
+export async function launchExtension(
+  extraArgs: string[] = [],
+  {
+    colorScheme = 'light',
+    deviceScaleFactor,
+  }: { colorScheme?: 'light' | 'dark'; deviceScaleFactor?: number } = {},
+) {
   mkdirSync(PROFILE_ROOT, { recursive: true });
   const profile = mkdtempSync(join(PROFILE_ROOT, 'chrome-'));
   const context = await chromium.launchPersistentContext(profile, {
     channel: 'chromium',
+    colorScheme,
+    // Store artwork is captured at 2x and laid out at 1x, so a popup set a
+    // little smaller than life stays sharp.
+    deviceScaleFactor,
     args: [
       `--disable-extensions-except=${EXTENSION_PATH}`,
       `--load-extension=${EXTENSION_PATH}`,

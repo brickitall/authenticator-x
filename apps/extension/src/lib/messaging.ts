@@ -49,6 +49,8 @@ export type Request =
   | { type: 'vault/create'; protection: ProtectionChoice }
   | { type: 'vault/unlock'; password: string }
   | { type: 'vault/lock' }
+  /** Checks the master password without changing anything: a gate, not an unlock. */
+  | { type: 'vault/confirmPassword'; password: string }
   | { type: 'vault/mutate'; mutation: Mutation }
   /** Switch between device and passphrase protection, or change the password. */
   | { type: 'vault/setProtection'; next: ProtectionChoice; currentPassword?: string }
@@ -67,11 +69,17 @@ export type Request =
   | { type: 'vault/recover'; recoveryKey: string; next: ProtectionChoice }
   | { type: 'vault/reset' }
   /**
+   * Step one of creating the account: checks the password here, then asks for
+   * a code to be emailed to the address.
+   */
+  | { type: 'account/startSignUp'; email: string; password: string }
+  /**
    * Create the sync account, keeping this device's data key and how it opens.
    * `password` is the vault's master password if it has one, which then serves
    * as the account's too; otherwise it is a new password for the account alone.
+   * `code` is the one emailed by `account/startSignUp`.
    */
-  | { type: 'account/signUp'; email: string; password: string }
+  | { type: 'account/signUp'; email: string; password: string; code: string }
   /** Join an existing account; this device adopts the account's data key. */
   | { type: 'account/signIn'; email: string; password: string }
   /**

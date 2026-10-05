@@ -30,6 +30,8 @@ export interface PullResult {
   hasMore: boolean;
   /** The account's sealed recovery-kit state, when it changed since the pull began. */
   recovery?: SealedBox;
+  /** Changes when the server was restored from a backup; see `syncOnce`. */
+  epoch?: string;
 }
 
 export interface PushResult {

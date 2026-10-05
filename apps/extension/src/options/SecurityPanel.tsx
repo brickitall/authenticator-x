@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { accountPasswordProblem, scorePassword, type ProtectionMode, type VaultData } from '@authx/core';
 import { send, type Mutate } from '../lib/messaging.js';
-import { Button, Callout, Field, Spinner } from '../ui/primitives.js';
+import { CloudLockIcon, KeyIcon, LockIcon } from '../ui/icons.js';
+import { Button, Callout, Field, Spinner, cx } from '../ui/primitives.js';
 import { RecoveryKeySheet } from './RecoveryKeySheet.js';
 import { Row, Section, Select, Toggle } from './Section.js';
 
@@ -25,8 +26,15 @@ export function SecurityPanel({
   const { settings } = data;
   const passwordProtected = protectionMode === 'passphrase';
 
+  const recoveryReady = hasRecovery && (!signedIn || accountRecovery);
+
   return (
     <>
+      <Overview
+        passwordProtected={passwordProtected}
+        recoveryReady={recoveryReady}
+        syncedAs={signedIn ? data.account.email : null}
+      />
       <Section title="Locking">
         <Row
           label="Lock after inactivity"
@@ -52,7 +60,7 @@ export function SecurityPanel({
                 ]}
               />
             ) : (
-              <span className="text-[13px] text-zinc-400 dark:text-zinc-500">Not applicable</span>
+              <span className="text-[12.5px] text-zinc-400 dark:text-zinc-500">Needs a master password</span>
             )
           }
         />
@@ -128,6 +136,69 @@ export function SecurityPanel({
       />
       <DangerZone onReset={refresh} />
     </>
+  );
+}
+
+/**
+ * How this vault is protected, at a glance: what opens it, whether there is a
+ * way back in, and whether a copy lives anywhere else. The sections below say
+ * the same at length; this is what someone checks in five seconds.
+ */
+function Overview({
+  passwordProtected,
+  recoveryReady,
+  syncedAs,
+}: {
+  passwordProtected: boolean;
+  recoveryReady: boolean;
+  syncedAs: string | null;
+}) {
+  const facts = [
+    {
+      Icon: LockIcon,
+      label: 'Opens with',
+      value: passwordProtected ? 'Master password' : 'Device key',
+      detail: passwordProtected ? 'Locks itself when idle' : 'Nothing to type',
+      tone: 'good' as const,
+    },
+    {
+      Icon: KeyIcon,
+      label: 'Recovery key',
+      value: recoveryReady ? 'Ready' : 'Not set',
+      detail: recoveryReady ? 'Your way back in' : 'Create one below',
+      tone: recoveryReady ? ('good' as const) : ('warn' as const),
+    },
+    {
+      Icon: CloudLockIcon,
+      label: 'Sync',
+      value: syncedAs ? 'On' : 'Off',
+      detail: syncedAs ?? 'This device only',
+      tone: syncedAs ? ('good' as const) : ('neutral' as const),
+    },
+  ];
+  const tones = {
+    good: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
+    warn: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400',
+    neutral: 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400',
+  };
+  return (
+    <div className="mb-5 grid grid-cols-3 gap-3">
+      {facts.map(({ Icon, label, value, detail, tone }) => (
+        <div
+          key={label}
+          className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)] dark:border-zinc-800 dark:bg-zinc-900/50 dark:shadow-none"
+        >
+          <span className={cx('inline-flex h-8 w-8 items-center justify-center rounded-lg', tones[tone])}>
+            <Icon className="h-[18px] w-[18px]" />
+          </span>
+          <p className="mt-3 text-[12px] text-zinc-500 dark:text-zinc-400">{label}</p>
+          <p className="text-[14px] font-semibold">{value}</p>
+          <p className="mt-0.5 truncate text-[11.5px] text-zinc-400 dark:text-zinc-500" title={detail}>
+            {detail}
+          </p>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -349,15 +420,26 @@ function ProtectionSection({ mode, signedIn }: { mode: ProtectionMode; signedIn:
 }
 
 function DangerZone({ onReset }: { onReset: () => Promise<void> }) {
+  const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState('');
   const [busy, setBusy] = useState(false);
   const armed = confirmation === 'DELETE';
 
+  // Folded until asked for: a red box with a text field, always on show at the
+  // foot of every visit, made the whole page feel like a warning.
   return (
     <Section
       title="Delete this vault"
       description="Removes every account and the encrypted vault from this device. There is no undo, and no copy anywhere else."
+      action={
+        open ? null : (
+          <Button variant="ghost" size="sm" className="text-red-600! dark:text-red-400!" onClick={() => setOpen(true)}>
+            Delete this vault…
+          </Button>
+        )
+      }
     >
+      {open && (
       <div className="flex flex-col gap-4 p-4">
         <Callout tone="danger">
           Make sure you still have another way into every account first — a backup file, recovery
@@ -387,8 +469,19 @@ function DangerZone({ onReset }: { onReset: () => Promise<void> }) {
           >
             {busy ? <Spinner /> : null} Delete everything
           </Button>
+          <Button
+            variant="ghost"
+            className="ml-2"
+            onClick={() => {
+              setOpen(false);
+              setConfirmation('');
+            }}
+          >
+            Cancel
+          </Button>
         </div>
       </div>
+      )}
     </Section>
   );
 }
@@ -489,6 +582,7 @@ function RecoverySection({
                 <div className="flex gap-2">
                   <Button
                     variant={hasRecovery ? 'secondary' : 'primary'}
+                    size="sm"
                     disabled={busy}
                     onClick={() => (signedIn ? setAsking('issue') : void issue())}
                   >
@@ -496,7 +590,7 @@ function RecoverySection({
                     {hasRecovery ? 'Issue a new one' : 'Create a recovery key'}
                   </Button>
                   {hasRecovery && (
-                    <Button variant="ghost" onClick={() => setAsking('remove')}>
+                    <Button variant="ghost" size="sm" onClick={() => setAsking('remove')}>
                       Remove
                     </Button>
                   )}

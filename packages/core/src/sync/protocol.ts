@@ -30,10 +30,23 @@ export interface PreloginResponse {
   kdf: AccountKdfParams;
 }
 
+// --- POST /auth/register/start ----------------------------------------------
+
+/**
+ * Asks for a one-time code to be sent to the address. Answered the same way
+ * whether or not the address already has an account: if it does, the email
+ * says so instead of carrying a code, and only the address's owner reads it.
+ */
+export interface RegisterStartRequest {
+  email: string;
+}
+
 // --- POST /auth/register ----------------------------------------------------
 
 export interface RegisterRequest {
   email: string;
+  /** The six-digit code sent to `email`. An account only exists once it is proved. */
+  code: string;
   /** HKDF output; the server hashes it again before storing. */
   authHash: string;
   kdf: AccountKdfParams;
@@ -178,6 +191,11 @@ export interface PullResponse {
    * changed after `since`. Opaque to the server; see `openRecoveryState`.
    */
   recovery?: SealedBox;
+  /**
+   * Names the database's history. It changes only when the server is restored
+   * from a backup, which forgets every change made after the backup was taken.
+   */
+  epoch?: string;
 }
 
 // --- POST /sync -------------------------------------------------------------
@@ -203,7 +221,10 @@ export type SyncErrorCode =
   | 'invalid_credentials'
   /** Signed in, but the password or key proof this change needs was wrong. */
   | 'forbidden'
-  | 'account_exists'
+  /** The emailed code was wrong, used, expired, or tried too many times. */
+  | 'invalid_code'
+  /** The server could not do something it depends on, such as sending mail. */
+  | 'unavailable'
   | 'rate_limited'
   | 'stale_revision'
   | 'payload_too_large'

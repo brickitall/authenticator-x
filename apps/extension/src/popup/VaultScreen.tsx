@@ -12,11 +12,15 @@ import {
 } from '@authx/core';
 import { send, type FieldDetection, type Mutate, type TabContext } from '../lib/messaging.js';
 import { useCodes, useCopy, useNow } from '../ui/hooks.js';
-import { LockIcon, Logo, PlusIcon, SearchIcon, SettingsIcon } from '../ui/icons.js';
+import { LockIcon, Logo, PlusIcon, SearchIcon, SettingsIcon, ShieldIcon } from '../ui/icons.js';
 import { Button, Callout, cx } from '../ui/primitives.js';
 import { AccountRow } from './AccountRow.js';
 import { AddSheet } from './AddSheet.js';
+import { RatePrompt } from './RatePrompt.js';
+import { ShareSheet } from './ShareSheet.js';
+import { loadRating, recordUse, shouldAsk, updateRating } from '../lib/rating.js';
 import { SCAN_FRAGMENT } from '../lib/deep-link.js';
+import { SourceLink } from '../ui/SourceLink.js';
 
 export function VaultScreen({
   data,
@@ -31,6 +35,7 @@ export function VaultScreen({
 }) {
   const [query, setQuery] = useState('');
   const [adding, setAdding] = useState(false);
+  const [sharing, setSharing] = useState<VaultItem | null>(null);
   const [tab, setTab] = useState<TabContext | null>(null);
   const [fields, setFields] = useState<FieldDetection | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -45,6 +50,14 @@ export function VaultScreen({
   useEffect(() => {
     void send({ type: 'tab/context' }).then(setTab);
   }, []);
+
+  // Decided once, as the popup opens: a prompt that appeared mid-copy would
+  // move the list under the pointer.
+  const [askRating, setAskRating] = useState(false);
+  useEffect(() => {
+    void loadRating().then((state) => setAskRating(shouldAsk(state, Date.now())));
+  }, []);
+  const countUse = () => updateRating((state) => recordUse(state, Date.now()));
 
   // Probing for OTP fields injects the content script, so it only happens when
   // autofill is switched on and only for the tab the user opened the popup on.
@@ -94,6 +107,7 @@ export function VaultScreen({
     setConfirmFill(null);
     try {
       await send({ type: 'tab/fill', code });
+      await countUse();
       window.close();
     } catch (cause) {
       setNotice(cause instanceof Error ? cause.message : String(cause));
@@ -110,12 +124,13 @@ export function VaultScreen({
       canFill,
       onCopy: () => {
         const code = codes[item.id];
-        if (code) void copy(item.id, code);
+        if (code) void copy(item.id, code).then(countUse);
       },
       onFill: () => void fill(item),
       onToggleFavorite: () =>
         void mutate({ op: 'items/update', id: item.id, patch: { favorite: !item.favorite } }),
       onAdvanceCounter: () => void mutate({ op: 'items/advanceCounter', id: item.id }),
+      onShare: () => setSharing(item),
     };
   }
 
@@ -175,7 +190,8 @@ export function VaultScreen({
                 })
               }
               title="Change the order"
-              className="font-medium text-zinc-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400"
+              // Never squeezed: a long "synced as" address is what gives way.
+              className="shrink-0 whitespace-nowrap font-medium text-zinc-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400"
             >
               {sortedByName ? 'By name' : 'Order added'}
             </button>
@@ -244,6 +260,17 @@ export function VaultScreen({
         )}
       </div>
 
+      {askRating && !query && all.length > 0 && <RatePrompt onClose={() => setAskRating(false)} />}
+
+      {/* Always on screen: the claim and the way to check it, side by side. */}
+      <footer className="flex items-center justify-between gap-3 border-t border-zinc-100 px-3.5 py-1.5 text-[11px] dark:border-zinc-900">
+        <span className="inline-flex items-center gap-1 font-medium text-zinc-500 dark:text-zinc-400">
+          <ShieldIcon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+          Encrypted on this device
+        </span>
+        <SourceLink />
+      </footer>
+
       {confirmFill && (
         <div className="absolute inset-x-0 bottom-0 z-20 border-t border-amber-200 bg-amber-50 p-3.5 animate-slide-up dark:border-amber-500/30 dark:bg-amber-500/10">
           <p className="text-[13px] leading-relaxed text-amber-900 dark:text-amber-200">
@@ -262,6 +289,8 @@ export function VaultScreen({
           </div>
         </div>
       )}
+
+      {sharing && <ShareSheet item={sharing} onClose={() => setSharing(null)} />}
 
       {adding && (
         <AddSheet

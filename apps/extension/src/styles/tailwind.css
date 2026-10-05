@@ -7,16 +7,18 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 @theme {
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-300: #a5b4fc;
-  --color-brand-400: #818cf8;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-brand-800: #3730a3;
-  --color-brand-900: #312e81;
+  /* The blue of the countdown asterisk. Its red, yellow and green already
+     carry their usual meanings here: danger, warning, success. */
+  --color-brand-50: #e8f0fe;
+  --color-brand-100: #d2e3fc;
+  --color-brand-200: #aecbfa;
+  --color-brand-300: #8ab4f8;
+  --color-brand-400: #669df6;
+  --color-brand-500: #4285f4;
+  --color-brand-600: #1a73e8;
+  --color-brand-700: #1967d2;
+  --color-brand-800: #185abc;
+  --color-brand-900: #174ea6;
 
   --font-mono:
     'SF Mono', ui-monospace, 'JetBrains Mono', 'Cascadia Code', Menlo, Consolas, monospace;
@@ -87,5 +89,36 @@
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.06em;
+  }
+}
+
+/* The QR sheet prints alone. It is a fixed, scrolling layer on screen, which
+   on paper is one page cut off at the fold; the settings under it, and a dark
+   theme's white-on-black text, are not wanted on paper at all. */
+@media print {
+  body:has(> .export-sheet) > :not(.export-sheet) {
+    display: none !important;
+  }
+
+  html:has(.export-sheet),
+  html:has(.export-sheet) body {
+    color-scheme: light;
+    background: #fff !important;
+  }
+
+  .export-sheet {
+    position: static !important;
+    overflow: visible !important;
+    animation: none !important;
+  }
+
+  .export-sheet,
+  .export-sheet * {
+    color: #18181b !important;
+    background-color: transparent !important;
+  }
+
+  .export-sheet li {
+    border-color: #d4d4d8 !important;
   }
 }

@@ -225,3 +225,70 @@ describe('adding an unknown account', () => {
     expect(liveItems(merged.data)[0]!.issuer).toBe('Fastmail');
   });
 });
+
+describe('a server that says it was restored from a backup', () => {
+  /** Answers with a new epoch and whatever records it likes; remembers pushes. */
+  class RestoredServer implements SyncAdapter {
+    readonly id = 'restored';
+    readonly pulls: number[] = [];
+    readonly pushed: RemoteRecord[] = [];
+    constructor(private readonly records: RemoteRecord[]) {}
+    async isAvailable() {
+      return true;
+    }
+    async pull(since: number): Promise<PullResult> {
+      this.pulls.push(since);
+      return { records: since === 0 ? this.records : [], serverRev: 7, hasMore: false, epoch: 'epoch-2' };
+    }
+    async push(records: RemoteRecord[]): Promise<PushResult> {
+      this.pushed.push(...records);
+      return {
+        accepted: records.map((record, index) => ({ id: record.id, rev: record.rev, serverRev: 8 + index })),
+        conflicts: [],
+        serverRev: 8 + records.length,
+      };
+    }
+  }
+
+  it('reads everything again and sends back what it no longer has', async () => {
+    const key = await generateDataKey();
+    const kept = settled(item('GitHub', 'JBSWY3DPEHPK3PXP'));
+    const lost = settled(item('Bank', 'MZXW6YTBOIQWY3DPEB3W64TMMQ'));
+    const server = new RestoredServer([await itemToRecord(kept, key, 'device-a')]);
+    const data = { ...vault(kept, lost), sync: { deviceId: 'device-a', serverRev: 120, lastSyncAt: 1, epoch: 'epoch-1' } };
+
+    const outcome = await syncOnce(data, { adapter: server, dataKey: key });
+
+    expect(server.pulls).toEqual([120, 0]);
+    expect(server.pushed.map((record) => record.id)).toEqual([lost.id]);
+    expect(outcome.serverRestored).toBe(true);
+    expect(outcome.data.sync.epoch).toBe('epoch-2');
+    expect(outcome.data.items.every((entry) => entry.syncedRev === entry.rev)).toBe(true);
+  });
+
+  it('cannot use the claim to roll an account back', async () => {
+    const key = await generateDataKey();
+    const before = settled(item('GitHub', 'JBSWY3DPEHPK3PXP'));
+    const rotated = settled(updateItem(vault(before), before.id, { secret: 'MZXW6YTBOIQWY3DPEB3W64TMMQ' }).items[0]!);
+    // It serves the revision from before the secret was rotated.
+    const server = new RestoredServer([await itemToRecord(before, key, 'device-a')]);
+    const data = { ...vault(rotated), sync: { deviceId: 'device-a', serverRev: 40, lastSyncAt: 1, epoch: 'epoch-1' } };
+
+    const outcome = await syncOnce(data, { adapter: server, dataKey: key });
+
+    expect(liveItems(outcome.data)[0]!.secret).toBe('MZXW6YTBOIQWY3DPEB3W64TMMQ');
+    // The current revision goes back up; nothing older replaces it.
+    expect(server.pushed.map((record) => record.rev)).toEqual([rotated.rev]);
+  });
+
+  it('is not a restore to a device that had never synced', async () => {
+    const key = await generateDataKey();
+    const server = new RestoredServer([]);
+    const outcome = await syncOnce(vault(settled(item('GitHub', 'JBSWY3DPEHPK3PXP'))), { adapter: server, dataKey: key });
+
+    expect(server.pulls).toEqual([0]);
+    expect(server.pushed).toEqual([]);
+    expect(outcome.serverRestored).toBe(false);
+    expect(outcome.data.sync.epoch).toBe('epoch-2');
+  });
+});

@@ -140,6 +140,13 @@ export const EyeOffIcon = (p: IconProps) => (
   </Base>
 );
 
+/** Angle brackets: the source code. */
+export const CodeIcon = (p: IconProps) => (
+  <Base {...p}>
+    <path d="m8 7-5 5 5 5M16 7l5 5-5 5M13.5 4.5l-3 15" />
+  </Base>
+);
+
 /** A cloud with a lock in it: sync that nobody else can read. */
 export const CloudLockIcon = (p: IconProps) => (
   <Base {...p}>
@@ -156,25 +163,51 @@ export const KeyIcon = (p: IconProps) => (
   </Base>
 );
 
-/** The product mark, matching the extension icon. */
+/**
+ * The product mark, matching the extension icon: a countdown asterisk, eight
+ * ticks round a centre. Same geometry as scripts/gen-icons.mjs.
+ */
+const MARK_TICKS = [
+  ['12', '7.68', '12', '2.16', '#4285F4'],
+  ['15.05', '8.95', '18.96', '5.04', '#EA4335'],
+  ['16.32', '12', '21.84', '12', '#FBBC05'],
+  ['15.05', '15.05', '18.96', '18.96', '#34A853'],
+  ['12', '16.32', '12', '21.84', '#4285F4'],
+  ['8.95', '15.05', '5.04', '18.96', '#EA4335'],
+  ['7.68', '12', '2.16', '12', '#FBBC05'],
+  ['8.95', '8.95', '5.04', '5.04', '#34A853'],
+] as const;
+
 export function Logo({ className = 'h-6 w-6' }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <defs>
-        <linearGradient id="authx-logo" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#4F46E5" />
-          <stop offset="100%" stopColor="#7C3AED" />
-        </linearGradient>
-      </defs>
-      <rect width="24" height="24" rx="6.2" fill="url(#authx-logo)" />
-      <path
-        d="M9.1 5.4a7 7 0 1 0 5.8 0"
-        fill="none"
-        stroke="white"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-      />
-      <circle cx="12" cy="12" r="2.1" fill="white" />
+      <g strokeWidth="3" strokeLinecap="round">
+        {MARK_TICKS.map(([x1, y1, x2, y2, colour]) => (
+          <line key={`${x2},${y2}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={colour} />
+        ))}
+      </g>
     </svg>
   );
 }
+
+/** A shield with a tick: protected, and saying so. */
+export const ShieldIcon = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.6 4-1.3 7-5.2 7-9.6V6l-7-3Z" />
+    <path d="m9 11.8 2.1 2.1L15.2 9.8" />
+  </Base>
+);
+
+export const ArchiveIcon = (p: IconProps) => (
+  <Base {...p}>
+    <rect x="3.5" y="4" width="17" height="4.5" rx="1.2" />
+    <path d="M5.5 8.5V18a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V8.5M10 12.5h4" />
+  </Base>
+);
+
+export const InfoIcon = (p: IconProps) => (
+  <Base {...p}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 11v5.5M12 7.8h.01" />
+  </Base>
+);

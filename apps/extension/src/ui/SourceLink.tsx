@@ -1,0 +1,30 @@
+import type { ReactNode } from 'react';
+import { SOURCE_URL } from '../lib/links.js';
+import { CodeIcon } from './icons.js';
+import { cx } from './primitives.js';
+
+/** "Open source", linking to the published code. Opens in a new tab. */
+export function SourceLink({
+  href = SOURCE_URL,
+  className,
+  children = 'Open source',
+}: {
+  href?: string;
+  className?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className={cx(
+        'inline-flex items-center gap-1 font-medium text-zinc-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400',
+        className,
+      )}
+    >
+      <CodeIcon className="shrink-0" />
+      {children}
+    </a>
+  );
+}

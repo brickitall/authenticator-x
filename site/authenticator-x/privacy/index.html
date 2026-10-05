@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Privacy Policy — Authenticator X</title>
+<meta name="description" content="What Authenticator X stores, what its sync server keeps and cannot read, who processes it, and how to delete it.">
+<link rel="canonical" href="https://pricingrank.org/authenticator-x/privacy/">
+<meta name="color-scheme" content="light dark">
+<!-- Generated from docs/privacy-policy.md by scripts/render-policy.mjs. Edit
+     that file, not this one. Nothing here is fetched from anywhere else; the
+     mark is drawn inline, so no cached image can show an old one. The policy
+     above runs no script at all — Cloudflare, in front of pricingrank.org,
+     injects an analytics beacon into every page, and here it is refused. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg stroke-width='3' stroke-linecap='round'%3E%3Cline x1='12' y1='7.68' x2='12' y2='2.16' stroke='%234285F4'/%3E%3Cline x1='15.05' y1='8.95' x2='18.96' y2='5.04' stroke='%23EA4335'/%3E%3Cline x1='16.32' y1='12' x2='21.84' y2='12' stroke='%23FBBC05'/%3E%3Cline x1='15.05' y1='15.05' x2='18.96' y2='18.96' stroke='%2334A853'/%3E%3Cline x1='12' y1='16.32' x2='12' y2='21.84' stroke='%234285F4'/%3E%3Cline x1='8.95' y1='15.05' x2='5.04' y2='18.96' stroke='%23EA4335'/%3E%3Cline x1='7.68' y1='12' x2='2.16' y2='12' stroke='%23FBBC05'/%3E%3Cline x1='8.95' y1='8.95' x2='5.04' y2='5.04' stroke='%2334A853'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f7f8fa; --surface: #ffffff; --fg: #17181c; --muted: #5f6368;
+    --rule: #e3e5e8; --brand: #1a73e8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1115; --surface: #181a1f; --fg: #eceef1; --muted: #a1a5ab; --rule: #2a2d33; --brand: #8ab4f8; }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--brand); text-underline-offset: .18em; }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 0 16px; }
+  header { display: flex; align-items: center; gap: .6rem; padding: 1.25rem 0; }
+  header a.brand { display: flex; align-items: center; gap: .6rem; color: var(--fg); font-weight: 650; text-decoration: none; }
+  main { padding: 1.5rem 0 4rem; }
+  h1 { font-size: clamp(1.9rem, 5vw, 2.5rem); letter-spacing: -0.03em; line-height: 1.15; margin: 0 0 .5rem; }
+  h3 { font-size: 1.25rem; letter-spacing: -0.015em; margin: 2.75rem 0 .75rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
+  h4 { font-size: 1rem; margin: 1.75rem 0 .5rem; }
+  .updated { color: var(--muted); font-size: .9rem; margin: 0 0 1.75rem; }
+  .lede { font-size: 1.08rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 1.1rem 1.25rem; }
+  ul { padding-left: 1.2rem; }
+  li { margin: .55rem 0; }
+  code { font: .875em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--rule); padding: .1em .35em; border-radius: 4px; }
+  footer { border-top: 1px solid var(--rule); padding: 1.75rem 0 3rem; color: var(--muted); font-size: .9rem; }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="../"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><g stroke-width="3" stroke-linecap="round"><line x1="12" y1="7.68" x2="12" y2="2.16" stroke="#4285F4"/><line x1="15.05" y1="8.95" x2="18.96" y2="5.04" stroke="#EA4335"/><line x1="16.32" y1="12" x2="21.84" y2="12" stroke="#FBBC05"/><line x1="15.05" y1="15.05" x2="18.96" y2="18.96" stroke="#34A853"/><line x1="12" y1="16.32" x2="12" y2="21.84" stroke="#4285F4"/><line x1="8.95" y1="15.05" x2="5.04" y2="18.96" stroke="#EA4335"/><line x1="7.68" y1="12" x2="2.16" y2="12" stroke="#FBBC05"/><line x1="8.95" y1="8.95" x2="5.04" y2="5.04" stroke="#34A853"/></g></svg>Authenticator X</a>
+  </header>
+  <main>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: 5 October 2026</p>
+    <p class="lede">Authenticator X works without an account, and then nothing leaves your computer. Sync between your browsers is optional. If you turn it on, your two-factor accounts are encrypted on your device before they are uploaded, with a key the server never receives: we store them, but we cannot read them. We keep your email address and what is needed to run the account, use it for nothing else, and sell nothing.</p>
+    <p>Authenticator X is made by BRICK IT ALL LLC ("we"). Sync is available from version 0.2.0.</p>
+    <h3>Without an account</h3>
+    <h4>What the extension stores</h4>
+    <ul>
+      <li><strong>Your two-factor accounts</strong> — the issuer, the account name, the shared secret needed to generate codes, and any note or picture you add. These are encrypted with AES-256-GCM before they are written to disk, using either that device's key or your master password.</li>
+      <li><strong>Your preferences</strong> — theme, sort order, auto-lock delay, and whether autofill is enabled.</li>
+      <li><strong>When to ask for a rating</strong> — the time you first used a code and how many codes you have copied or filled since, so that the extension asks once, after real use, whether you would rate it, and remembers your answer. It holds no account names or secrets and is never sent anywhere.</li>
+    </ul>
+    <p>All of this lives in your browser's local extension storage. Without an account none of it is sent anywhere.</p>
+    <h4>What the extension can see</h4>
+    <ul>
+      <li><strong>The page you open the extension on.</strong> When you scan a QR code, the extension takes a picture of the visible part of that tab and looks for a QR code in it. When you fill a code, it looks for a one-time-code field on that tab and types into it. Both use the browser's <code>activeTab</code> permission, which is granted only for the tab you invoked the extension on, and only until that tab navigates away.</li>
+      <li><strong>Your camera, only when you ask it to scan.</strong> The browser asks for your permission the first time and remembers your answer. The extension reads each frame on your device to find a QR code in it, and switches the camera off as soon as the scan finishes or you leave it.</li>
+      <li><strong>Pictures you choose.</strong> A screenshot or photo of a QR code that you pick is read on your device to find the code in it.</li>
+      <li>The extension declares <strong>no host permissions</strong> and installs <strong>no persistent content scripts</strong>, so it has no standing access to any website.</li>
+    </ul>
+    <p>Nothing seen this way is stored or transmitted. Screenshots of the page, camera frames and the pictures you choose are decoded in memory and discarded — none of them is recorded, kept or uploaded, with or without an account.</p>
+    <h3>With an account (optional sync)</h3>
+    <h4>What we receive and keep</h4>
+    <ul>
+      <li><strong>Your email address</strong>, to identify your account and to send you a code that proves the address is yours.</li>
+      <li><strong>Your two-factor accounts, encrypted.</strong> Each one is encrypted on your device with your account's data key before it is uploaded. We store the ciphertext and the little we need to keep your devices in step: a random identifier for each entry, a revision number, when it last changed, whether it was deleted, and which of your devices changed it. We cannot read the issuer, account name, secret, note or picture.</li>
+      <li><strong>What lets you sign in, none of it usable as your password.</strong> Your account password never leaves your device. It is stretched on your device into two unrelated keys: one stays there; the other proves your password to us, and we store only a salted, slow hash of that proof, mixed with a secret held apart from the database. We also store your data key in encrypted form, so a new device can open it with your password, and, if you made one, the same for your recovery key.</li>
+      <li><strong>Your signed-in devices</strong> — a name such as "Chrome on Mac", when each signed in and was last used, and a hash of its session tokens, so you can see the list and sign a device out.</li>
+    </ul>
+    <h4>What the service sees in passing</h4>
+    <ul>
+      <li><strong>Your IP address</strong>, which every connection carries. To limit abuse — someone guessing passwords or requesting codes in bulk — the server counts recent requests per address. It keeps only a one-way digest of the address, for at most an hour.</li>
+      <li>Requests reach the server through <strong>Cloudflare</strong>, which protects it and sees connection details such as your IP address. Our hosting provider's web server writes routine access logs (IP address, time, the address requested); we have archiving of those logs switched off, and we do not combine them with your account.</li>
+    </ul>
+    <h4>Emails we send</h4>
+    <p>Only what the account needs: the code that confirms your address when you sign up, and a notice if someone tries to sign up with an address that already has an account. No newsletters, no marketing.</p>
+    <h4>Who processes it for us</h4>
+    <ul>
+      <li><strong>A2 Hosting</strong> runs the server and its database, in Singapore.</li>
+      <li><strong>Cloudflare</strong> carries the connections between your browser and the server.</li>
+      <li><strong>MailChannels</strong> relays the emails we send.</li>
+      <li><strong>Google</strong> (Gmail) holds an off-site copy of each daily database backup. The backup is encrypted, and the key to open it is not stored with it.</li>
+    </ul>
+    <p>They handle the data only to provide those services to us. Some of them are in the United States, so your data may be processed outside your country.</p>
+    <h4>How long we keep it</h4>
+    <ul>
+      <li><strong>Your account and everything synced</strong>: until you delete the account. Deleting it (Settings → Account &amp; sync → Delete account, which asks for your password) removes your email address, your encrypted entries, your devices and your recovery data from our database at once.</li>
+      <li><strong>Backups</strong>: encrypted daily copies of the database are kept for 14 days on the server, and the off-site copies are deleted within 60 days. Deleted accounts disappear from backups as they expire.</li>
+      <li><strong>Sign-up codes</strong>: a code works for 15 minutes. The record of the request, with the address it went to, is deleted within a day once its hour has passed.</li>
+      <li><strong>Failed sign-in counts</strong> are forgotten after an hour without failures, and deleted within a day after that. <strong>Expired sessions</strong> are deleted within a day.</li>
+    </ul>
+    <h4>How we use it</h4>
+    <p>Only to provide sync and to keep the service and your account secure. We do not sell your data, use it for advertising, share it except with the processors above, or use it to decide anyone's creditworthiness. Nobody at BRICK IT ALL LLC reads your two-factor accounts, because nobody can.</p>
+    <h3>What Authenticator X never does</h3>
+    <ul>
+      <li>No analytics, telemetry, crash reporting or usage statistics.</li>
+      <li>No advertising, and no advertising identifiers.</li>
+      <li>No remotely hosted code. Everything that runs is in the package the browser installed, enforced by the extension's Content Security Policy.</li>
+      <li>No service logos fetched from the internet: they are built in, so no website learns which accounts you keep.</li>
+    </ul>
+    <h3>Data you export yourself</h3>
+    <p>The backup and export features write files to wherever you choose, or show QR codes on your screen for another app to scan. All of it is made on your device and sent nowhere. An encrypted backup is protected by the password you set for it. Everything else — a QR code, a printed sheet of them, an Aegis or Bitwarden file, a plain-text <code>otpauth://</code> export — is <strong>not</strong> encrypted and contains your secrets in readable form: whoever sees or holds it can generate your codes. Delete files, and destroy paper copies, as soon as you have finished with them.</p>
+    <h3>Your choices and rights</h3>
+    <ul>
+      <li><strong>Use it without an account.</strong> Every feature but sync works without one.</li>
+      <li><strong>See and take your data.</strong> Your entries are in the extension, readable by you, and Backup &amp; import exports them. For what we hold about your account, write to us.</li>
+      <li><strong>Delete it.</strong> Delete the account in the extension at any time. Settings → Security → Delete this vault removes the vault from a device; removing the extension also removes its storage.</li>
+      <li><strong>Correct it or ask about it.</strong> Write to us; we answer within 30 days.</li>
+    </ul>
+    <p>By creating an account you agree to this processing for the purposes above; you can withdraw by deleting the account. If you believe we handle your data wrongly, you may also complain to the data protection authority where you live.</p>
+    <p>Authenticator X is not directed at children under 13, and we do not knowingly hold data about them.</p>
+    <h3>Changes</h3>
+    <p>When this policy changes, the date at the top changes with it. A change in what we collect or who processes it is also named in the extension's release notes before it takes effect.</p>
+    <h3>Contact</h3>
+    <p>BRICK IT ALL LLC — <!--email_off--><a href="mailto:brickitall.hi@gmail.com">brickitall.hi@gmail.com</a><!--/email_off--></p>
+  </main>
+  <footer>© BRICK IT ALL LLC · <a href="../">Authenticator X</a> · <a href="https://github.com/brickitall/authenticator-x">Source code</a></footer>
+</div>
+</body>
+</html>

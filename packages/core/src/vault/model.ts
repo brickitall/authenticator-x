@@ -159,6 +159,11 @@ export interface SyncState {
    * kit's `createdAt` exactly when that kit is also the account's.
    */
   recoveryAt?: number;
+  /**
+   * The server's history this device is in step with. Absent until the first
+   * sync. A different value means the server was restored from a backup.
+   */
+  epoch?: string;
 }
 
 /** The decrypted contents of the vault. Never leaves memory unencrypted. */

@@ -1,23 +1,26 @@
 {
   "name": "@authx/extension",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Authenticator X — Chrome MV3 extension.",
   "license": "GPL-3.0-or-later",
   "scripts": {
     "build": "node scripts/build.mjs",
+    "build:as-edge": "node scripts/build.mjs --as-edge",
     "build:watch": "node scripts/build.mjs && vite build --watch",
     "dev": "vite",
     "icons": "node ../../scripts/gen-icons.mjs public/icons",
     "icons:brands": "node --experimental-strip-types ../../scripts/gen-brands.mjs",
-    "shots": "npm run build && playwright test --project=shots",
+    "shots": "VITE_SYNC_API_URL=http://localhost:8799 npm run build && playwright test --project=shots && npm run build",
+    "review": "VITE_SYNC_API_URL=http://localhost:8799 npm run build && playwright test --project=review",
     "test:e2e": "npm run build && playwright test --project=e2e",
     "zip": "node scripts/build.mjs --zip"
   },
   "dependencies": {
     "@authx/core": "*",
     "jsqr": "^1.4.0",
+    "qr": "0.7.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

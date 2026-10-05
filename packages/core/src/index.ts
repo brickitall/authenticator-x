@@ -10,6 +10,7 @@ export * from './otp/types.js';
 export * from './otp/totp.js';
 export * from './otp/uri.js';
 export * from './otp/migration.js';
+export * from './otp/quick.js';
 
 // Crypto
 export * from './crypto/kdf.js';
@@ -33,7 +34,7 @@ export * from './sync/engine.js';
 export * from './sync/recovery.js';
 
 // Utilities worth exposing to app code
-export { base32Decode, base32Encode, isValidBase32 } from './util/base32.js';
+export { base32Decode, base32Encode, canonicalSecret, isValidBase32 } from './util/base32.js';
 export { crockfordDecode, crockfordEncode, group } from './util/crockford.js';
 export { toBase64, fromBase64, toHex, fromHex, utf8, fromUtf8 } from './util/bytes.js';
 export { newId, randomBytes } from './util/id.js';

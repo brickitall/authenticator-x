@@ -42,6 +42,9 @@ server were hostile, so every claim below is about code you can read.
   sheet cannot be brought back to life.
 - Changing the account password, deleting the account, and changing its
   recovery key all require the account password, not just a signed-in session.
+- A server restored from a backup says so, and each device then sends back what
+  the server lost. Saying so falsely gains a server nothing: a device still
+  never replaces its copy with an older one, and sends only what it already had.
 
 `packages/core/test/hostile-server.test.ts` plays a server that tries each of
 these, and the tests next to it cover the rest.

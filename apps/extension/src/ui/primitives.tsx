@@ -14,13 +14,16 @@ type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md';
 
 const VARIANTS: Record<ButtonVariant, string> = {
+  // On a dark page a faded blue or red still reads as a live button, so a
+  // disabled one turns neutral there: "Done" before the box is ticked must look it.
   primary:
-    'bg-brand-600 text-white hover:bg-brand-500 active:bg-brand-700 disabled:bg-brand-600/50 shadow-sm',
+    'bg-brand-600 text-white hover:bg-brand-500 active:bg-brand-700 disabled:bg-brand-600/50 shadow-sm dark:disabled:bg-zinc-800 dark:disabled:text-zinc-500 dark:disabled:shadow-none',
   secondary:
     'bg-zinc-100 text-zinc-900 hover:bg-zinc-200 active:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 dark:active:bg-zinc-600',
   ghost:
     'bg-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
-  danger: 'bg-red-600 text-white hover:bg-red-500 active:bg-red-700 disabled:bg-red-600/50',
+  danger:
+    'bg-red-600 text-white hover:bg-red-500 active:bg-red-700 disabled:bg-red-600/50 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-500',
 };
 
 const SIZES: Record<ButtonSize, string> = {

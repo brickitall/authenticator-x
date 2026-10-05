@@ -14,7 +14,8 @@ import { AddSheet } from '../popup/AddSheet.js';
 import { BrandMark } from '../ui/BrandMark.js';
 import { ICON_ACCEPT, prepareIcon } from '../ui/icon-upload.js';
 import { ServiceField } from '../ui/ServiceField.js';
-import { PlusIcon, TrashIcon } from '../ui/icons.js';
+import { PlusIcon, QrIcon, TrashIcon } from '../ui/icons.js';
+import { ShareAccount } from '../ui/ShareAccount.js';
 import { Button, Callout, Field, cx } from '../ui/primitives.js';
 import { GroupsPanel } from './GroupsPanel.js';
 import { Section } from './Section.js';
@@ -39,6 +40,7 @@ export function AccountsPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [editing, setEditing] = useState<VaultItem | null>(null);
+  const [sharing, setSharing] = useState<VaultItem | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
 
   const items = useMemo(() => sortItems(liveItems(data), data.settings.sortBy), [data]);
@@ -51,7 +53,7 @@ export function AccountsPanel({
     <>
       <Section
         title="Accounts"
-        description="Everything stored in this vault. Codes are generated on this device — nothing is sent anywhere."
+        description="Everything stored in this vault. Codes are generated on this device, never by a server."
         action={
           <Button variant="primary" onClick={() => setAdding('choose')}>
             <PlusIcon /> Add account
@@ -101,6 +103,15 @@ export function AccountsPanel({
                 )}
 
                 <div className="flex shrink-0 items-center gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setSharing(item)}
+                    aria-label={`Move ${itemTitle(item)} to another app`}
+                    title="Show its QR code, to move it to another app"
+                  >
+                    <QrIcon />
+                  </Button>
                   <Button size="sm" onClick={() => setEditing(item)}>
                     Edit
                   </Button>
@@ -183,6 +194,25 @@ export function AccountsPanel({
         </Modal>
       )}
 
+      {sharing && (
+        <Modal size="fit" onClose={() => setSharing(null)}>
+          <div className="p-6">
+            <h2 className="text-[16px] font-semibold">Move {itemTitle(sharing)} to another app</h2>
+            {sharing.issuer && sharing.label && (
+              <p className="mt-0.5 mb-4 text-[12.5px] text-zinc-500 dark:text-zinc-400">{sharing.label}</p>
+            )}
+            <div className={sharing.issuer && sharing.label ? '' : 'mt-4'}>
+              <ShareAccount item={sharing} />
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Button size="sm" variant="ghost" onClick={() => setSharing(null)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {editing && (
         <Modal size="form" onClose={() => setEditing(null)}>
           <ItemEditor
@@ -211,6 +241,8 @@ export function AccountsPanel({
 const MODAL_HEIGHT = {
   sheet: 'h-[min(640px,calc(100vh-3rem))]',
   form: 'h-[min(840px,calc(100vh-3rem))]',
+  // As tall as its content: a QR code and a few buttons.
+  fit: 'max-h-[calc(100vh-3rem)] overflow-y-auto',
 } as const;
 
 function Modal({

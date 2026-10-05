@@ -27,6 +27,9 @@ export default defineConfig({
     ...(hasSyncServer ? [{ name: 'sync', testDir: './sync-e2e' }] : []),
     // Asset generation, not a test. Run it with `npm run shots`.
     { name: 'shots', testDir: './shots' },
+    // Every screen in light and dark, for a person to look at before a
+    // release. Not a test either: `npm run review -w @authx/extension`.
+    ...(hasSyncServer ? [{ name: 'review', testDir: './review', timeout: 300_000 }] : []),
   ],
 
   // The real server, on Postgres-compiled-to-WebAssembly, so no database has to

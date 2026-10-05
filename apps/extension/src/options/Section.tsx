@@ -1,5 +1,11 @@
 import type { ReactNode } from 'react';
+import { cx } from '../ui/primitives.js';
 
+/**
+ * A settings card: its title and what it is for inside it, the rows below. A
+ * heading floating over a bordered box, with a paragraph between, read like a
+ * document; a card reads like a control panel, which is what this is.
+ */
 export function Section({
   title,
   description,
@@ -9,22 +15,23 @@ export function Section({
   title: string;
   description?: ReactNode;
   action?: ReactNode;
-  children: ReactNode;
+  /** Absent, the card is its header alone — a danger zone still folded away. */
+  children?: ReactNode;
 }) {
   return (
-    <section className="mb-8">
-      <div className="mb-3 flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-[15px] font-semibold">{title}</h2>
+    <section className="mb-5 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] dark:border-zinc-800 dark:bg-zinc-900/50 dark:shadow-none">
+      <div className="flex items-start justify-between gap-4 px-4 pt-4 pb-3.5">
+        <div className="min-w-0">
+          <h2 className="text-[14px] font-semibold tracking-[-0.005em]">{title}</h2>
           {description && (
-            <p className="mt-1 max-w-prose text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 max-w-[60ch] text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
               {description}
             </p>
           )}
         </div>
         {action}
       </div>
-      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800">{children}</div>
+      {children ? <div className="border-t border-zinc-100 dark:border-zinc-800/80">{children}</div> : null}
     </section>
   );
 }
@@ -39,7 +46,7 @@ export function Row({
   control: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-6 border-b border-zinc-100 px-4 py-3.5 last:border-b-0 dark:border-zinc-900">
+    <div className="flex items-center justify-between gap-6 border-b border-zinc-100 px-4 py-3.5 last:border-b-0 dark:border-zinc-800/80">
       <div className="min-w-0">
         <p className="text-[13px] font-medium">{label}</p>
         {description && (
@@ -86,6 +93,11 @@ export function Toggle({
   );
 }
 
+/**
+ * A choice of a few values. Up to three show as a segmented control — every
+ * option visible, one click — which looks like part of the product; more fall
+ * back to a menu, styled rather than left as the browser's default control.
+ */
 export function Select<T extends string | number>({
   value,
   onChange,
@@ -97,21 +109,66 @@ export function Select<T extends string | number>({
   options: { value: T; label: string }[];
   label: string;
 }) {
+  if (options.length <= 3) {
+    return (
+      <div
+        role="radiogroup"
+        aria-label={label}
+        className="inline-flex rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-800"
+      >
+        {options.map((option) => {
+          const selected = option.value === value;
+          return (
+            <button
+              key={String(option.value)}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => onChange(option.value)}
+              className={cx(
+                'h-8 rounded-[10px] px-3 text-[12.5px] font-medium transition-colors',
+                selected
+                  ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white'
+                  : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200',
+              )}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
-    <select
-      aria-label={label}
-      value={String(value)}
-      onChange={(event) => {
-        const match = options.find((option) => String(option.value) === event.target.value);
-        if (match) onChange(match.value);
-      }}
-      className="h-9 rounded-lg border border-zinc-200 bg-white px-2.5 text-[13px] dark:border-zinc-800 dark:bg-zinc-900"
-    >
-      {options.map((option) => (
-        <option key={String(option.value)} value={String(option.value)}>
-          {option.label}
-        </option>
-      ))}
-    </select>
+    <div className="relative">
+      <select
+        aria-label={label}
+        value={String(value)}
+        onChange={(event) => {
+          const match = options.find((option) => String(option.value) === event.target.value);
+          if (match) onChange(match.value);
+        }}
+        className="h-9 appearance-none rounded-xl border border-zinc-200 bg-white pr-8 pl-3 text-[13px] font-medium text-zinc-800 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+      >
+        {options.map((option) => (
+          <option key={String(option.value)} value={String(option.value)}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      <svg
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 text-zinc-400"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="m7 10 5 5 5-5" />
+      </svg>
+    </div>
   );
 }

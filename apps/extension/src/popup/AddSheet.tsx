@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  BAD_KEY_MESSAGE,
   importFromText,
   itemFromUri,
   itemMatchesHost,
@@ -14,10 +15,11 @@ import { CameraScanner, cameraAlreadyGranted } from '../ui/CameraScanner.js';
 import { ScanProgress, plural } from '../ui/ScanProgress.js';
 import { decodeQrFromDataUrl, decodeQrFromFile } from '../ui/qr.js';
 import { ServiceField } from '../ui/ServiceField.js';
-import { ArrowLeftIcon, CameraIcon, ImageIcon, KeyboardIcon, QrIcon } from '../ui/icons.js';
+import { ArrowLeftIcon, CameraIcon, ImageIcon, KeyIcon, KeyboardIcon, QrIcon } from '../ui/icons.js';
+import { QuickCode } from '../ui/QuickCode.js';
 import { Button, Callout, Field, Spinner } from '../ui/primitives.js';
 
-type Mode = 'choose' | 'manual' | 'camera';
+type Mode = 'choose' | 'manual' | 'camera' | 'quick';
 
 export function AddSheet({
   hostname,
@@ -214,7 +216,9 @@ export function AddSheet({
             ? 'Enter a setup key'
             : mode === 'camera'
               ? 'Scan with your camera'
-              : 'Add an account'}
+              : mode === 'quick'
+                ? 'Get a code, without saving'
+                : 'Add an account'}
         </h2>
       </header>
 
@@ -256,6 +260,12 @@ export function AddSheet({
               title="Enter a setup key manually"
               description="For sites that show a code instead of a QR."
               onClick={() => setMode('manual')}
+            />
+            <Choice
+              icon={<KeyIcon />}
+              title="Just get a code"
+              description="Paste a key and see its code now. Nothing is saved."
+              onClick={() => setMode('quick')}
             />
 
             <input
@@ -299,6 +309,8 @@ export function AddSheet({
               onCancel={progress && progress.added > 0 ? onClose : () => setMode('choose')}
             />
           </>
+        ) : mode === 'quick' ? (
+          <QuickCode onSave={(params) => commit([itemFromUri(params)], 'manual')} />
         ) : (
           <ManualForm hostname={hostname} onSubmit={(items) => commit(items, 'manual')} />
         )}
@@ -386,9 +398,7 @@ function ManualForm({
       // nobody copying a key off a website has heard of. Naming the alphabet
       // also catches the usual slip: a 0 or 1 typed for an O or I.
       if (!/^[A-Z2-7]+=*$/.test(cleaned)) {
-        throw new Error(
-          'A setup key uses only the letters A–Z and the digits 2–7. Check it was copied in full, with nothing extra.',
-        );
+        throw new Error(BAD_KEY_MESSAGE);
       }
       // Round-tripping through the URI parser gives us one validation path for
       // both entry methods.

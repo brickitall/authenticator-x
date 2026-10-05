@@ -10,7 +10,7 @@ import { deriveKek, newKdfParams, type KdfParams } from '../crypto/kdf.js';
 import { isMigrationUri, parseMigrationUri } from '../otp/migration.js';
 import { DEFAULT_OTP_PARAMS } from '../otp/types.js';
 import { buildOtpUri, parseOtpUri } from '../otp/uri.js';
-import { isValidBase32 } from '../util/base32.js';
+import { canonicalSecret, isValidBase32 } from '../util/base32.js';
 import { utf8 } from '../util/bytes.js';
 import { newId } from '../util/id.js';
 import type { Group, VaultItem } from './model.js';
@@ -191,6 +191,84 @@ export function exportPlainUris(items: VaultItem[]): string {
     .filter((item) => item.deletedAt === null)
     .map((item) => buildOtpUri(item))
     .join('\n');
+}
+
+/**
+ * Aegis's plain vault format — the file interchange most authenticators read:
+ * Aegis itself, 2FAS, Ente, Proton Authenticator and others import it. Groups
+ * go with it, so a move keeps its headings. Unencrypted, like the text export.
+ *
+ * Aegis identifies entries and groups by UUID; fresh ones are minted for the
+ * file, since nothing on the other side refers back to ours.
+ */
+export function exportAegisJson(items: VaultItem[], groups: Group[]): string {
+  const live = items.filter((item) => item.deletedAt === null);
+  const groupUuid = new Map(
+    groups
+      .filter((group) => group.deletedAt === null && live.some((item) => item.groupId === group.id))
+      .map((group) => [group.id, { uuid: crypto.randomUUID(), name: group.name }]),
+  );
+  const entries = live.map((item) => ({
+    type: item.type,
+    uuid: crypto.randomUUID(),
+    name: item.label,
+    issuer: item.issuer,
+    note: item.note,
+    favorite: item.favorite,
+    icon: null,
+    info:
+      item.type === 'hotp'
+        ? { secret: canonicalSecret(item.secret), algo: item.algorithm, digits: item.digits, counter: item.counter }
+        : { secret: canonicalSecret(item.secret), algo: item.algorithm, digits: item.digits, period: item.period },
+    groups: item.groupId && groupUuid.has(item.groupId) ? [groupUuid.get(item.groupId)!.uuid] : [],
+  }));
+  return JSON.stringify(
+    {
+      version: 1,
+      header: { slots: null, params: null },
+      db: { version: 3, entries, groups: [...groupUuid.values()] },
+    },
+    null,
+    2,
+  );
+}
+
+/**
+ * Bitwarden's unencrypted export: each account a login whose `totp` is its
+ * setup link, ready for the password manager's "Bitwarden (json)" import.
+ * Groups become folders, and the sites an account fills on become the login's
+ * URIs, so Bitwarden offers the code in the same places this extension did.
+ * Unencrypted, like the other readable exports.
+ */
+export function exportBitwardenJson(items: VaultItem[], groups: Group[]): string {
+  const live = items.filter((item) => item.deletedAt === null);
+  const folderId = new Map(
+    groups
+      .filter((group) => group.deletedAt === null && live.some((item) => item.groupId === group.id))
+      .map((group) => [group.id, { id: crypto.randomUUID(), name: group.name }]),
+  );
+  const entries = live.map((item) => ({
+    id: crypto.randomUUID(),
+    organizationId: null,
+    folderId: (item.groupId && folderId.get(item.groupId)?.id) ?? null,
+    type: 1,
+    reprompt: 0,
+    name: item.issuer || item.label || 'Account',
+    notes: item.note || null,
+    favorite: item.favorite,
+    login: {
+      fido2Credentials: [],
+      uris: item.domains.map((domain) => ({ match: null, uri: `https://${domain}` })),
+      username: item.label || null,
+      password: null,
+      totp: buildOtpUri(item),
+    },
+    collectionIds: null,
+    creationDate: new Date(item.createdAt).toISOString(),
+    revisionDate: new Date(item.updatedAt).toISOString(),
+    deletedDate: null,
+  }));
+  return JSON.stringify({ encrypted: false, folders: [...folderId.values()], items: entries }, null, 2);
 }
 
 export interface ImportResult {

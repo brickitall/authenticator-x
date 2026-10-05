@@ -33,6 +33,7 @@ import {
   recoverReset,
   register,
   sealRecoveryState,
+  startRegistration,
   sealVault,
   SyncHttpError,
   syncOnce,
@@ -139,7 +140,7 @@ function markEverythingPending(data: VaultData, email: string): VaultData {
     {
       ...data,
       items: data.items.map((item) => ({ ...item, syncedRev: 0 })),
-      sync: { ...data.sync, serverRev: 0, lastSyncAt: null, recoveryAt: 0 },
+      sync: { ...data.sync, serverRev: 0, lastSyncAt: null, recoveryAt: 0, epoch: undefined },
     },
     { email, plan: 'synced' },
   );
@@ -160,11 +161,12 @@ async function storeSession(session: Pick<LoginResponse, 'accessToken' | 'refres
  * The local data key becomes the account's, wrapped under a key derived from
  * the password, so nothing is re-encrypted.
  */
-export async function signUp(
-  unlocked: UnlockedVault,
-  email: string,
-  password: string,
-): Promise<{ file: typeof unlocked.file; data: VaultData; authHash: string }> {
+/**
+ * Whether this password may become this vault's account password. Checked
+ * before a code is sent, so nobody waits for an email only to be told the
+ * password was never going to do, and again when the account is made.
+ */
+async function assertCanSignUpWith(unlocked: UnlockedVault, password: string): Promise<void> {
   if (unlocked.file.protection.mode === 'passphrase') {
     if (!(await verifyPassword(unlocked.file, password))) {
       throw new Error('That is not this vault’s master password. It becomes your account password too.');
@@ -178,6 +180,29 @@ export async function signUp(
   } else {
     assertStrongEnough(password);
   }
+}
+
+/**
+ * Step one of signing up: the password is checked here, then a code goes to
+ * the address. The server answers the same whether or not the address already
+ * has an account — the email says which — so this cannot be used to find out.
+ */
+export async function prepareSignUp(
+  unlocked: UnlockedVault,
+  email: string,
+  password: string,
+): Promise<void> {
+  await assertCanSignUpWith(unlocked, password);
+  await startRegistration(SYNC_API_URL, email, fetch);
+}
+
+export async function signUp(
+  unlocked: UnlockedVault,
+  email: string,
+  password: string,
+  code: string,
+): Promise<{ file: typeof unlocked.file; data: VaultData; authHash: string }> {
+  await assertCanSignUpWith(unlocked, password);
 
   const kdf = newAccountKdfParams();
   const keys = await deriveAccountKeys(password, kdf);
@@ -188,6 +213,7 @@ export async function signUp(
       SYNC_API_URL,
       {
         email,
+        code,
         authHash: keys.authHash,
         kdf,
         protectedKey: await wrapDataKey(keys.stretchedKey, unlocked.dataKey),
@@ -475,7 +501,7 @@ export async function signOut(data: VaultData): Promise<VaultData> {
 
 function forgetAccount(data: VaultData): VaultData {
   return updateAccount(
-    { ...data, sync: { ...data.sync, serverRev: 0, lastSyncAt: null, recoveryAt: 0 } },
+    { ...data, sync: { ...data.sync, serverRev: 0, lastSyncAt: null, recoveryAt: 0, epoch: undefined } },
     { email: null, plan: 'local' },
   );
 }
@@ -488,7 +514,7 @@ function forgetAccount(data: VaultData): VaultData {
 export async function markSignedOutElsewhere(data: VaultData): Promise<VaultData> {
   await tokenStore.clear();
   return updateAccount(
-    { ...data, sync: { ...data.sync, serverRev: 0, lastSyncAt: null, recoveryAt: 0 } },
+    { ...data, sync: { ...data.sync, serverRev: 0, lastSyncAt: null, recoveryAt: 0, epoch: undefined } },
     { plan: 'local' },
   );
 }

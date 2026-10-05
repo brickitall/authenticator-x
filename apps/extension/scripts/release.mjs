@@ -1,0 +1,25 @@
+/**
+ * The official sync server, compiled into every build that does not say
+ * otherwise — so `npm run build` from a release tag produces the same bytes
+ * the stores ship. The e2e suite points a build at its own server through
+ * `VITE_SYNC_API_URL`, and an empty value builds one with no account features.
+ *
+ * It is also what scripts/check-release.mjs holds a release's `connect-src`
+ * to: the one origin a release may talk to besides itself. Changing it is a
+ * change to the privacy policy and to both stores' privacy answers.
+ */
+export const PRODUCTION_SYNC_API_URL = 'https://2fa.pricingrank.org';
+
+/**
+ * The Edge Add-ons listing's public key (Partner Center → the extension →
+ * Extension identity). A manifest that carries it loads with the Edge
+ * listing's id, lnbabkbknabedpnmdihllnbhdmolianm — one the sync server
+ * accepts — which is how a build loaded unpacked can try sync against the
+ * real server: `npm run build:as-edge`. In Chrome nothing else has that id; in
+ * Edge it would stand in for the store install, so use Chrome.
+ *
+ * Public by nature: every copy of the listing's package carries it. A store
+ * upload must not, and check-release refuses one that does.
+ */
+export const EDGE_PUBLIC_KEY =
+  'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiJljD2s/4hKNRENlUchF1mn1uvv3e5nL/3Knqcz3xa0Hz+ojMW7PxcP/8wh/7np45gQ9rF1GWur97EJBX4y8bwgqoP8H1cRHGAgGR4X+VT/PWuZXtMnnv7ArN78ClkWlC2iIP1JDHvkWIia0OMWUNDbHgrURYirykI9wxzo0jfsXZ+29Ekwiu9AEz4p6XxFVJRD32o632Vbk+hF7pNytP0zYOAz2si96h/OnTAaYg0VUeYOsN23N1WZ2dWwVv43SHJ3rr+6GzgcvVK7GFUUaThS1RaOeAPREJyTidp5BqWy+xk8UHk+PSNepNqVlJy4Yztzfdtqoy2CX+a7ohlPt1wIDAQAB';

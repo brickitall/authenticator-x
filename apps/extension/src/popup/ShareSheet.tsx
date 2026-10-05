@@ -1,0 +1,35 @@
+import { itemTitle, type VaultItem } from '@authx/core';
+import { BrandMark } from '../ui/BrandMark.js';
+import { ArrowLeftIcon } from '../ui/icons.js';
+import { ShareAccount } from '../ui/ShareAccount.js';
+
+/** The popup's view of one account's setup code, over the list like Add. */
+export function ShareSheet({ item, onClose }: { item: VaultItem; onClose: () => void }) {
+  return (
+    <div className="absolute inset-0 z-10 flex flex-col bg-white animate-slide-up dark:bg-zinc-950">
+      <header className="flex items-center gap-2 border-b border-zinc-100 px-3 py-2.5 dark:border-zinc-900">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Back"
+          className="rounded-lg p-1.5 text-base text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+        >
+          <ArrowLeftIcon />
+        </button>
+        <h1 className="text-[15px] font-semibold">Move to another app</h1>
+      </header>
+      <div className="flex-1 overflow-y-auto px-4 py-4 scrollarea">
+        <div className="mb-4 flex items-center gap-3">
+          <BrandMark issuer={item.issuer} label={item.label} domains={item.domains} icon={item.icon} />
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-semibold">{itemTitle(item)}</p>
+            {item.issuer && item.label && (
+              <p className="truncate text-[12px] text-zinc-500 dark:text-zinc-400">{item.label}</p>
+            )}
+          </div>
+        </div>
+        <ShareAccount item={item} compact />
+      </div>
+    </div>
+  );
+}

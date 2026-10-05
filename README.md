@@ -1,12 +1,25 @@
-# Authenticator X
+<p align="center">
+  <img src="apps/extension/public/icons/icon-128.png" width="88" height="88" alt="">
+</p>
 
-Two-factor codes (TOTP and HOTP) in your browser, encrypted on your own machine.
-A Chrome and Edge extension, with optional end-to-end encrypted sync between
-your browsers.
+<h1 align="center">Authenticator X</h1>
 
-[Chrome Web Store](https://chromewebstore.google.com/detail/occcfljfhlijenkofoceocnimkfpdndl) ·
-[Privacy policy](docs/privacy-policy.md) ·
-Licence: GPL-3.0-or-later
+<p align="center">
+  Two-factor codes (TOTP and HOTP) in your browser, encrypted on your own machine.<br>
+  A Chrome and Edge extension, with optional end-to-end encrypted sync between your browsers.
+</p>
+
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/occcfljfhlijenkofoceocnimkfpdndl">Chrome Web Store</a> ·
+  <a href="https://microsoftedge.microsoft.com/addons/detail/lnbabkbknabedpnmdihllnbhdmolianm">Edge Add-ons</a> ·
+  <a href="https://pricingrank.org/authenticator-x/">Website</a> ·
+  <a href="https://pricingrank.org/authenticator-x/privacy/">Privacy policy</a> ·
+  GPL-3.0-or-later
+</p>
+
+<p align="center">
+  <img src=".github/assets/screenshot-codes.png" width="760" alt="The popup: every code counting down, one click to copy or fill">
+</p>
 
 ## Why the source is open
 
@@ -47,16 +60,28 @@ release. Each store release is tagged here (`vX.Y.Z`).
 - **Codes** for TOTP (RFC 6238) and HOTP (RFC 4226), SHA-1/256/512, 6–10 digits,
   any period, verified against every published RFC test vector.
 - **Autofill** into the one-time-code field of the page you opened the popup on.
+- **A code without saving** — paste a key, see its code, keep nothing. The same
+  is on [the website](https://pricingrank.org/authenticator-x/code/), where the
+  page's own security policy stops the key from leaving it.
 - **Two ways to protect the vault** — a key the browser holds (nothing to type)
   or a master password — switchable without re-encrypting anything.
-- **Encrypted backup** to a file, plus a plain `otpauth://` export so you are
-  never locked in.
+- **Encrypted backup** to a file, of every account or the ones you choose.
+- **Never locked in** — pick the app you are moving to and it shows the quickest
+  way there: Google Authenticator's own transfer codes (which Bitwarden, Proton,
+  Ente, Aegis and 2FAS also read), an Aegis or Bitwarden file, or one setup code
+  after another for apps that import nothing in bulk. Any single account's QR
+  code from the popup, and a printable sheet. Readable exports ask for the master
+  password first, when the vault has one.
 - **A recovery key** on a printable sheet for when the password is forgotten.
 - **Optional sync**, free and end-to-end encrypted, with no cap on how many
   accounts you keep.
 - **Service logos** for over 500 services, compiled in and never fetched — a
   logo requested at display time would tell whoever serves it which services
   you have 2FA on.
+
+<p align="center">
+  <img src=".github/assets/screenshot-sync.png" width="760" alt="Settings: optional sync, encrypted on the device before anything leaves it">
+</p>
 
 ## Security in brief
 
@@ -91,9 +116,11 @@ npx playwright install chromium
 npm run test:e2e -w @authx/extension
 ```
 
-A build from this tree has the account features switched off unless you set
-`VITE_SYNC_API_URL` at build time. A build you make yourself cannot sign in to
-the official sync server.
+A build from this tree is the store's build: it talks to the official sync
+server, `https://2fa.pricingrank.org`, and nothing else. That server answers
+only the store listings' extension ids, so a copy you load unpacked cannot sign
+in; build with `VITE_SYNC_API_URL=` (empty) for one with the account features
+switched off.
 
 ## Checking a store release against this source
 

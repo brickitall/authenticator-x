@@ -23,6 +23,7 @@ import type {
   RecoverResponse,
   RefreshResponse,
   RegisterRequest,
+  RegisterStartRequest,
   SetRecoveryRequest,
   SyncErrorBody,
   SyncErrorCode,
@@ -109,6 +110,23 @@ export async function prelogin(
     fetcher,
   );
   return kdf;
+}
+
+/**
+ * Asks for a one-time code to be emailed to the address. Resolves the same way
+ * whether or not the address already has an account; the email says which.
+ */
+export async function startRegistration(
+  baseUrl: string,
+  email: string,
+  fetcher: Fetcher = fetch,
+): Promise<void> {
+  await request<{ sent: true }>(
+    baseUrl,
+    '/auth/register/start',
+    { method: 'POST', body: JSON.stringify({ email } satisfies RegisterStartRequest) },
+    fetcher,
+  );
 }
 
 export function register(
@@ -320,6 +338,7 @@ export class HttpSyncAdapter implements SyncAdapter {
       serverRev: body.serverRev,
       hasMore: body.hasMore,
       ...(body.recovery ? { recovery: body.recovery } : {}),
+      ...(typeof body.epoch === 'string' ? { epoch: body.epoch } : {}),
     };
   }
 

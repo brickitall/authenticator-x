@@ -53,3 +53,14 @@ export function isValidBase32(input: string): boolean {
     return false;
   }
 }
+
+/**
+ * A key in its one canonical spelling: upper case, unpadded, and the bits past
+ * the last byte zero. The bytes — and so the codes — are unchanged. What goes
+ * to another app goes like this: Google Authenticator on iOS refuses a QR code
+ * whose key has `=` padding, or a last letter carrying spare bits, which a key
+ * typed by hand often has.
+ */
+export function canonicalSecret(secret: string): string {
+  return base32Encode(base32Decode(secret));
+}

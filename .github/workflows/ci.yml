@@ -29,6 +29,9 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npx vitest run
+      # The code page's script is bundled from core and its hash is in the
+      # page's security policy; an edit not rendered would break the page.
+      - run: node scripts/render-site.mjs --check
 
   e2e:
     name: Extension in Chromium
@@ -68,8 +71,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run zip
-      # No host permissions, no content scripts, connect-src reaching nothing
-      # but itself — what a store reviewer checks first, checked here first.
+      # No host permissions, no content scripts, connect-src reaching itself
+      # and the official sync server only — what a store reviewer checks
+      # first, checked here first.
       - run: node scripts/check-release.mjs
       - uses: actions/upload-artifact@v4
         with:

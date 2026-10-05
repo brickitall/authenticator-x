@@ -51,6 +51,7 @@ import {
   isSignedIn,
   listDevices,
   markSignedOutElsewhere,
+  prepareSignUp,
   proveAccountPassword,
   publishRecovery,
   recoverAccount,
@@ -473,6 +474,21 @@ async function handle(request: Request): Promise<unknown> {
       }
     }
 
+    // Read-only: the stored file is opened with the password and thrown away.
+    // Nothing is written and no session changes, so it needs no turn in the
+    // serialiser.
+    case 'vault/confirmPassword': {
+      const file = await loadVaultFile();
+      if (!file) throw new Error('No vault on this device yet.');
+      try {
+        await unlockVault(file, await keyringForFile(file, request.password));
+        return undefined;
+      } catch (error) {
+        if (error instanceof DecryptionError) throw new Error('Wrong master password.');
+        throw error;
+      }
+    }
+
     case 'vault/lock':
       return lock();
 
@@ -637,11 +653,14 @@ async function handle(request: Request): Promise<unknown> {
       await lock();
       return undefined;
 
+    case 'account/startSignUp':
+      return prepareSignUp(await requireUnlocked(), request.email, request.password);
+
     case 'account/signUp': {
       let recoveryKey: string | null = null;
       await serial(async () => {
         const unlocked = await requireUnlocked();
-        const result = await signUp(unlocked, request.email, request.password);
+        const result = await signUp(unlocked, request.email, request.password, request.code);
         await saveVaultFile(result.file);
         cached = { ...unlocked, file: result.file, data: result.data };
         // Said now, not left to the first sync's save: if that sync fails,

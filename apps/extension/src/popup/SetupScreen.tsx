@@ -3,6 +3,7 @@ import { scorePassword } from '@authx/core';
 import { send, type ProtectionChoice, type VaultStatus } from '../lib/messaging.js';
 import { ArrowLeftIcon, LockIcon, Logo } from '../ui/icons.js';
 import { Button, Callout, Field, Spinner, cx } from '../ui/primitives.js';
+import { SourceLink } from '../ui/SourceLink.js';
 
 const STRENGTH_COLORS = [
   'bg-red-500',
@@ -44,7 +45,7 @@ export function SetupScreen({ onCreated }: { onCreated: (status: VaultStatus) =>
 
   return (
     <div className="flex min-h-[480px] flex-col gap-5 p-6">
-      <header className="flex flex-col items-center gap-3 pt-6 text-center">
+      <header className="flex flex-col items-center gap-3 pt-2 text-center">
         <Logo className="h-11 w-11" />
         <div>
           <h1 className="text-[17px] font-semibold">Authenticator X</h1>
@@ -69,15 +70,19 @@ export function SetupScreen({ onCreated }: { onCreated: (status: VaultStatus) =>
           title="Add a master password"
           icon={<LockIcon />}
           description="One password unlocks the vault, then it locks itself again when you stop using it."
-          footnote="The strongest option, and the one that will let your vault sync between devices without the server ever being able to read it."
+          footnote="The strongest option: once it locks, nothing on this computer can open the vault without the password."
           onClick={() => setStep('password')}
         />
       </div>
 
-      <p className="mt-auto pt-2 text-center text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500">
-        Either way your accounts are encrypted with AES-256-GCM and stay on this device. You can
-        switch modes later in Settings.
-      </p>
+      <div className="mt-auto flex flex-col items-center gap-1.5 pt-2">
+        <p className="text-center text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500">
+          Either way it is AES-256-GCM. Switch any time; sync is optional, in Settings.
+        </p>
+        {/* The first moment someone decides whether to trust this with their
+            2FA secrets — the code they would be trusting is one click away. */}
+        <SourceLink className="text-[11px]">Open source — read the code</SourceLink>
+      </div>
     </div>
   );
 }
@@ -166,8 +171,8 @@ function PasswordStep({
       </header>
 
       <Callout tone="warning">
-        There is no way to reset this password. If you forget it, your accounts cannot be recovered —
-        write it down somewhere safe.
+        Nobody can reset this password. If you forget it, only a recovery key opens the vault — make
+        one in Settings → Security, and write the password down somewhere safe.
       </Callout>
 
       <div className="flex flex-col gap-4">

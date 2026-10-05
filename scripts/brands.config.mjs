@@ -53,7 +53,7 @@ sourcegraph gitkraken sourcetree
 
 # --- Identity and security --------------------------------------------------
 auth0 okta clerk keycloak authelia authentik
-1password bitwarden lastpass dashlane keeper keepassxc protonvpn
+1password bitwarden lastpass dashlane keeper keepassxc protonvpn 2fas aegisauthenticator ente
 yubico tailscale wireguard openvpn nordvpn expressvpn surfshark mullvad
 privateinternetaccess cloudflare hashicorpvault
 

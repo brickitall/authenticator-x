@@ -25,6 +25,15 @@ export const CATALOG: readonly BrandEntry[] = [
     popular: true
   },
   {
+    slug: '2fas',
+    name: '2FAS',
+    domains: [
+      '2fas.com'
+    ],
+    aliases: [],
+    wide: false
+  },
+  {
     slug: 'abstract',
     name: 'Abstract',
     domains: [
@@ -38,6 +47,15 @@ export const CATALOG: readonly BrandEntry[] = [
     name: 'Adyen',
     domains: [
       'adyen.com'
+    ],
+    aliases: [],
+    wide: false
+  },
+  {
+    slug: 'aegisauthenticator',
+    name: 'Aegis Authenticator',
+    domains: [
+      'getaegis.app'
     ],
     aliases: [],
     wide: false
@@ -1144,6 +1162,15 @@ export const CATALOG: readonly BrandEntry[] = [
     name: 'Emby',
     domains: [
       'emby.media'
+    ],
+    aliases: [],
+    wide: false
+  },
+  {
+    slug: 'ente',
+    name: 'Ente',
+    domains: [
+      'ente.io'
     ],
     aliases: [],
     wide: false

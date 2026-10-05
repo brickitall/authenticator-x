@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Generated from site/src/code.html and site/src/code.ts by
+     scripts/render-site.mjs. Edit those, not this.
+
+     The policy below is the page's promise, enforced by the browser: nothing
+     loaded from anywhere, no connection of any kind, and no script but the one
+     at the bottom, by its hash. Cloudflare sits in front of pricingrank.org and
+     can inject scripts; here they do not run. -->
+<meta http-equiv="Content-Security-Policy" content="{{CSP}}">
+<meta name="referrer" content="no-referrer">
+<title>Get a 2FA code from a setup key — Authenticator X</title>
+<meta name="description" content="Paste a two-factor setup key or otpauth:// link and get the current code. Worked out in your browser: the key is never sent anywhere and never kept.">
+<link rel="canonical" href="https://pricingrank.org/authenticator-x/code/">
+<meta property="og:title" content="Get a 2FA code from a setup key">
+<meta property="og:description" content="Worked out in your browser: the key is never sent anywhere and never kept.">
+<meta property="og:url" content="https://pricingrank.org/authenticator-x/code/">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg stroke-width='3' stroke-linecap='round'%3E%3Cline x1='12' y1='7.68' x2='12' y2='2.16' stroke='%234285F4'/%3E%3Cline x1='15.05' y1='8.95' x2='18.96' y2='5.04' stroke='%23EA4335'/%3E%3Cline x1='16.32' y1='12' x2='21.84' y2='12' stroke='%23FBBC05'/%3E%3Cline x1='15.05' y1='15.05' x2='18.96' y2='18.96' stroke='%2334A853'/%3E%3Cline x1='12' y1='16.32' x2='12' y2='21.84' stroke='%234285F4'/%3E%3Cline x1='8.95' y1='15.05' x2='5.04' y2='18.96' stroke='%23EA4335'/%3E%3Cline x1='7.68' y1='12' x2='2.16' y2='12' stroke='%23FBBC05'/%3E%3Cline x1='8.95' y1='8.95' x2='5.04' y2='5.04' stroke='%2334A853'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f7f8fa; --surface: #ffffff; --fg: #17181c; --muted: #5f6368;
+    --rule: #e3e5e8; --brand: #1a73e8; --brand-ink: #ffffff; --brand-soft: #e8f0fe;
+    --danger: #c5221f; --amber: #b06000; --field: #ffffff;
+    --shadow: 0 24px 60px -24px rgba(26, 115, 232, .25);
+    --glow: radial-gradient(60rem 30rem at 80% -10%, #e3edfd 0%, transparent 60%);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115; --surface: #181a1f; --fg: #eceef1; --muted: #a1a5ab;
+      --rule: #2a2d33; --brand: #8ab4f8; --brand-ink: #0f1115; --brand-soft: #172235;
+      --danger: #f28b82; --amber: #fdd663; --field: #111317;
+      --shadow: 0 24px 60px -24px rgba(0, 0, 0, .7);
+      --glow: radial-gradient(60rem 30rem at 80% -10%, #142238 0%, transparent 60%);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--glow), var(--bg); background-repeat: no-repeat; color: var(--fg);
+    font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--brand); text-underline-offset: .18em; }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 44rem; margin: 0 auto; padding: 0 16px; }
+  @media (min-width: 640px) { .wrap { padding: 0 2rem; } }
+
+  header.top { display: flex; align-items: center; gap: .75rem; padding: 1.25rem 0; }
+  .brand { display: flex; align-items: center; gap: .6rem; font-weight: 650; color: var(--fg); text-decoration: none; }
+  .brand svg { width: 30px; height: 30px; flex: none; }
+  nav { margin-left: auto; display: flex; gap: 1.25rem; font-size: .95rem; }
+  nav a { color: var(--muted); text-decoration: none; }
+  nav a:hover { color: var(--fg); }
+
+  h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); line-height: 1.1; letter-spacing: -0.03em; margin: 2.5rem 0 1rem; }
+  .lede { color: var(--muted); font-size: 1.08rem; margin: 0 0 2rem; }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 18px; padding: 1.25rem;
+    box-shadow: var(--shadow);
+  }
+  label { display: block; font-size: .9rem; font-weight: 600; margin-bottom: .45rem; }
+  textarea {
+    width: 100%; resize: vertical; min-height: 4.2rem; padding: .8rem .9rem; border-radius: 12px;
+    border: 1px solid var(--rule); background: var(--field); color: var(--fg);
+    font: 15px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  textarea:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .error { color: var(--danger); font-size: .88rem; margin: .5rem 0 0; }
+  .line { color: var(--muted); font-size: .88rem; margin: .7rem 0 0; }
+  .link { background: none; border: 0; padding: 0; font: inherit; color: var(--brand); font-weight: 600; cursor: pointer; }
+  .link:hover { text-decoration: underline; }
+  .settings { display: flex; flex-wrap: wrap; gap: .6rem 1.2rem; margin-top: .8rem; font-size: .88rem; color: var(--muted); }
+  .settings label { display: inline-flex; align-items: center; gap: .45rem; margin: 0; font-weight: 500; }
+  select {
+    padding: .35rem .5rem; border-radius: 8px; border: 1px solid var(--rule); background: var(--field); color: var(--fg);
+    font: inherit;
+  }
+
+  .result {
+    display: flex; align-items: center; gap: 1rem; margin-top: 1.1rem; padding: 1rem 1.1rem;
+    border-radius: 14px; background: var(--brand-soft);
+  }
+  .code {
+    flex: 1; min-width: 0; background: none; border: 0; padding: 0; text-align: left; color: var(--fg); cursor: pointer;
+    font: 700 clamp(2rem, 8vw, 2.6rem)/1.1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: .04em; font-variant-numeric: tabular-nums;
+  }
+  .next { color: var(--muted); font-size: .85rem; margin: .2rem 0 0; }
+  .ring { width: 44px; height: 44px; flex: none; }
+  .ring .track { fill: none; stroke: var(--rule); stroke-width: 3; }
+  .ring .left { fill: none; stroke: var(--brand); stroke-width: 3; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 15px 15px; transition: stroke-dashoffset .25s linear; }
+  .ring.urgent .left { stroke: var(--amber); }
+  .ring text { font: 600 9px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; fill: var(--muted); }
+  .account { margin: .7rem 0 0; font-size: .9rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .buttons { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
+  .button, .quiet {
+    display: inline-flex; align-items: center; padding: .6rem 1.05rem; border-radius: 11px; font: 600 .95rem/1.2 inherit;
+    cursor: pointer; text-decoration: none;
+  }
+  .button { background: var(--brand); color: var(--brand-ink); border: 1px solid var(--brand); }
+  .button:hover { filter: brightness(1.08); }
+  .quiet { background: transparent; color: var(--fg); border: 1px solid var(--rule); }
+  .quiet:hover { border-color: var(--brand); color: var(--brand); }
+
+  section { margin: 3rem 0; }
+  h2 { font-size: 1.3rem; letter-spacing: -0.015em; margin: 0 0 .6rem; }
+  section p { color: var(--muted); margin: 0 0 .9rem; }
+  .apps { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.25rem; }
+
+  footer { border-top: 1px solid var(--rule); padding: 1.5rem 0 2.5rem; font-size: .9rem; color: var(--muted); }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; justify-content: space-between; }
+  footer .links { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="../">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark"/></svg>
+      Authenticator X
+    </a>
+    <nav>
+      <a href="../">Home</a>
+      <a href="../privacy/">Privacy</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Get a two-factor code from a setup key</h1>
+    <p class="lede">Paste the key a site gave you, or its <code>otpauth://</code> link, and
+    the current code appears. It is worked out in this page: the key is never sent
+    anywhere and never kept. Close the tab and it is gone.</p>
+
+    <div class="panel">
+      <label for="key">Setup key or otpauth:// link</label>
+      <textarea id="key" rows="2" spellcheck="false" autocomplete="off" autocorrect="off"
+        autocapitalize="characters" placeholder="JBSW Y3DP EHPK 3PXP"></textarea>
+      <p id="error" class="error" role="alert" hidden></p>
+      <p id="account" class="account" hidden></p>
+      <p id="settings-line" class="line"><span id="settings-text">6 digits · every 30 s · SHA-1</span> —
+        <button id="change" type="button" class="link">change</button></p>
+      <div id="settings" class="settings" hidden>
+        <label>Digits <select id="digits"><option>6</option><option>7</option><option>8</option></select></label>
+        <label>Every <select id="period"><option value="30">30 s</option><option value="60">60 s</option></select></label>
+        <label>Hash <select id="algorithm"><option value="SHA1">SHA-1</option><option value="SHA256">SHA-256</option><option value="SHA512">SHA-512</option></select></label>
+      </div>
+
+      <div id="result" class="result" hidden>
+        <div style="flex:1;min-width:0">
+          <button id="code" class="code" type="button" title="Click to copy" aria-label="Current code"></button>
+          <p id="next-line" class="next">Next: <span id="next"></span></p>
+        </div>
+        <svg id="ring" class="ring" viewBox="0 0 30 30" role="timer" aria-label="Seconds until the code changes">
+          <circle class="track" cx="15" cy="15" r="12"/>
+          <circle class="left" cx="15" cy="15" r="12" stroke-dasharray="75.4" stroke-dashoffset="0"/>
+          <text x="15" y="18" text-anchor="middle"></text>
+        </svg>
+      </div>
+
+      <div class="buttons">
+        <button id="copy" type="button" class="button">Copy</button>
+        <button id="clear" type="button" class="quiet">Clear</button>
+      </div>
+    </div>
+
+    <section>
+      <h2>Is it safe to paste a key here?</h2>
+      <p>This page cannot send it. Its Content Security Policy forbids it to load or
+      send anything, and to run any script but its own — rules your browser
+      enforces, whatever anyone serving the page might want. It loads nothing from
+      anywhere else, and keeps working with the network off once it has opened.</p>
+      <p>Still, a web page is for checking a key or getting one code in a pinch, not
+      for keeping keys. For the accounts you use, an authenticator app keeps them
+      encrypted and ready.</p>
+      <div class="apps">
+        <a class="button" href="https://chromewebstore.google.com/detail/occcfljfhlijenkofoceocnimkfpdndl">Add Authenticator X to Chrome</a>
+        <a class="quiet" href="https://microsoftedge.microsoft.com/addons/detail/lnbabkbknabedpnmdihllnbhdmolianm">Add to Microsoft Edge</a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 BRICK IT ALL LLC</span>
+    <span class="links">
+      <a href="../privacy/">Privacy policy</a>
+      <a href="https://github.com/brickitall/authenticator-x">Source code</a>
+      <a href="/">PricingRank</a>
+    </span>
+  </div>
+</footer>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="mark" viewBox="0 0 24 24">
+      <g stroke-width="3" stroke-linecap="round"><line x1="12" y1="7.68" x2="12" y2="2.16" stroke="#4285F4"/><line x1="15.05" y1="8.95" x2="18.96" y2="5.04" stroke="#EA4335"/><line x1="16.32" y1="12" x2="21.84" y2="12" stroke="#FBBC05"/><line x1="15.05" y1="15.05" x2="18.96" y2="18.96" stroke="#34A853"/><line x1="12" y1="16.32" x2="12" y2="21.84" stroke="#4285F4"/><line x1="8.95" y1="15.05" x2="5.04" y2="18.96" stroke="#EA4335"/><line x1="7.68" y1="12" x2="2.16" y2="12" stroke="#FBBC05"/><line x1="8.95" y1="8.95" x2="5.04" y2="5.04" stroke="#34A853"/></g>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- data-cfasync: Cloudflare's Rocket Loader would otherwise rewrite this tag
+     to load through its own script, which the policy blocks. -->
+<script data-cfasync="false">{{SCRIPT}}</script>
+</body>
+</html>

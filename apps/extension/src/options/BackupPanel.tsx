@@ -2,13 +2,12 @@ import { useRef, useState } from 'react';
 import {
   assertUsableBackup,
   dedupeAgainst,
-  exportEncryptedBackup,
-  exportPlainUris,
   importEncryptedBackup,
   importFromText,
   isBackupFile,
   liveItems,
   MAX_BACKUP_BYTES,
+  type ProtectionMode,
   type VaultData,
   type VaultItem,
 } from '@authx/core';
@@ -19,128 +18,24 @@ import { decodeQrFromFile } from '../ui/qr.js';
 import { CameraIcon } from '../ui/icons.js';
 import { Button, Callout, Field, Spinner } from '../ui/primitives.js';
 import { ScanProgress } from '../ui/ScanProgress.js';
+import { ExportSection } from './ExportSection.js';
 import { Section } from './Section.js';
-
-function download(filename: string, contents: string, mime: string) {
-  const url = URL.createObjectURL(new Blob([contents], { type: mime }));
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
-
-function stamp(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export function BackupPanel({
   data,
   mutate,
+  protectionMode,
 }: {
   data: VaultData;
   mutate: Mutate;
+  protectionMode: ProtectionMode;
 }) {
   const items = liveItems(data);
 
   return (
     <>
-      <ExportSection items={items} data={data} />
+      <ExportSection items={items} data={data} protectionMode={protectionMode} />
       <ImportSection existing={data.items} mutate={mutate} />
-    </>
-  );
-}
-
-function ExportSection({ items, data }: { items: VaultItem[]; data: VaultData }) {
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [plainConfirmed, setPlainConfirmed] = useState(false);
-
-  const ready = password.length >= 8 && password === confirm && items.length > 0;
-
-  async function exportEncrypted() {
-    setBusy(true);
-    setError(null);
-    try {
-      const backup = await exportEncryptedBackup(items, data.groups, password);
-      download(`authenticator-x-${stamp()}.authx`, JSON.stringify(backup, null, 2), 'application/json');
-      setPassword('');
-      setConfirm('');
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <>
-      <Section
-        title="Encrypted backup"
-        description="Writes every account to a file locked with a password you choose here. Keep a copy somewhere safe — if this device dies, this file is how you get your accounts back."
-      >
-        <div className="flex flex-col gap-4 p-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              label="Backup password"
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              hint="At least 8 characters. Can differ from your master password."
-            />
-            <Field
-              label="Confirm password"
-              type="password"
-              autoComplete="new-password"
-              value={confirm}
-              onChange={(event) => setConfirm(event.target.value)}
-              error={confirm && confirm !== password ? 'Passwords do not match.' : null}
-            />
-          </div>
-          {error && <Callout tone="danger">{error}</Callout>}
-          <div>
-            <Button variant="primary" disabled={!ready || busy} onClick={exportEncrypted}>
-              {busy ? <Spinner /> : null}
-              Download encrypted backup ({items.length})
-            </Button>
-          </div>
-        </div>
-      </Section>
-
-      <Section
-        title="Plain-text export"
-        description="A list of otpauth:// links that any authenticator app can read. Useful for moving to another app — dangerous everywhere else, because the file is not encrypted."
-      >
-        <div className="flex flex-col gap-3 p-4">
-          <Callout tone="danger">
-            This file contains your 2FA secrets in the clear. Anyone who opens it can generate your
-            codes forever. Delete it as soon as you have finished the move.
-          </Callout>
-          <label className="flex items-start gap-2.5 text-[13px] text-zinc-600 dark:text-zinc-300">
-            <input
-              type="checkbox"
-              checked={plainConfirmed}
-              onChange={(event) => setPlainConfirmed(event.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-brand-600"
-            />
-            I understand this file is not encrypted.
-          </label>
-          <div>
-            <Button
-              variant="danger"
-              disabled={!plainConfirmed || items.length === 0}
-              onClick={() =>
-                download(`authenticator-x-${stamp()}.txt`, exportPlainUris(items), 'text/plain')
-              }
-            >
-              Download plain-text export
-            </Button>
-          </div>
-        </div>
-      </Section>
     </>
   );
 }
