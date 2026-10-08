@@ -16,10 +16,14 @@
       "@authx/core": [
         "../../packages/core/src/index.ts"
       ],
+      "@keyrook/brand": [
+        "../../packages/brand/src/index.ts"
+      ],
       "~/*": [
         "./src/*"
       ]
-    }
+    },
+    "allowImportingTsExtensions": true
   },
   "include": [
     "src/**/*.ts",
@@ -30,6 +34,9 @@
   "references": [
     {
       "path": "../../packages/core"
+    },
+    {
+      "path": "../../packages/brand"
     }
   ]
 }

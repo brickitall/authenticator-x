@@ -9,6 +9,10 @@
 @import 'tailwindcss' source(none);
 @source '../';
 
+/* Keyrook's tokens (--kr-*) and hand-drawn motions (.kr-boil, .kr-draw), the
+   same file every Keyrook product imports. */
+@import '../../../../packages/brand/brand.css';
+
 /*
  * Theme is driven by an explicit attribute rather than the media query so the
  * user's in-app preference (system / light / dark) is authoritative.
@@ -16,18 +20,18 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 @theme {
-  /* The blue of the countdown asterisk. Its red, yellow and green already
-     carry their usual meanings here: danger, warning, success. */
-  --color-brand-50: #e8f0fe;
-  --color-brand-100: #d2e3fc;
-  --color-brand-200: #aecbfa;
-  --color-brand-300: #8ab4f8;
-  --color-brand-400: #669df6;
-  --color-brand-500: #4285f4;
-  --color-brand-600: #1a73e8;
-  --color-brand-700: #1967d2;
-  --color-brand-800: #185abc;
-  --color-brand-900: #174ea6;
+  /* Keyrook's blue crayon. Its red, yellow and green already carry their
+     usual meanings here: danger, warning, success. */
+  --color-brand-50: var(--kr-blue-50);
+  --color-brand-100: var(--kr-blue-100);
+  --color-brand-200: var(--kr-blue-200);
+  --color-brand-300: var(--kr-blue-300);
+  --color-brand-400: var(--kr-blue-400);
+  --color-brand-500: var(--kr-blue-500);
+  --color-brand-600: var(--kr-blue-600);
+  --color-brand-700: var(--kr-blue-700);
+  --color-brand-800: var(--kr-blue-800);
+  --color-brand-900: var(--kr-blue-900);
 
   --font-mono:
     'SF Mono', ui-monospace, 'JetBrains Mono', 'Cascadia Code', Menlo, Consolas, monospace;

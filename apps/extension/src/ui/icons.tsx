@@ -1,4 +1,6 @@
 import type { SVGProps } from 'react';
+import { AUTHENTICATOR_MARK, AUTHENTICATOR_MARK_COMPACT, type MarkPart } from '@keyrook/brand';
+import { cx } from './primitives.js';
 
 type IconProps = SVGProps<SVGSVGElement>;
 
@@ -164,29 +166,46 @@ export const KeyIcon = (p: IconProps) => (
   </Base>
 );
 
-/**
- * The product mark, matching the extension icon: a countdown asterisk, eight
- * ticks round a centre. Same geometry as scripts/gen-icons.mjs.
- */
-const MARK_TICKS = [
-  ['12', '7.68', '12', '2.16', '#4285F4'],
-  ['15.05', '8.95', '18.96', '5.04', '#EA4335'],
-  ['16.32', '12', '21.84', '12', '#FBBC05'],
-  ['15.05', '15.05', '18.96', '18.96', '#34A853'],
-  ['12', '16.32', '12', '21.84', '#4285F4'],
-  ['8.95', '15.05', '5.04', '18.96', '#EA4335'],
-  ['7.68', '12', '2.16', '12', '#FBBC05'],
-  ['8.95', '8.95', '5.04', '5.04', '#34A853'],
-] as const;
+function MarkPartElement({ part }: { part: MarkPart }) {
+  // Ink, where a drawing has any, follows the text colour so it turns paper
+  // in dark mode; the crayons stay as drawn.
+  const colour = part.colour === 'ink' ? 'currentColor' : part.colour;
+  switch (part.kind) {
+    case 'fill':
+      return <path d={part.d} fill={colour} />;
+    case 'stroke':
+      return (
+        <path d={part.d} fill="none" stroke={colour} strokeWidth={part.width} strokeLinecap="round" strokeLinejoin="round" />
+      );
+    case 'disc':
+      return <circle cx={part.cx} cy={part.cy} r={part.r} fill={colour} />;
+    case 'ring':
+      return <circle cx={part.cx} cy={part.cy} r={part.r} fill="none" stroke={colour} strokeWidth={part.width} />;
+  }
+}
 
-export function Logo({ className = 'h-6 w-6' }: { className?: string }) {
+/**
+ * Keyrook Authenticator's mark, the crayon asterisk — the same drawing as the
+ * extension icon (packages/brand/src/authenticator.ts). Not the Keyrook crow:
+ * that is the brand's, and this is a product of it. `compact` is the small
+ * drawing, for 24 px and under; `settle` boils it in on arrival, the brand's
+ * hand-drawn entrance.
+ */
+export function Logo({
+  className = 'h-6 w-6',
+  compact = false,
+  settle = false,
+}: {
+  className?: string;
+  compact?: boolean;
+  settle?: boolean;
+}) {
+  const mark = compact ? AUTHENTICATOR_MARK_COMPACT : AUTHENTICATOR_MARK;
   return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <g strokeWidth="3" strokeLinecap="round">
-        {MARK_TICKS.map(([x1, y1, x2, y2, colour]) => (
-          <line key={`${x2},${y2}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={colour} />
-        ))}
-      </g>
+    <svg viewBox={mark.view.join(' ')} className={cx(className, settle && 'kr-boil')} aria-hidden="true">
+      {mark.parts.map((part, index) => (
+        <MarkPartElement key={index} part={part} />
+      ))}
     </svg>
   );
 }

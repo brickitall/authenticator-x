@@ -41,7 +41,7 @@ export function UnlockScreen({
   return (
     <form onSubmit={submit} className="flex min-h-[480px] flex-col justify-center gap-6 p-8">
       <header className="flex flex-col items-center gap-3 text-center">
-        <Logo className="h-12 w-12" />
+        <Logo className="h-12 w-12" settle />
         <div>
           <h1 className="text-[17px] font-semibold">{APP_NAME}</h1>
           <p className="mt-1 text-[13px] text-zinc-500 dark:text-zinc-400">

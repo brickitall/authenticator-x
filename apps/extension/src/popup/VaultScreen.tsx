@@ -168,7 +168,7 @@ export function VaultScreen({
   return (
     <div className="relative flex h-[520px] flex-col">
       <header className="flex items-center gap-2 border-b border-zinc-100 px-3 py-2.5 dark:border-zinc-900">
-        <Logo className="h-6 w-6 shrink-0" />
+        <Logo className="h-6 w-6 shrink-0" compact />
         <div className="relative min-w-0 flex-1">
           <SearchIcon className="pointer-events-none absolute top-1/2 start-2.5 -translate-y-1/2 text-[15px] text-zinc-400" />
           <input

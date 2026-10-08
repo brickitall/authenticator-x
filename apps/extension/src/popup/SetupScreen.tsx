@@ -57,7 +57,7 @@ export function SetupScreen({
   return (
     <div className="flex min-h-[480px] flex-col gap-5 p-6">
       <header className="flex flex-col items-center gap-3 pt-2 text-center">
-        <Logo className="h-11 w-11" />
+        <Logo className="h-11 w-11" settle />
         <div>
           <h1 className="text-[17px] font-semibold">{APP_NAME}</h1>
           <p className="mt-1 text-[13px] text-zinc-500 dark:text-zinc-400">

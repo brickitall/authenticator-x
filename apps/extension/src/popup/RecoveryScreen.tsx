@@ -68,7 +68,7 @@ export function RecoveryScreen({
         >
           <ArrowLeftIcon />
         </button>
-        <Logo className="h-5 w-5" />
+        <Logo className="h-5 w-5" compact />
         <h1 className="text-[15px] font-semibold">{t('recover.title')}</h1>
       </header>
 

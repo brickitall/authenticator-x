@@ -126,7 +126,7 @@ export function GeneralPanel({ data, mutate }: { data: VaultData; mutate: Mutate
         <Row
           label={
             <span className="flex items-center gap-2.5">
-              <Logo className="h-5 w-5" />
+              <Logo className="h-5 w-5" compact />
               {APP_NAME}
             </span>
           }
