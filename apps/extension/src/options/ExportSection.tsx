@@ -7,7 +7,6 @@ import {
   exportBitwardenJson,
   exportEncryptedBackup,
   exportPlainUris,
-  itemTitle,
   type ProtectionMode,
   type VaultData,
   type VaultItem,
@@ -19,6 +18,12 @@ import { QrIcon } from '../ui/icons.js';
 import { QrCode } from '../ui/QrCode.js';
 import { DESTINATIONS, type Destination, type Method } from './destinations.js';
 import { Section } from './Section.js';
+import { errorText } from '../i18n/error-text.js';
+import { useT } from '../i18n/react.js';
+import { localise } from '../i18n/error-text.js';
+import { translate } from '../i18n/runtime.js';
+import { titleOf } from '../i18n/titles.js';
+import type { MessageKey } from '../i18n/locales/en.js';
 
 export function download(filename: string, contents: string | Blob, mime: string) {
   const url = URL.createObjectURL(typeof contents === 'string' ? new Blob([contents], { type: mime }) : contents);
@@ -31,35 +36,16 @@ export function download(filename: string, contents: string | Blob, mime: string
 
 const stamp = () => new Date().toISOString().slice(0, 10);
 
-/**
- * Getting accounts out: chosen ones or all, encrypted for keeping, or readable
- * for moving to another app — by Google Authenticator's transfer codes, a page
- * of QR codes to print or scan one by one, or a file other apps import.
- */
-export function ExportSection({
-  items,
-  data,
-  protectionMode,
-}: {
-  items: VaultItem[];
-  data: VaultData;
-  protectionMode: ProtectionMode;
-}) {
+/** Which accounts an export takes: every one unless some are chosen. */
+export type ExportSelection = 'all' | Set<string>;
+
+export function chosenItems(items: VaultItem[], selection: ExportSelection): VaultItem[] {
   // 'all' rather than every id: an account added while this page is open is
   // in an export of everything, as the count above the button says.
-  const [selection, setSelection] = useState<'all' | Set<string>>('all');
-  const chosen = selection === 'all' ? items : items.filter((item) => selection.has(item.id));
-
-  return (
-    <>
-      <AccountPicker items={items} groups={data.groups} chosen={chosen} onChange={setSelection} />
-      <EncryptedBackup chosen={chosen} data={data} />
-      <MoveToAnotherApp chosen={chosen} data={data} protectionMode={protectionMode} />
-    </>
-  );
+  return selection === 'all' ? items : items.filter((item) => selection.has(item.id));
 }
 
-function AccountPicker({
+export function AccountPicker({
   items,
   groups,
   chosen,
@@ -70,6 +56,7 @@ function AccountPicker({
   chosen: VaultItem[];
   onChange: (next: 'all' | Set<string>) => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const selected = new Set(chosen.map((item) => item.id));
   const usedGroups = groups.filter(
@@ -79,15 +66,15 @@ function AccountPicker({
 
   return (
     <Section
-      title="What to export"
+      title={t('export.what')}
       description={
         all
-          ? `All ${items.length} ${items.length === 1 ? 'account' : 'accounts'}.`
-          : `${chosen.length} of ${items.length} chosen.`
+          ? t('export.all', { count: items.length })
+          : t('export.someChosen', { chosen: chosen.length, total: items.length })
       }
       action={
         <Button size="sm" onClick={() => setOpen((value) => !value)}>
-          {open ? 'Done' : 'Choose…'}
+          {open ? t('common.done') : t('export.choose')}
         </Button>
       }
     >
@@ -95,10 +82,10 @@ function AccountPicker({
         <div className="p-4">
           <div className="mb-3 flex flex-wrap gap-1.5">
             <Chip active={all} onClick={() => onChange('all')}>
-              All
+              {t('export.chipAll')}
             </Chip>
             <Chip active={chosen.length === 0} onClick={() => onChange(new Set())}>
-              None
+              {t('export.chipNone')}
             </Chip>
             {usedGroups.map((group) => {
               const members = items.filter((item) => item.groupId === group.id).map((item) => item.id);
@@ -125,7 +112,7 @@ function AccountPicker({
                     }}
                     className="h-4 w-4 accent-brand-600"
                   />
-                  <span className="min-w-0 flex-1 truncate font-medium">{itemTitle(item)}</span>
+                  <span className="min-w-0 flex-1 truncate font-medium">{titleOf(item)}</span>
                   {item.issuer && item.label && (
                     <span className="max-w-[45%] truncate text-[12px] text-zinc-500 dark:text-zinc-400">
                       {item.label}
@@ -158,7 +145,8 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 
-function EncryptedBackup({ chosen, data }: { chosen: VaultItem[]; data: VaultData }) {
+export function EncryptedBackup({ chosen, data }: { chosen: VaultItem[]; data: VaultData }) {
+  const t = useT();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
@@ -170,45 +158,42 @@ function EncryptedBackup({ chosen, data }: { chosen: VaultItem[]; data: VaultDat
     setError(null);
     try {
       const backup = await exportEncryptedBackup(chosen, data.groups, password);
-      download(`authenticator-x-${stamp()}.authx`, JSON.stringify(backup, null, 2), 'application/json');
+      download(`keyrook-${stamp()}.authx`, JSON.stringify(backup, null, 2), 'application/json');
       setPassword('');
       setConfirm('');
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorText(cause));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Section
-      title="Encrypted backup"
-      description="A file locked with a password you choose here. Keep a copy somewhere safe — if this device dies, this file is how you get your accounts back."
-    >
+    <Section>
       <div className="flex flex-col gap-4 p-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
-            label="Backup password"
+            label={t('import.backupPassword')}
             type="password"
             autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            hint="At least 8 characters. Can differ from your master password."
+            hint={t('export.encrypted.hint')}
           />
           <Field
-            label="Confirm password"
+            label={t('setup.passwordStep.confirm')}
             type="password"
             autoComplete="new-password"
             value={confirm}
             onChange={(event) => setConfirm(event.target.value)}
-            error={confirm && confirm !== password ? 'Passwords do not match.' : null}
+            error={confirm && confirm !== password ? t('common.passwordsDiffer') : null}
           />
         </div>
         {error && <Callout tone="danger">{error}</Callout>}
         <div>
           <Button variant="primary" disabled={!ready || busy} onClick={exportEncrypted}>
             {busy ? <Spinner /> : null}
-            Download encrypted backup ({chosen.length})
+            {t('export.encrypted.download', { count: chosen.length })}
           </Button>
         </div>
       </div>
@@ -225,7 +210,7 @@ const OPEN_FOR_MS = 5 * 60_000;
  * password again. Holding an unlocked vault is not the same as being the
  * person who should walk away with every secret in it at once.
  */
-function MoveToAnotherApp({
+export function MoveToAnotherApp({
   chosen,
   data,
   protectionMode,
@@ -234,6 +219,7 @@ function MoveToAnotherApp({
   data: VaultData;
   protectionMode: ProtectionMode;
 }) {
+  const t = useT();
   const [openUntil, setOpenUntil] = useState<number | null>(null);
   const [understood, setUnderstood] = useState(false);
   const [password, setPassword] = useState('');
@@ -263,11 +249,11 @@ function MoveToAnotherApp({
   function saveFile(format: 'aegis' | 'bitwarden' | 'text') {
     touch();
     if (format === 'aegis') {
-      download(`authenticator-x-aegis-${stamp()}.json`, exportAegisJson(chosen, data.groups), 'application/json');
+      download(`keyrook-aegis-${stamp()}.json`, exportAegisJson(chosen, data.groups), 'application/json');
     } else if (format === 'bitwarden') {
-      download(`authenticator-x-bitwarden-${stamp()}.json`, exportBitwardenJson(chosen, data.groups), 'application/json');
+      download(`keyrook-bitwarden-${stamp()}.json`, exportBitwardenJson(chosen, data.groups), 'application/json');
     } else {
-      download(`authenticator-x-${stamp()}.txt`, exportPlainUris(chosen), 'text/plain');
+      download(`keyrook-${stamp()}.txt`, exportPlainUris(chosen), 'text/plain');
     }
   }
 
@@ -279,22 +265,18 @@ function MoveToAnotherApp({
       setOpenUntil(Date.now() + OPEN_FOR_MS);
       setPassword('');
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorText(cause));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Section
-      title="Move to another app"
-      description="Readable exports, for moving to another authenticator or keeping on paper. Unlike the backup above, none of them is encrypted."
-    >
+    <Section>
       {!open ? (
         <div className="flex flex-col gap-3 p-4">
           <Callout tone="danger">
-            These hold your 2FA secrets in the clear. Anyone who sees the codes or opens the files can make your
-            codes for as long as the accounts exist. Delete files, and shred paper, once you are done.
+            {t('export.move.danger')}
           </Callout>
           <label className="flex items-start gap-2.5 text-[13px] text-zinc-600 dark:text-zinc-300">
             <input
@@ -303,11 +285,11 @@ function MoveToAnotherApp({
               onChange={(event) => setUnderstood(event.target.checked)}
               className="mt-0.5 h-4 w-4 accent-brand-600"
             />
-            I understand these are not encrypted.
+            {t('export.move.understood')}
           </label>
           {needsPassword && (
             <Field
-              label="Master password"
+              label={t('setup.passwordStep.label')}
               type="password"
               autoComplete="current-password"
               value={password}
@@ -321,7 +303,7 @@ function MoveToAnotherApp({
               disabled={!understood || (needsPassword && !password) || busy || chosen.length === 0}
               onClick={() => void unlock()}
             >
-              {busy ? <Spinner /> : null} Continue
+              {busy ? <Spinner /> : null} {t('common.continue')}
             </Button>
           </div>
         </div>
@@ -329,7 +311,7 @@ function MoveToAnotherApp({
         <div>
           <div className="p-4">
             <p id="destination-label" className="text-[13px] font-medium">
-              Which app are you moving to?
+              {t('export.move.which')}
             </p>
             <div role="radiogroup" aria-labelledby="destination-label" className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {DESTINATIONS.map((option) => (
@@ -340,7 +322,7 @@ function MoveToAnotherApp({
                   aria-checked={destination?.id === option.id}
                   onClick={() => setDestination(option)}
                   className={cx(
-                    'flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-[13px] font-medium transition-colors',
+                    'flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-start text-[13px] font-medium transition-colors',
                     destination?.id === option.id
                       ? 'border-brand-600 bg-brand-50 text-brand-800 dark:border-brand-400 dark:bg-brand-500/10 dark:text-brand-200'
                       : 'border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-zinc-900',
@@ -353,7 +335,7 @@ function MoveToAnotherApp({
                       <QrIcon className="h-3.5 w-3.5" />
                     </span>
                   )}
-                  <span className="min-w-0 truncate">{option.name}</span>
+                  <span className="min-w-0 truncate">{appName(option)}</span>
                 </button>
               ))}
             </div>
@@ -370,27 +352,31 @@ function MoveToAnotherApp({
             )}
           </div>
           <div className="flex flex-wrap items-center gap-2 border-t border-zinc-100 px-4 py-3 dark:border-zinc-800/80">
-            <span className="mr-1 text-[12px] text-zinc-500 dark:text-zinc-400">Files and paper:</span>
+            <span className="me-1 text-[12px] text-zinc-500 dark:text-zinc-400">{t('export.filesAndPaper')}</span>
             <Button size="sm" onClick={() => saveFile('aegis')}>
-              Aegis .json
+              {t('export.aegis')}
             </Button>
             <Button size="sm" onClick={() => saveFile('bitwarden')}>
-              Bitwarden .json
+              {t('export.bitwarden')}
             </Button>
             <Button size="sm" onClick={() => saveFile('text')}>
-              otpauth .txt
+              {t('export.text')}
             </Button>
             <Button size="sm" onClick={() => setView('print')}>
-              Print sheet
+              {t('export.print')}
             </Button>
           </div>
           <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 text-[12px] text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
             <span>
-              {chosen.length} {chosen.length === 1 ? 'account' : 'accounts'}. Closes again{' '}
-              {openUntil ? `in ${Math.max(1, Math.ceil((openUntil - Date.now()) / 60_000))} min` : 'soon'}.
+              {openUntil
+                ? t('export.closesIn', {
+                    accounts: t('export.accounts', { count: chosen.length }),
+                    count: Math.max(1, Math.ceil((openUntil - Date.now()) / 60_000)),
+                  })
+                : t('export.closesSoon', { accounts: t('export.accounts', { count: chosen.length }) })}
             </span>
             <Button size="sm" variant="ghost" onClick={() => { setOpenUntil(null); setView(null); }}>
-              Close now
+              {t('export.closeNow')}
             </Button>
           </div>
         </div>
@@ -408,13 +394,18 @@ function MoveToAnotherApp({
 
 const OTHER = DESTINATIONS.find((option) => option.id === 'other')!;
 
-const METHOD_LABEL: Record<Method, string> = {
-  transfer: 'Show transfer codes',
-  'one-by-one': 'Scan one by one',
-  aegis: 'Download Aegis file',
-  bitwarden: 'Download Bitwarden file',
-  text: 'Download text file',
+const METHOD_LABEL: Record<Method, MessageKey> = {
+  transfer: 'export.method.transfer',
+  'one-by-one': 'export.method.oneByOne',
+  aegis: 'export.method.aegis',
+  bitwarden: 'export.method.bitwarden',
+  text: 'export.method.text',
 };
+
+/** Apps keep their own names; "another app" is said in the page's language. */
+function appName(destination: Destination): string {
+  return destination.id === 'other' ? translate('dest.other.name') : destination.name;
+}
 
 function DestinationPanel({
   destination,
@@ -425,13 +416,14 @@ function DestinationPanel({
   count: number;
   onMethod: (method: Method) => void;
 }) {
+  const t = useT();
   return (
     <div
       aria-live="polite"
       className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 animate-fade-in dark:border-zinc-800 dark:bg-zinc-900/60"
     >
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-[13px] font-semibold">{destination.name}</p>
+        <p className="text-[13px] font-semibold">{appName(destination)}</p>
         <span
           className={cx(
             'rounded-full px-2 py-0.5 text-[11px] font-medium',
@@ -440,16 +432,16 @@ function DestinationPanel({
               : 'bg-zinc-200/80 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
           )}
         >
-          {destination.allAtOnce ? 'All at once' : 'One at a time'}
+          {destination.allAtOnce ? t('export.allAtOnce') : t('export.oneAtATime')}
         </span>
       </div>
       <p className="mt-1.5 max-w-[68ch] text-[12.5px] leading-relaxed text-zinc-600 dark:text-zinc-300">
-        {destination.steps}
+        {t(destination.steps)}
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         {destination.methods.map((method, index) => (
           <Button key={method} size="sm" variant={index === 0 ? 'primary' : 'secondary'} onClick={() => onMethod(method)}>
-            {METHOD_LABEL[method]}
+            {t(METHOD_LABEL[method])}
             {method === 'one-by-one' ? ` (${count})` : ''}
           </Button>
         ))}
@@ -493,25 +485,26 @@ function TransferCodes({
   // and Google Authenticator refuses to finish a batch whose codes disagree.
   const [{ uris, skipped }] = useState(() => encodeMigrationUris(chosen));
   const [index, setIndex] = useState(0);
+  const t = useT();
 
   return (
-    <Overlay onClose={onClose} label={`Transfer codes for ${destination.name}`}>
+    <Overlay onClose={onClose} label={t('export.transfer.label', { app: appName(destination) })}>
       <div className="mx-auto flex max-w-xl flex-col items-center px-6 py-10">
         <h2 className="text-[20px] font-semibold tracking-tight">
-          {destination.id === 'other' ? 'Google Authenticator transfer codes' : `Move to ${destination.name}`}
+          {destination.id === 'other' ? t('export.transfer.title') : t('export.moveTo', { app: destination.name })}
         </h2>
         <p className="mt-2 text-center text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-          {destination.steps}
+          {t(destination.steps)}
         </p>
 
         {uris.length === 0 ? (
           <div className="mt-8 w-full">
-            <Callout tone="warning">None of the chosen accounts can go to Google Authenticator.</Callout>
+            <Callout tone="warning">{t('export.transfer.none')}</Callout>
           </div>
         ) : (
           <>
             <div className="mt-8 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-700">
-              <QrCode text={uris[index]!} size={360} label={`Transfer code ${index + 1} of ${uris.length}`} />
+              <QrCode text={uris[index]!} size={360} label={t('export.transfer.codeLabel', { index: index + 1, total: uris.length })} />
             </div>
             {uris.length > 1 ? (
               <div className="mt-5 flex items-center gap-3">
@@ -523,10 +516,10 @@ function TransferCodes({
                     setIndex((value) => value - 1);
                   }}
                 >
-                  Previous
+                  {t('export.previous')}
                 </Button>
                 <span className="min-w-28 text-center text-[13px] font-medium">
-                  Code {index + 1} of {uris.length}
+                  {t('export.transfer.code', { index: index + 1, total: uris.length })}
                 </span>
                 <Button
                   size="sm"
@@ -537,13 +530,12 @@ function TransferCodes({
                     setIndex((value) => value + 1);
                   }}
                 >
-                  Next
+                  {t('export.next')}
                 </Button>
               </div>
             ) : (
               <p className="mt-4 text-[13px] text-zinc-500 dark:text-zinc-400">
-                One code holds all {chosen.length - skipped.length}{' '}
-                {chosen.length - skipped.length === 1 ? 'account' : 'accounts'}.
+                {t('export.transfer.oneHolds', { count: chosen.length - skipped.length })}
               </p>
             )}
           </>
@@ -552,11 +544,11 @@ function TransferCodes({
         {skipped.length > 0 && (
           <div className="mt-8 w-full">
             <Callout tone="warning">
-              <p className="font-medium">Not included — move these one by one instead:</p>
-              <ul className="mt-1 list-disc pl-5">
+              <p className="font-medium">{t('export.transfer.notIncluded')}</p>
+              <ul className="mt-1 list-disc ps-5">
                 {skipped.map(({ item, reason }) => (
                   <li key={item.id}>
-                    {itemTitle(item)}: {reason}
+                    {titleOf(item)}: {localise(reason)}
                   </li>
                 ))}
               </ul>
@@ -565,7 +557,7 @@ function TransferCodes({
         )}
 
         <Button className="mt-8" onClick={onClose}>
-          Done
+          {t('common.done')}
         </Button>
       </div>
     </Overlay>
@@ -588,6 +580,7 @@ function OneByOne({
   onActivity: () => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const [index, setIndex] = useState(0);
   const item = chosen[index]!;
   const last = index === chosen.length - 1;
@@ -611,26 +604,26 @@ function OneByOne({
   });
 
   return (
-    <Overlay onClose={onClose} label={`Setup codes for ${destination.name}, one at a time`}>
+    <Overlay onClose={onClose} label={t('export.oneByOne.label', { app: appName(destination) })}>
       <div className="mx-auto flex max-w-xl flex-col items-center px-6 py-10">
         <h2 className="text-[20px] font-semibold tracking-tight">
-          {destination.id === 'other' ? 'One account at a time' : `Move to ${destination.name}`}
+          {destination.id === 'other' ? t('export.oneByOne.title') : t('export.moveTo', { app: destination.name })}
         </h2>
         <p className="mt-2 text-center text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-          {destination.steps}
+          {t(destination.steps)}
         </p>
 
         <div className="mt-7 flex max-w-full items-center gap-3">
           <BrandMark issuer={item.issuer} label={item.label} domains={item.domains} icon={item.icon} size={36} />
           <div className="min-w-0">
-            <p className="truncate text-[15px] font-semibold">{itemTitle(item)}</p>
+            <p className="truncate text-[15px] font-semibold">{titleOf(item)}</p>
             {item.issuer && item.label && (
               <p className="truncate text-[12.5px] text-zinc-500 dark:text-zinc-400">{item.label}</p>
             )}
           </div>
         </div>
         <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-700">
-          <QrCode text={buildOtpUri(item)} size={300} label={`Setup QR code for ${itemTitle(item)}`} />
+          <QrCode text={buildOtpUri(item)} size={300} label={t('share.qrLabel', { account: titleOf(item) })} />
         </div>
 
         <div
@@ -639,7 +632,7 @@ function OneByOne({
           aria-valuemin={1}
           aria-valuemax={chosen.length}
           aria-valuenow={index + 1}
-          aria-label="Accounts shown"
+          aria-label={t('export.oneByOne.progress')}
         >
           <div
             className="h-full rounded-full bg-brand-600 transition-[width] dark:bg-brand-400"
@@ -648,22 +641,22 @@ function OneByOne({
         </div>
         <div className="mt-4 flex items-center gap-3">
           <Button size="sm" disabled={index === 0} onClick={() => move(-1)}>
-            Previous
+            {t('export.previous')}
           </Button>
           <span className="min-w-32 text-center text-[13px] font-medium">
-            Account {index + 1} of {chosen.length}
+            {t('export.oneByOne.position', { index: index + 1, total: chosen.length })}
           </span>
           {last ? (
             <Button size="sm" variant="primary" onClick={onClose}>
-              Done
+              {t('common.done')}
             </Button>
           ) : (
             <Button size="sm" variant="primary" onClick={() => move(1)}>
-              Next
+              {t('export.next')}
             </Button>
           )}
         </div>
-        <p className="mt-3 text-[11.5px] text-zinc-400 dark:text-zinc-500">→ or Space for the next one, Esc to stop</p>
+        <p className="mt-3 text-[11.5px] text-zinc-400 dark:text-zinc-500">{t('export.oneByOne.keys')}</p>
       </div>
     </Overlay>
   );
@@ -675,22 +668,25 @@ function OneByOne({
  * everything but the sheet.
  */
 function PrintSheet({ chosen, onClose }: { chosen: VaultItem[]; onClose: () => void }) {
+  const t = useT();
   return (
-    <Overlay onClose={onClose} label="QR codes to print or scan">
+    <Overlay onClose={onClose} label={t('export.print.label')}>
       <div className="mx-auto max-w-4xl px-6 py-8 print:max-w-none print:p-0">
         <div className="mb-6 flex items-start justify-between gap-6 print:mb-4">
           <div>
-            <h2 className="text-[20px] font-semibold tracking-tight">Authenticator X — setup codes</h2>
+            <h2 className="text-[20px] font-semibold tracking-tight">{t('export.print.title')}</h2>
             <p className="mt-1 text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400 print:text-zinc-600">
-              {chosen.length} {chosen.length === 1 ? 'account' : 'accounts'}, {new Date().toLocaleDateString()}. Each code sets up the
-              account in any authenticator app. Anyone holding this can make your codes: keep it locked away.
+              {t('export.print.body', {
+                accounts: t('export.accounts', { count: chosen.length }),
+                date: new Date().toLocaleDateString(t.locale),
+              })}
             </p>
           </div>
           <div className="flex shrink-0 gap-2 print:hidden">
             <Button variant="primary" onClick={() => window.print()}>
-              Print or save as PDF
+              {t('export.print.print')}
             </Button>
-            <Button onClick={onClose}>Close</Button>
+            <Button onClick={onClose}>{t('common.close')}</Button>
           </div>
         </div>
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 print:grid-cols-3 print:gap-3">
@@ -699,8 +695,8 @@ function PrintSheet({ chosen, onClose }: { chosen: VaultItem[]; onClose: () => v
               key={item.id}
               className="flex break-inside-avoid flex-col items-center rounded-2xl border border-zinc-200 p-4 text-center dark:border-zinc-800 print:border-zinc-300 print:p-3"
             >
-              <QrCode text={buildOtpUri(item)} size={168} exact label={`Setup QR code for ${itemTitle(item)}`} />
-              <p className="mt-2 w-full truncate text-[13px] font-semibold">{itemTitle(item)}</p>
+              <QrCode text={buildOtpUri(item)} size={168} exact label={t('share.qrLabel', { account: titleOf(item) })} />
+              <p className="mt-2 w-full truncate text-[13px] font-semibold">{titleOf(item)}</p>
               {item.issuer && item.label && (
                 <p className="w-full truncate text-[11.5px] text-zinc-500 print:text-zinc-600">{item.label}</p>
               )}

@@ -21,6 +21,9 @@ export * from './vault/model.js';
 export * from './vault/vault.js';
 export * from './vault/recovery.js';
 export * from './vault/backup.js';
+export * from './vault/foreign.js';
+export * from './vault/autofill.js';
+export * from './vault/csv.js';
 
 // Brands
 export * from './brand/registry.js';
@@ -32,6 +35,7 @@ export * from './sync/protocol.js';
 export * from './sync/http.js';
 export * from './sync/engine.js';
 export * from './sync/recovery.js';
+export * from './sync/pairing.js';
 
 // Utilities worth exposing to app code
 export { base32Decode, base32Encode, canonicalSecret, isValidBase32 } from './util/base32.js';

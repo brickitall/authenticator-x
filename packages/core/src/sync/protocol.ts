@@ -76,7 +76,134 @@ export interface LoginResponse {
   protectedKey: SealedBox;
   account: {
     email: string;
+    /** How the account proves who is signing in. */
+    method?: AccountMethod;
   };
+}
+
+/**
+ * `password`: the account password, as since 0.2. `provider`: Google or
+ * GitHub, with no password at all; docs/provider-sign-in.md.
+ */
+export type AccountMethod = 'password' | 'provider';
+export type SignInProvider = 'google' | 'github';
+
+// --- Sign in with a provider ------------------------------------------------
+//
+// GET /oauth/:provider/start?ext=<extension id>&challenge=<S256 of a verifier>
+//     &state=<client state>&purpose=signin|reauth
+//   → the provider's consent page → /oauth/:provider/callback
+//   → https://<extension id>.chromiumapp.org/oauth#ticket=…&state=…
+//     (or #error=…&state=…)
+//
+// The ticket is worth nothing without the verifier, which never leaves the
+// extension.
+
+/** A ticket from the callback, and the verifier its challenge was made from. */
+export interface ProviderTicket {
+  ticket: string;
+  verifier: string;
+}
+
+export interface ProviderSessionRequest extends ProviderTicket {
+  deviceId: string;
+  deviceName: string;
+}
+
+/**
+ * A provider account's session. No `protectedKey`: nothing wraps its data key
+ * for the server, which is the point — a new browser gets the key by
+ * `PairingRequest` or with the recovery key (`RecoveryWrapRequest`).
+ */
+export type ProviderLogin = Omit<LoginResponse, 'protectedKey'>;
+
+/**
+ * `existing`: signed in; the device holds no data key yet unless it already
+ * had the account's. `new`: no account has this identity — `signupToken`
+ * creates one within ten minutes.
+ */
+export type ProviderSessionResponse =
+  | { status: 'existing'; session: ProviderLogin }
+  | { status: 'new'; signupToken: string; email: string };
+
+export interface ProviderRegisterRequest {
+  signupToken: string;
+  /** Proof of holding the data key; see `deriveKeyCheck`. */
+  keyCheck: string;
+  /**
+   * The recovery kit is part of signing up, not an option: for an account with
+   * no password it is the only way back in once every device is gone.
+   */
+  recovery: {
+    issuedAt: number;
+    state: SealedBox;
+    wrap: RecoveryWrap;
+    recoveryAuthHash: string;
+  };
+  deviceId: string;
+  deviceName: string;
+}
+
+/**
+ * What a change to a provider account needs instead of the password: a fresh
+ * sign-in with the provider, made for this purpose within the last minutes.
+ */
+export type OwnerProof = { authHash: string } | { reauth: ProviderTicket };
+
+// --- Joining by approval: /pairing ------------------------------------------
+
+/** A browser signed in to the account, without its data key, asks to join. */
+export interface PairingRequest {
+  /** An ephemeral ECDH P-256 public key, raw, base64. */
+  publicKey: string;
+  deviceName: string;
+}
+
+export interface PairingCreated {
+  id: string;
+  expiresAt: number;
+}
+
+/** An open request, as a browser that could approve it sees it. */
+export interface PairingSummary {
+  id: string;
+  deviceName: string;
+  createdAt: number;
+  requesterKey: string;
+  /** Set once a browser has started approving. */
+  approverKey: string | null;
+}
+
+export interface PairingsResponse {
+  pairings: PairingSummary[];
+}
+
+/** The requester's view of its own request. */
+export interface PairingStatus {
+  status: 'waiting' | 'accepted' | 'approved';
+  approverKey: string | null;
+  /** The data key wrapped for the requester; see `unwrapPairedDataKey`. */
+  wrap: SealedBox | null;
+}
+
+/** The approving browser's key, sent before the codes are compared. */
+export interface PairingAccept {
+  publicKey: string;
+}
+
+/** The data key, after the person approving said the codes match. */
+export interface PairingApprove {
+  wrap: SealedBox;
+}
+
+// --- POST /account/recovery/wrap ---------------------------------------------
+
+/**
+ * A signed-in browser with nothing but the recovery key asks for the kit's
+ * wrap — how a provider account joins when no other browser is left.
+ */
+export interface RecoveryWrapRequest {
+  recoveryAuthHash: string;
 }
 
 // --- POST /auth/refresh, POST /auth/logout ----------------------------------
@@ -129,8 +256,10 @@ export interface ChangePasswordRequest {
  * password through it, and anyone at an unlocked vault holds the data key.
  */
 export interface SetRecoveryRequest {
-  /** Proof of the current account password. */
-  authHash: string;
+  /** Proof of the current account password. Password accounts. */
+  authHash?: string;
+  /** A fresh sign-in with the provider. Provider accounts. */
+  reauth?: ProviderTicket;
   keyCheck: string;
   /**
    * The sealed state's `issuedAt`, in the clear so an honest server can refuse
@@ -175,9 +304,10 @@ export interface RecoverResetRequest {
 
 // --- DELETE /account --------------------------------------------------------
 
-/** Irreversible, so it takes the password, not just a session. */
+/** Irreversible, so it takes the password — or a fresh provider sign-in — not just a session. */
 export interface DeleteAccountRequest {
-  authHash: string;
+  authHash?: string;
+  reauth?: ProviderTicket;
 }
 
 // --- GET /sync?since=<serverRev> -------------------------------------------
@@ -223,6 +353,10 @@ export type SyncErrorCode =
   | 'forbidden'
   /** The emailed code was wrong, used, expired, or tried too many times. */
   | 'invalid_code'
+  /** A provider identity whose email already belongs to another account. */
+  | 'email_taken'
+  /** A pairing that has ended, expired, or is not this session's to act on. */
+  | 'not_found'
   /** The server could not do something it depends on, such as sending mail. */
   | 'unavailable'
   | 'rate_limited'

@@ -49,7 +49,7 @@ describe('encrypted backup', () => {
   it('refuses a file that is not a backup', async () => {
     await expect(
       importEncryptedBackup({ format: 'something-else' } as never, 'a good backup password'),
-    ).rejects.toThrow(/not an Authenticator X backup/);
+    ).rejects.toThrow(/not a Keyrook Authenticator backup/);
   });
 });
 

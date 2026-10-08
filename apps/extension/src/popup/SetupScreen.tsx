@@ -2,8 +2,13 @@ import { useMemo, useState, type FormEvent } from 'react';
 import { scorePassword } from '@authx/core';
 import { send, type ProtectionChoice, type VaultStatus } from '../lib/messaging.js';
 import { ArrowLeftIcon, LockIcon, Logo } from '../ui/icons.js';
+import { APP_NAME } from '../lib/name.js';
 import { Button, Callout, Field, Spinner, cx } from '../ui/primitives.js';
 import { SourceLink } from '../ui/SourceLink.js';
+import { SYNC_ENABLED } from '../lib/config.js';
+import { errorText } from '../i18n/error-text.js';
+import { useT } from '../i18n/react.js';
+import { localise } from '../i18n/error-text.js';
 
 const STRENGTH_COLORS = [
   'bg-red-500',
@@ -13,18 +18,24 @@ const STRENGTH_COLORS = [
   'bg-emerald-500',
 ];
 
-export function SetupScreen({ onCreated }: { onCreated: (status: VaultStatus) => void }) {
+export function SetupScreen({
+  onCreated,
+}: {
+  /** `signIn` when the vault was made on the way to signing in. */
+  onCreated: (status: VaultStatus, then?: 'signIn') => void;
+}) {
+  const t = useT();
   const [step, setStep] = useState<'choose' | 'password'>('choose');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function create(protection: ProtectionChoice) {
+  async function create(protection: ProtectionChoice, then?: 'signIn') {
     setBusy(true);
     setError(null);
     try {
-      onCreated(await send({ type: 'vault/create', protection }));
+      onCreated(await send({ type: 'vault/create', protection }), then);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorText(cause));
       setBusy(false);
     }
   }
@@ -48,9 +59,9 @@ export function SetupScreen({ onCreated }: { onCreated: (status: VaultStatus) =>
       <header className="flex flex-col items-center gap-3 pt-2 text-center">
         <Logo className="h-11 w-11" />
         <div>
-          <h1 className="text-[17px] font-semibold">Authenticator X</h1>
+          <h1 className="text-[17px] font-semibold">{APP_NAME}</h1>
           <p className="mt-1 text-[13px] text-zinc-500 dark:text-zinc-400">
-            Choose how your 2FA secrets are protected.
+            {t('setup.prompt')}
           </p>
         </div>
       </header>
@@ -59,29 +70,50 @@ export function SetupScreen({ onCreated }: { onCreated: (status: VaultStatus) =>
 
       <div className="flex flex-col gap-3">
         <ProtectionOption
-          title="Just start"
-          badge="Recommended"
-          description="Your secrets are encrypted with a key this browser holds for you. Nothing to remember, nothing to type."
-          footnote="Protects against anything that can run scripts or read your extension data. Not against malware running as you on this machine."
+          title={t('setup.device.title')}
+          badge={t('setup.device.badge')}
+          description={t('setup.device.description')}
+          footnote={t('setup.device.footnote')}
           busy={busy}
           onClick={() => create({ mode: 'device' })}
         />
         <ProtectionOption
-          title="Add a master password"
+          title={t('setup.password.title')}
           icon={<LockIcon />}
-          description="One password unlocks the vault, then it locks itself again when you stop using it."
-          footnote="The strongest option: once it locks, nothing on this computer can open the vault without the password."
+          description={t('setup.password.description')}
+          footnote={t('setup.password.footnote')}
           onClick={() => setStep('password')}
         />
       </div>
 
+      {/* Someone on a new browser with an account already wants their codes,
+          not a choice about a vault. Signing in still needs one to put them
+          in: it opens with this browser's key, and can take a master
+          password later like any other. */}
+      {SYNC_ENABLED && (
+        <p className="text-center text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+          {t.rich('setup.haveAccount', {}, {
+            link: (chunk) => (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void create({ mode: 'device' }, 'signIn')}
+                className="font-medium text-brand-600 hover:underline disabled:opacity-60 dark:text-brand-400"
+              >
+                {chunk}
+              </button>
+            ),
+          })}
+        </p>
+      )}
+
       <div className="mt-auto flex flex-col items-center gap-1.5 pt-2">
         <p className="text-center text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500">
-          Either way it is AES-256-GCM. Switch any time; sync is optional, in Settings.
+          {t('setup.footer')}
         </p>
         {/* The first moment someone decides whether to trust this with their
             2FA secrets — the code they would be trusting is one click away. */}
-        <SourceLink className="text-[11px]">Open source — read the code</SourceLink>
+        <SourceLink className="text-[11px]">{t('setup.source')}</SourceLink>
       </div>
     </div>
   );
@@ -109,7 +141,7 @@ function ProtectionOption({
       type="button"
       onClick={onClick}
       disabled={busy}
-      className="flex flex-col gap-1.5 rounded-xl border border-zinc-200 p-3.5 text-left transition hover:border-brand-400 hover:bg-brand-50/40 disabled:opacity-60 dark:border-zinc-800 dark:hover:border-brand-500 dark:hover:bg-brand-500/5"
+      className="flex flex-col gap-1.5 rounded-xl border border-zinc-200 p-3.5 text-start transition hover:border-brand-400 hover:bg-brand-50/40 disabled:opacity-60 dark:border-zinc-800 dark:hover:border-brand-500 dark:hover:bg-brand-500/5"
     >
       <span className="flex items-center gap-2">
         {busy ? (
@@ -143,6 +175,7 @@ function PasswordStep({
   onBack: () => void;
   onSubmit: (password: string) => void;
 }) {
+  const t = useT();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
 
@@ -162,29 +195,28 @@ function PasswordStep({
         <button
           type="button"
           onClick={onBack}
-          aria-label="Back"
+          aria-label={t('common.back')}
           className="rounded-lg p-1.5 text-base text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
         >
           <ArrowLeftIcon />
         </button>
-        <h1 className="text-[15px] font-semibold">Set a master password</h1>
+        <h1 className="text-[15px] font-semibold">{t('setup.passwordStep.title')}</h1>
       </header>
 
       <Callout tone="warning">
-        Nobody can reset this password. If you forget it, only a recovery key opens the vault — make
-        one in Settings → Security, and write the password down somewhere safe.
+        {t('setup.passwordStep.warning')}
       </Callout>
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <Field
-            label="Master password"
+            label={t('setup.passwordStep.label')}
             type="password"
             autoComplete="new-password"
             autoFocus
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="At least 8 characters"
+            placeholder={t('setup.passwordStep.placeholder')}
           />
           {password.length > 0 && (
             <div className="flex flex-col gap-1.5">
@@ -202,20 +234,24 @@ function PasswordStep({
                 ))}
               </div>
               <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
-                Strength: {strength.label}
-                {strength.warnings[0] ? ` — ${strength.warnings[0]}` : ''}
+                {strength.warnings[0]
+                  ? t('strength.lineWithWarning', {
+                      label: t(`strength.${strength.score}` as 'strength.0'),
+                      warning: localise(strength.warnings[0]),
+                    })
+                  : t('strength.line', { label: t(`strength.${strength.score}` as 'strength.0') })}
               </p>
             </div>
           )}
         </div>
 
         <Field
-          label="Confirm password"
+          label={t('setup.passwordStep.confirm')}
           type="password"
           autoComplete="new-password"
           value={confirm}
           onChange={(event) => setConfirm(event.target.value)}
-          error={mismatch ? 'Passwords do not match.' : null}
+          error={mismatch ? t('common.passwordsDiffer') : null}
         />
       </div>
 
@@ -224,10 +260,10 @@ function PasswordStep({
       <div className="mt-auto flex flex-col gap-2">
         <Button type="submit" variant="primary" disabled={!ready || busy}>
           {busy ? <Spinner /> : null}
-          Create my vault
+          {t('setup.passwordStep.submit')}
         </Button>
         <p className="text-center text-[11px] text-zinc-400 dark:text-zinc-500">
-          AES-256-GCM · key derived with PBKDF2 (600,000 rounds)
+          {t('setup.passwordStep.footer')}
         </p>
       </div>
     </form>

@@ -1,10 +1,19 @@
 import { useMemo, useState } from 'react';
-import { accountPasswordProblem, scorePassword, type ProtectionMode, type VaultData } from '@authx/core';
+import {
+  accountPasswordProblem,
+  scorePassword,
+  type ProtectionMode,
+  type SignInProvider,
+  type VaultData,
+} from '@authx/core';
 import { send, type Mutate } from '../lib/messaging.js';
-import { CloudLockIcon, KeyIcon, LockIcon } from '../ui/icons.js';
-import { Button, Callout, Field, Spinner, cx } from '../ui/primitives.js';
+import { Button, Callout, Field, Spinner } from '../ui/primitives.js';
 import { RecoveryKeySheet } from './RecoveryKeySheet.js';
-import { Row, Section, Select, Toggle } from './Section.js';
+import { PageHeader, Row, Section, Select, StateDot, Toggle } from './Section.js';
+import { providerLabel } from './ProviderSignIn.js';
+import { errorText } from '../i18n/error-text.js';
+import { useT } from '../i18n/react.js';
+import { localise } from '../i18n/error-text.js';
 
 export function SecurityPanel({
   data,
@@ -23,53 +32,71 @@ export function SecurityPanel({
   signedIn: boolean;
   accountRecovery: boolean;
 }) {
+  const t = useT();
   const { settings } = data;
   const passwordProtected = protectionMode === 'passphrase';
 
   const recoveryReady = hasRecovery && (!signedIn || accountRecovery);
+  const provider = data.account.method === 'provider' ? data.account.provider : undefined;
+  // Decided once, as the tab opens. Moving the group the moment a key is
+  // issued would remount it, and the key — shown once, kept nowhere — would
+  // vanish from the screen before anyone had written it down.
+  const [recoveryFirst] = useState(!recoveryReady);
+
+  const recovery = (
+    <RecoverySection
+      mode={protectionMode}
+      hasRecovery={hasRecovery}
+      signedIn={signedIn}
+      accountRecovery={accountRecovery}
+      provider={provider}
+    />
+  );
 
   return (
     <>
-      <Overview
-        passwordProtected={passwordProtected}
-        recoveryReady={recoveryReady}
-        syncedAs={signedIn ? data.account.email : null}
-      />
-      <Section title="Locking">
+      <PageHeader title={t('nav.security')} description={t('security.description')} />
+
+      {/* The one thing that can still go permanently wrong comes first while
+          it is undone, and takes its place below once it is not. */}
+      {recoveryFirst && recovery}
+
+      <Section title={t('security.locking')}>
+        {/* A Google or GitHub account has no password, so this vault's master
+            password is its own: chosen, changed and removed like a local one. */}
+        <ProtectionRow mode={protectionMode} signedIn={signedIn && !provider} />
         <Row
-          label="Lock after inactivity"
+          label={t('security.lockAfter')}
           description={
-            passwordProtected
-              ? 'The decryption key is dropped from memory. Your master password is needed again.'
-              : 'Only applies with a master password — a device-key vault has nothing to unlock.'
+            passwordProtected ? t('security.lockAfter.passphrase') : t('security.lockAfter.device')
           }
           control={
             passwordProtected ? (
               <Select
-                label="Auto-lock delay"
+                label={t('security.autoLock')}
                 value={settings.autoLockMinutes}
                 onChange={(value) =>
                   void mutate({ op: 'settings/update', patch: { autoLockMinutes: value } })
                 }
                 options={[
-                  { value: 1, label: '1 minute' },
-                  { value: 5, label: '5 minutes' },
-                  { value: 15, label: '15 minutes' },
-                  { value: 60, label: '1 hour' },
-                  { value: 0, label: 'Never' },
+                  { value: 1, label: t('security.minutes', { count: 1 }) },
+                  { value: 5, label: t('security.minutes', { count: 5 }) },
+                  { value: 15, label: t('security.minutes', { count: 15 }) },
+                  { value: 60, label: t('security.hour') },
+                  { value: 0, label: t('security.never') },
                 ]}
               />
             ) : (
-              <span className="text-[12.5px] text-zinc-400 dark:text-zinc-500">Needs a master password</span>
+              <span className="text-[12.5px] text-zinc-400 dark:text-zinc-500">{t('security.needsPassword')}</span>
             )
           }
         />
         <Row
-          label="Blur codes until hovered"
-          description="Keeps codes off the screen during screen sharing."
+          label={t('security.blur')}
+          description={t('security.blurDescription')}
           control={
             <Toggle
-              label="Blur codes"
+              label={t('security.blurToggle')}
               checked={settings.hideCodes}
               onChange={(value) => void mutate({ op: 'settings/update', patch: { hideCodes: value } })}
             />
@@ -77,128 +104,9 @@ export function SecurityPanel({
         />
       </Section>
 
-      <Section
-        title="Autofill"
-        description="When enabled, opening the popup on a page checks whether it has a one-time-code field, so the right account can be filled in one click. The extension only ever looks at the tab you opened it on."
-      >
-        <Row
-          label="Offer to fill codes on web pages"
-          control={
-            <Toggle
-              label="Autofill"
-              checked={settings.autofillEnabled}
-              onChange={(value) =>
-                void mutate({ op: 'settings/update', patch: { autofillEnabled: value } })
-              }
-            />
-          }
-        />
-      </Section>
-
-      <Section title="Appearance">
-        <Row
-          label="Theme"
-          control={
-            <Select
-              label="Theme"
-              value={settings.theme}
-              onChange={(value) => void mutate({ op: 'settings/update', patch: { theme: value } })}
-              options={[
-                { value: 'system', label: 'Match system' },
-                { value: 'light', label: 'Light' },
-                { value: 'dark', label: 'Dark' },
-              ]}
-            />
-          }
-        />
-        <Row
-          label="Sort accounts by"
-          control={
-            <Select
-              label="Sort order"
-              value={settings.sortBy}
-              onChange={(value) => void mutate({ op: 'settings/update', patch: { sortBy: value } })}
-              options={[
-                { value: 'added', label: 'Order added' },
-                { value: 'name', label: 'Name' },
-              ]}
-            />
-          }
-        />
-      </Section>
-
-      <ProtectionSection mode={protectionMode} signedIn={signedIn} />
-      <RecoverySection
-        mode={protectionMode}
-        hasRecovery={hasRecovery}
-        signedIn={signedIn}
-        accountRecovery={accountRecovery}
-      />
+      {!recoveryFirst && recovery}
       <DangerZone onReset={refresh} />
     </>
-  );
-}
-
-/**
- * How this vault is protected, at a glance: what opens it, whether there is a
- * way back in, and whether a copy lives anywhere else. The sections below say
- * the same at length; this is what someone checks in five seconds.
- */
-function Overview({
-  passwordProtected,
-  recoveryReady,
-  syncedAs,
-}: {
-  passwordProtected: boolean;
-  recoveryReady: boolean;
-  syncedAs: string | null;
-}) {
-  const facts = [
-    {
-      Icon: LockIcon,
-      label: 'Opens with',
-      value: passwordProtected ? 'Master password' : 'Device key',
-      detail: passwordProtected ? 'Locks itself when idle' : 'Nothing to type',
-      tone: 'good' as const,
-    },
-    {
-      Icon: KeyIcon,
-      label: 'Recovery key',
-      value: recoveryReady ? 'Ready' : 'Not set',
-      detail: recoveryReady ? 'Your way back in' : 'Create one below',
-      tone: recoveryReady ? ('good' as const) : ('warn' as const),
-    },
-    {
-      Icon: CloudLockIcon,
-      label: 'Sync',
-      value: syncedAs ? 'On' : 'Off',
-      detail: syncedAs ?? 'This device only',
-      tone: syncedAs ? ('good' as const) : ('neutral' as const),
-    },
-  ];
-  const tones = {
-    good: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-    warn: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400',
-    neutral: 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400',
-  };
-  return (
-    <div className="mb-5 grid grid-cols-3 gap-3">
-      {facts.map(({ Icon, label, value, detail, tone }) => (
-        <div
-          key={label}
-          className="rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)] dark:border-zinc-800 dark:bg-zinc-900/50 dark:shadow-none"
-        >
-          <span className={cx('inline-flex h-8 w-8 items-center justify-center rounded-lg', tones[tone])}>
-            <Icon className="h-[18px] w-[18px]" />
-          </span>
-          <p className="mt-3 text-[12px] text-zinc-500 dark:text-zinc-400">{label}</p>
-          <p className="text-[14px] font-semibold">{value}</p>
-          <p className="mt-0.5 truncate text-[11.5px] text-zinc-400 dark:text-zinc-500" title={detail}>
-            {detail}
-          </p>
-        </div>
-      ))}
-    </div>
   );
 }
 
@@ -211,7 +119,8 @@ function Overview({
  * the device key or with the account password. So "adding" a password means
  * locking with the account's, and changing it changes the account's.
  */
-function ProtectionSection({ mode, signedIn }: { mode: ProtectionMode; signedIn: boolean }) {
+function ProtectionRow({ mode, signedIn }: { mode: ProtectionMode; signedIn: boolean }) {
+  const t = useT();
   const [intent, setIntent] = useState<'idle' | 'set' | 'change' | 'remove'>('idle');
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -258,168 +167,149 @@ function ProtectionSection({ mode, signedIn }: { mode: ProtectionMode; signedIn:
         tone: 'info',
         text:
           intent === 'remove'
-            ? signedIn
-              ? 'This device now opens without a password. Your account password has not changed.'
-              : 'Master password removed. This vault now unlocks automatically on this device.'
+            ? t(signedIn ? 'protect.msg.removedSignedIn' : 'protect.msg.removed')
             : intent === 'set'
-              ? signedIn
-                ? 'This device now locks with your account password.'
-                : 'Master password set. You will be asked for it after the vault locks.'
-              : signedIn
-                ? 'Password changed, for this vault and your account. Your other devices will ask you to sign in again with it.'
-                : 'Master password changed.',
+              ? t(signedIn ? 'protect.msg.setSignedIn' : 'protect.msg.set')
+              : t(signedIn ? 'protect.msg.changedSignedIn' : 'protect.msg.changed'),
       });
     } catch (cause) {
-      setMessage({ tone: 'danger', text: cause instanceof Error ? cause.message : String(cause) });
+      setMessage({ tone: 'danger', text: errorText(cause) });
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <Section
-      title="How this vault is protected"
+    <Row
+      label={
+        <span className="flex items-center">
+          <StateDot good={mode === 'passphrase'} />
+          {mode === 'passphrase'
+            ? t(signedIn ? 'protect.state.accountPassword' : 'protect.state.master')
+            : t('protect.state.device')}
+        </span>
+      }
       description={
-        mode === 'device'
-          ? 'A key held by this browser unlocks the vault automatically. Nothing to type, and no script can read the key — but it is not hardware-backed, so it will not stop malware running as you on this machine.'
-          : 'A key derived from your master password unlocks the vault. This is the stronger option: a copy of this browser profile is useless without the password.'
+        <>
+          {mode === 'passphrase' ? t('security.passwordHint') : t('security.deviceKeyHint')}
+          {signedIn && intent === 'idle' && (
+            <> {mode === 'passphrase' ? t('protect.note.passphrase') : t('protect.note.device')}</>
+          )}
+        </>
+      }
+      control={
+        intent === 'idle' && (
+          <div className="flex gap-2">
+            {mode === 'device' ? (
+              <Button variant="primary" size="sm" onClick={() => setIntent('set')}>
+                {t(signedIn ? 'protect.lockWithAccount' : 'protect.addMaster')}
+              </Button>
+            ) : (
+              <>
+                <Button size="sm" onClick={() => setIntent('change')}>
+                  {t('protect.changePassword')}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setIntent('remove')}>
+                  {t('common.remove')}
+                </Button>
+              </>
+            )}
+          </div>
+        )
       }
     >
-      <div className="flex flex-col gap-4 p-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-block h-2 w-2 rounded-full ${
-                mode === 'passphrase' ? 'bg-emerald-500' : 'bg-amber-500'
-              }`}
-            />
-            <span className="text-[13px] font-medium">
-              {mode === 'passphrase'
-                ? signedIn
-                  ? 'Locks with your account password'
-                  : 'Master password'
-                : 'Device key (no password)'}
-            </span>
-          </div>
+      {(message || intent !== 'idle') && (
+        <div className="flex flex-col gap-4">
+          {message && <Callout tone={message.tone}>{message.text}</Callout>}
 
-          {intent === 'idle' && (
-            <div className="flex gap-2">
-              {mode === 'device' ? (
-                <Button variant="primary" size="sm" onClick={() => setIntent('set')}>
-                  {signedIn ? 'Lock with your account password' : 'Add a master password'}
-                </Button>
-              ) : (
-                <>
-                  <Button size="sm" onClick={() => setIntent('change')}>
-                    Change password
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setIntent('remove')}>
-                    Remove
-                  </Button>
-                </>
+          {intent !== 'idle' && (
+            <form onSubmit={submit} className="flex flex-col gap-4">
+              {intent === 'remove' && (
+                <Callout tone="warning">
+                  {t('protect.removeWarning')}
+                  {signedIn && t('protect.removeWarningSignedIn')}
+                </Callout>
               )}
-            </div>
+
+              {needsCurrent && (
+                <Field
+                  label={t(signedIn ? 'protect.currentPassword' : 'protect.currentMaster')}
+                  type="password"
+                  autoComplete="current-password"
+                  autoFocus
+                  value={current}
+                  onChange={(event) => setCurrent(event.target.value)}
+                />
+              )}
+
+              {usesAccountPassword ? (
+                <Field
+                  label={t('protect.accountPassword')}
+                  type="password"
+                  autoComplete="current-password"
+                  autoFocus
+                  value={next}
+                  onChange={(event) => setNext(event.target.value)}
+                  hint={t('protect.accountPasswordHint')}
+                />
+              ) : (
+                needsNext && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field
+                      label={t('protect.newPassword')}
+                      type="password"
+                      autoComplete="new-password"
+                      autoFocus={!needsCurrent}
+                      value={next}
+                      onChange={(event) => setNext(event.target.value)}
+                      hint={
+                        next
+                          ? t('strength.line', { label: t(`strength.${strength.score}` as 'strength.0') })
+                          : signedIn
+                            ? t('protect.hint12')
+                            : t('recover.atLeast8')
+                      }
+                      error={tooWeak && localise(tooWeak)}
+                    />
+                    <Field
+                      label={t('protect.confirmNew')}
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirm}
+                      onChange={(event) => setConfirm(event.target.value)}
+                      error={confirm && confirm !== next ? t('common.passwordsDiffer') : null}
+                    />
+                  </div>
+                )
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  variant={intent === 'remove' ? 'danger' : 'primary'}
+                  disabled={!ready || busy}
+                >
+                  {busy ? <Spinner /> : null}
+                  {intent === 'remove'
+                    ? t('protect.removePassword')
+                    : intent === 'set'
+                      ? usesAccountPassword
+                        ? t('protect.lockWithIt')
+                        : t('protect.setPassword')
+                      : t('protect.changePassword')}
+                </Button>
+                <Button onClick={reset}>{t('common.cancel')}</Button>
+              </div>
+            </form>
           )}
         </div>
-
-        {signedIn && intent === 'idle' && (
-          <p className="text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-            {mode === 'passphrase'
-              ? 'This is also your sync account’s password. Changing it here changes it there, and your other devices will ask you to sign in again.'
-              : 'Your sync account has its own password, which this device does not ask for. You need it on a new device, and to change the account or its recovery key.'}
-          </p>
-        )}
-
-        {message && <Callout tone={message.tone}>{message.text}</Callout>}
-
-        {intent !== 'idle' && (
-          <form onSubmit={submit} className="flex flex-col gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-900">
-            {intent === 'remove' && (
-              <Callout tone="warning">
-                The vault stays encrypted, but it will unlock by itself whenever this browser profile
-                is open. Anyone using this computer can then see your codes.
-                {signedIn &&
-                  ' Your account keeps its password — you will still need it on a new device.'}
-              </Callout>
-            )}
-
-            {needsCurrent && (
-              <Field
-                label={signedIn ? 'Current password' : 'Current master password'}
-                type="password"
-                autoComplete="current-password"
-                autoFocus
-                value={current}
-                onChange={(event) => setCurrent(event.target.value)}
-              />
-            )}
-
-            {usesAccountPassword ? (
-              <Field
-                label="Account password"
-                type="password"
-                autoComplete="current-password"
-                autoFocus
-                value={next}
-                onChange={(event) => setNext(event.target.value)}
-                hint="The password you use to sign in to sync. This device will ask for it after it locks."
-              />
-            ) : (
-              needsNext && (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field
-                    label="New password"
-                    type="password"
-                    autoComplete="new-password"
-                    autoFocus={!needsCurrent}
-                    value={next}
-                    onChange={(event) => setNext(event.target.value)}
-                    hint={
-                      next
-                        ? `Strength: ${strength.label}`
-                        : signedIn
-                          ? 'At least 12 characters with a mix, or four or five unrelated words.'
-                          : 'At least 8 characters.'
-                    }
-                    error={tooWeak}
-                  />
-                  <Field
-                    label="Confirm new password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={confirm}
-                    onChange={(event) => setConfirm(event.target.value)}
-                    error={confirm && confirm !== next ? 'Passwords do not match.' : null}
-                  />
-                </div>
-              )
-            )}
-
-            <div className="flex gap-2">
-              <Button
-                type="submit"
-                variant={intent === 'remove' ? 'danger' : 'primary'}
-                disabled={!ready || busy}
-              >
-                {busy ? <Spinner /> : null}
-                {intent === 'remove'
-                  ? 'Remove password'
-                  : intent === 'set'
-                    ? usesAccountPassword
-                      ? 'Lock with it'
-                      : 'Set password'
-                    : 'Change password'}
-              </Button>
-              <Button onClick={reset}>Cancel</Button>
-            </div>
-          </form>
-        )}
-      </div>
-    </Section>
+      )}
+    </Row>
   );
 }
 
 function DangerZone({ onReset }: { onReset: () => Promise<void> }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState('');
   const [busy, setBusy] = useState(false);
@@ -428,60 +318,58 @@ function DangerZone({ onReset }: { onReset: () => Promise<void> }) {
   // Folded until asked for: a red box with a text field, always on show at the
   // foot of every visit, made the whole page feel like a warning.
   return (
-    <Section
-      title="Delete this vault"
-      description="Removes every account and the encrypted vault from this device. There is no undo, and no copy anywhere else."
-      action={
-        open ? null : (
-          <Button variant="ghost" size="sm" className="text-red-600! dark:text-red-400!" onClick={() => setOpen(true)}>
-            Delete this vault…
-          </Button>
-        )
-      }
-    >
-      {open && (
-      <div className="flex flex-col gap-4 p-4">
-        <Callout tone="danger">
-          Make sure you still have another way into every account first — a backup file, recovery
-          codes, or the same accounts on your phone.
-        </Callout>
-        <Field
-          label="Type DELETE to confirm"
-          value={confirmation}
-          onChange={(event) => setConfirmation(event.target.value)}
-          autoComplete="off"
-          spellCheck={false}
-        />
-        <div>
-          <Button
-            variant="danger"
-            disabled={!armed || busy}
-            onClick={async () => {
-              setBusy(true);
-              try {
-                await send({ type: 'vault/reset' });
-                await onReset();
-              } finally {
-                setBusy(false);
-                setConfirmation('');
-              }
-            }}
-          >
-            {busy ? <Spinner /> : null} Delete everything
-          </Button>
-          <Button
-            variant="ghost"
-            className="ml-2"
-            onClick={() => {
-              setOpen(false);
-              setConfirmation('');
-            }}
-          >
-            Cancel
-          </Button>
-        </div>
-      </div>
-      )}
+    <Section tone="danger">
+      <Row
+        label={t('danger.title')}
+        description={t('danger.description')}
+        control={
+          open ? null : (
+            <Button variant="ghost" size="sm" className="text-red-600! dark:text-red-400!" onClick={() => setOpen(true)}>
+              {t('danger.open')}
+            </Button>
+          )
+        }
+      >
+        {open && (
+          <div className="flex flex-col gap-4">
+            <Callout tone="danger">{t('danger.warning')}</Callout>
+            <Field
+              label={t('common.typeToConfirm', { word: 'DELETE' })}
+              value={confirmation}
+              onChange={(event) => setConfirmation(event.target.value)}
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <div className="flex gap-2">
+              <Button
+                variant="danger"
+                disabled={!armed || busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await send({ type: 'vault/reset' });
+                    await onReset();
+                  } finally {
+                    setBusy(false);
+                    setConfirmation('');
+                  }
+                }}
+              >
+                {busy ? <Spinner /> : null} {t('danger.confirm')}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setOpen(false);
+                  setConfirmation('');
+                }}
+              >
+                {t('common.cancel')}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Row>
     </Section>
   );
 }
@@ -501,12 +389,17 @@ function RecoverySection({
   hasRecovery,
   signedIn,
   accountRecovery,
+  provider,
 }: {
   mode: ProtectionMode;
   hasRecovery: boolean;
   signedIn: boolean;
   accountRecovery: boolean;
+  /** Signed in with Google or GitHub: a fresh sign-in there stands in for the password. */
+  provider: SignInProvider | undefined;
 }) {
+  const t = useT();
+  const reauth = signedIn && provider !== undefined;
   const [issued, setIssued] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [asking, setAsking] = useState<'issue' | 'remove' | null>(null);
@@ -525,7 +418,7 @@ function RecoverySection({
       await action();
       close();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorText(cause));
     } finally {
       setBusy(false);
     }
@@ -535,140 +428,138 @@ function RecoverySection({
     run(async () => {
       const { recoveryKey } = await send({
         type: 'vault/createRecoveryKit',
-        ...(signedIn ? { password } : {}),
+        ...(signedIn && !reauth ? { password } : {}),
       });
       setIssued(recoveryKey);
     });
 
   const remove = () =>
     run(async () => {
-      await send({ type: 'vault/removeRecoveryKit', ...(signedIn ? { password } : {}) });
+      await send({ type: 'vault/removeRecoveryKit', ...(signedIn && !reauth ? { password } : {}) });
     });
+
+  const ready = hasRecovery && (!signedIn || accountRecovery);
 
   return (
     <Section
-      title="Recovery key"
+      title={t('kit.title')}
       description={
-        signedIn
-          ? 'Nobody can reset your password — not us, not Google. A recovery key is the only way back if you forget it: it opens this vault, your other devices, and your account on a new one.'
-          : mode === 'passphrase'
-            ? 'Nobody can reset your master password — not us, not Google. That is what stops anyone else opening your vault, and it is also why a recovery key is the only way back if you forget it.'
-            : 'This vault unlocks with a key your browser holds. If that key goes — cleared browsing data, a new profile, a reinstall — a recovery key is the only thing that can still open it.'
+        reauth
+          ? t('kit.provider', { provider: providerLabel(provider!) })
+          : signedIn
+            ? t('kit.signedIn')
+            : mode === 'passphrase'
+              ? t('kit.passphrase')
+              : t('kit.device')
       }
     >
-      <div className="flex flex-col gap-4 p-4">
-        {error && <Callout tone="danger">{error}</Callout>}
-
-        {issued ? (
+      {issued ? (
+        <div className="p-4">
           <RecoveryKeySheet recoveryKey={issued} onDone={() => setIssued(null)} />
-        ) : (
-          <>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2.5">
-                <span
-                  className={`inline-block h-2 w-2 rounded-full ${
-                    hasRecovery && (!signedIn || accountRecovery) ? 'bg-emerald-500' : 'bg-amber-500'
-                  }`}
-                />
-                <span className="text-[13px] font-medium">
-                  {!hasRecovery
-                    ? 'No recovery key yet'
-                    : signedIn && !accountRecovery
-                      ? 'Opens this vault, but not your account'
-                      : 'A recovery key has been issued'}
-                </span>
-              </div>
-              {asking === null && (
-                <div className="flex gap-2">
-                  <Button
-                    variant={hasRecovery ? 'secondary' : 'primary'}
-                    size="sm"
-                    disabled={busy}
-                    onClick={() => (signedIn ? setAsking('issue') : void issue())}
-                  >
-                    {busy ? <Spinner /> : null}
-                    {hasRecovery ? 'Issue a new one' : 'Create a recovery key'}
+        </div>
+      ) : (
+        <Row
+          label={
+            <span className="flex items-center">
+              <StateDot good={ready} />
+              {!hasRecovery ? t('kit.none') : signedIn && !accountRecovery ? t('kit.vaultOnly') : t('kit.issued')}
+            </span>
+          }
+          description={hasRecovery && asking === null ? t(signedIn ? 'kit.replacesSignedIn' : 'kit.replaces') : undefined}
+          control={
+            asking === null && (
+              <div className="flex gap-2">
+                <Button
+                  variant={hasRecovery ? 'secondary' : 'primary'}
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => (signedIn ? setAsking('issue') : void issue())}
+                >
+                  {busy ? <Spinner /> : null}
+                  {hasRecovery ? t('kit.issueNew') : t('kit.create')}
+                </Button>
+                {hasRecovery && (
+                  <Button variant="ghost" size="sm" onClick={() => setAsking('remove')}>
+                    {t('common.remove')}
                   </Button>
-                  {hasRecovery && (
-                    <Button variant="ghost" size="sm" onClick={() => setAsking('remove')}>
-                      Remove
-                    </Button>
+                )}
+              </div>
+            )
+          }
+        >
+          {(error || (hasRecovery && signedIn && !accountRecovery) || (!hasRecovery && asking === null) || asking !== null) && (
+            <div className="flex flex-col gap-3">
+              {error && <Callout tone="danger">{error}</Callout>}
+
+              {hasRecovery && signedIn && !accountRecovery && (
+                // Issued before signing up. Its key was shown once and kept
+                // nowhere, so it cannot be uploaded after the fact.
+                <Callout tone="warning">{t('kit.beforeSignIn')}</Callout>
+              )}
+
+              {!hasRecovery && asking === null && (
+                // The loss to warn about depends on the mode, as the description
+                // above already knows: a device-key vault has no password to
+                // forget, and telling its owner they might forget one points
+                // them at the wrong risk.
+                <Callout tone="warning">
+                  {reauth
+                    ? t('kit.withoutProvider')
+                    : signedIn || mode === 'passphrase'
+                      ? t('kit.withoutPassword')
+                      : t('kit.withoutDevice')}{' '}
+                  {t('kit.noSupport')}
+                </Callout>
+              )}
+
+              {asking !== null && (
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void (asking === 'issue' ? issue() : remove());
+                  }}
+                  className="flex flex-col gap-3"
+                >
+                  {asking === 'remove' && (
+                    <Callout tone="danger">
+                      {reauth
+                        ? t('kit.removeProvider')
+                        : t(signedIn ? 'kit.removePasswordSignedIn' : 'kit.removePassword')}
+                    </Callout>
                   )}
-                </div>
+                  {reauth && (
+                    <p className="text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                      {t('kit.reauth', { provider: providerLabel(provider!) })}
+                    </p>
+                  )}
+                  {signedIn && !reauth && (
+                    <Field
+                      label={t('protect.accountPassword')}
+                      type="password"
+                      autoComplete="current-password"
+                      autoFocus
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      hint={t('kit.passwordHint')}
+                    />
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      type="submit"
+                      variant={asking === 'remove' ? 'danger' : 'primary'}
+                      disabled={busy || (signedIn && !reauth && password.length === 0)}
+                    >
+                      {busy ? <Spinner /> : null}
+                      {asking === 'remove' ? t('kit.removeConfirm') : t('kit.createConfirm')}
+                    </Button>
+                    <Button onClick={close}>{t('common.cancel')}</Button>
+                  </div>
+                </form>
               )}
             </div>
-
-            {hasRecovery && signedIn && !accountRecovery && (
-              // Issued before signing up. Its key was shown once and kept
-              // nowhere, so it cannot be uploaded after the fact.
-              <Callout tone="warning">
-                This key was issued before you signed in, so your account does not have it. It still
-                opens this vault here, but not on a new device. Issue a new one to cover both.
-              </Callout>
-            )}
-
-            {hasRecovery && asking === null && (
-              <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
-                Issuing a new key makes the previous one stop working
-                {signedIn ? ', here and on your other devices' : ''}, so an old printed sheet is safe
-                to throw away once you have replaced it.
-              </p>
-            )}
-
-            {!hasRecovery && asking === null && (
-              // The loss to warn about depends on the mode, as the description
-              // above already knows: a device-key vault has no password to
-              // forget, and telling its owner they might forget one points
-              // them at the wrong risk.
-              <Callout tone="warning">
-                {signedIn || mode === 'passphrase'
-                  ? 'Without one, forgetting your password means every account in this vault is gone for good.'
-                  : 'Without one, losing the key this browser holds means every account in this vault is gone for good.'}{' '}
-                There is no support request that can undo it.
-              </Callout>
-            )}
-
-            {asking !== null && (
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void (asking === 'issue' ? issue() : remove());
-                }}
-                className="flex flex-col gap-3 border-t border-zinc-100 pt-4 dark:border-zinc-900"
-              >
-                {asking === 'remove' && (
-                  <Callout tone="danger">
-                    Removing it leaves your password as the only way in
-                    {signedIn ? ' — on this device, your other devices and your account' : ''}.
-                  </Callout>
-                )}
-                {signedIn && (
-                  <Field
-                    label="Account password"
-                    type="password"
-                    autoComplete="current-password"
-                    autoFocus
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    hint="A recovery key can reset your account, so changing it takes your password."
-                  />
-                )}
-                <div className="flex gap-2">
-                  <Button
-                    type="submit"
-                    variant={asking === 'remove' ? 'danger' : 'primary'}
-                    disabled={busy || (signedIn && password.length === 0)}
-                  >
-                    {busy ? <Spinner /> : null}
-                    {asking === 'remove' ? 'Remove the recovery key' : 'Create the key'}
-                  </Button>
-                  <Button onClick={close}>Cancel</Button>
-                </div>
-              </form>
-            )}
-          </>
-        )}
-      </div>
+          )}
+        </Row>
+      )}
     </Section>
   );
 }

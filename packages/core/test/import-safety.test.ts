@@ -60,7 +60,7 @@ describe('a backup file from someone else', () => {
     const file = await realBackup();
     expect(() => assertUsableBackup({ ...file, payload: {} as never })).toThrow(/malformed/);
     expect(() => assertUsableBackup({ ...file, wrappedKey: null as never })).toThrow();
-    expect(() => assertUsableBackup({ format: 'something-else' } as never)).toThrow(/not an/);
+    expect(() => assertUsableBackup({ format: 'something-else' } as never)).toThrow(/not a Keyrook Authenticator backup/);
   });
 
   it('still opens an honest one', async () => {

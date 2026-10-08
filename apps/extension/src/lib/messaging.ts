@@ -1,4 +1,14 @@
-import type { DeviceSummary, ProtectionMode, VaultData, VaultItem, VaultSettings } from '@authx/core';
+import type {
+  DeviceSummary,
+  PairingSummary,
+  ProtectionMode,
+  SignInProvider,
+  VaultData,
+  VaultItem,
+  VaultSettings,
+} from '@authx/core';
+import type { Values } from '../i18n/format.js';
+import type { MessageKey } from '../i18n/locales/en.js';
 
 /** What the popup/options pages know about the vault at any moment. */
 export type VaultStatus =
@@ -93,8 +103,47 @@ export type Request =
   | { type: 'account/sync' }
   | { type: 'account/devices' }
   | { type: 'account/revokeDevice'; id: string }
-  /** Deletes the account on the server. The vault on this device stays. */
-  | { type: 'account/delete'; password: string }
+  /**
+   * Deletes the account on the server. The vault on this device stays. A
+   * provider account proves it is its owner by signing in again instead.
+   */
+  | { type: 'account/delete'; password?: string }
+  /** The providers this server signs in with; empty when it has none. */
+  | { type: 'provider/offered' }
+  | { type: 'provider/pending' }
+  /**
+   * The address to take this tab to, to sign in with the provider there. The
+   * answer comes back to the service worker, which brings the tab back to
+   * the account page; `provider/outcome` then says how it went.
+   */
+  | { type: 'provider/begin'; provider: SignInProvider }
+  /** What a sign-in made in the tab came to, once; null when there is nothing to say. */
+  | { type: 'provider/outcome' }
+  /**
+   * Opens the provider's sign-in window, for a server that cannot hand the
+   * answer back to a tab. Signs straight in when this vault already holds the
+   * account's key; otherwise says whether there is an account to create or
+   * one to join.
+   */
+  | { type: 'provider/start'; provider: SignInProvider }
+  /** Creates the account a provider sign-in found missing, and its recovery key. */
+  | { type: 'provider/create' }
+  | { type: 'provider/cancel' }
+  /**
+   * Joining: asks the account's browsers to let this one in. `password` is
+   * this vault's master password, when it locks with one: taking the
+   * account's key needs it.
+   */
+  | { type: 'pairing/request'; password?: string }
+  | { type: 'pairing/poll'; password?: string }
+  /** Joining with the recovery key, when no other browser is left. */
+  | { type: 'pairing/recover'; recoveryKey: string; password?: string }
+  /** Approving: the browsers asking to join this account. */
+  | { type: 'pairing/list' }
+  /** Shows a code; nothing is sent until `pairing/approve`. */
+  | { type: 'pairing/accept'; id: string }
+  | { type: 'pairing/approve'; id: string }
+  | { type: 'pairing/deny'; id: string }
   | { type: 'activity/ping' }
   | { type: 'tab/context' }
   | { type: 'tab/captureQr' }
@@ -144,7 +193,67 @@ export interface SignUpResult extends SignInResult {
   recoveryKey: string | null;
 }
 
-export type ResponseFor<R extends Request> = R extends { type: 'vault/status' }
+/** What a page may know about a provider sign-in in progress: never its tokens or keys. */
+export interface ProviderPending {
+  kind: 'signup' | 'join';
+  provider: SignInProvider;
+  email: string;
+  /** Joining, and the account's other browsers have been asked. */
+  asked: boolean;
+}
+
+/** How this server signs people in besides a password, and how it hands a sign-in back. */
+export interface ProviderOffer {
+  providers: SignInProvider[];
+  /** In this tab. Otherwise in the browser's sign-in window. */
+  inTab: boolean;
+}
+
+/**
+ * A sign-in made in the tab, as the account page finds it on coming back. A
+ * new account or a join is not here: those are `provider/pending`.
+ */
+export type ProviderOutcome =
+  | ({ kind: 'signedIn' } & SignInResult)
+  | { kind: 'error'; message: string; key?: MessageKey | undefined; values?: Values | undefined };
+
+export type ProviderStartResult =
+  | { kind: 'new' | 'join'; email: string }
+  | ({ kind: 'signedIn' } & SignInResult);
+
+export type PairingPoll =
+  | { state: 'waiting' }
+  /** Accepted on the other browser: both now show this code. */
+  | { state: 'compare'; code: string }
+  | ({ state: 'joined' } & SignInResult);
+
+type PairingResponseFor<R extends Request> = R extends { type: 'provider/offered' }
+  ? ProviderOffer
+  : R extends { type: 'provider/pending' }
+    ? ProviderPending | null
+    : R extends { type: 'provider/begin' }
+      ? { url: string }
+    : R extends { type: 'provider/outcome' }
+      ? ProviderOutcome | null
+    : R extends { type: 'provider/start' }
+      ? ProviderStartResult
+      : R extends { type: 'provider/create' }
+        ? SignUpResult
+        : R extends { type: 'pairing/request' }
+          ? { id: string }
+          : R extends { type: 'pairing/poll' }
+            ? PairingPoll
+            : R extends { type: 'pairing/recover' }
+              ? SignInResult
+              : R extends { type: 'pairing/list' }
+                ? PairingSummary[]
+                : R extends { type: 'pairing/accept' }
+                  ? { code: string }
+                  : void;
+
+export type ResponseFor<R extends Request> = R extends { type: `provider/${string}` | `pairing/${string}` }
+  ? PairingResponseFor<R>
+  : R extends { type: 'vault/status' }
   ? VaultStatus
   : R extends { type: 'vault/createRecoveryKit' }
     ? { recoveryKey: string }
@@ -172,7 +281,9 @@ export type ResponseFor<R extends Request> = R extends { type: 'vault/status' }
 /** The single write path handed down to every panel. */
 export type Mutate = (mutation: Mutation) => Promise<void>;
 
-export type Envelope<T> = { ok: true; value: T } | { ok: false; error: string };
+export type Envelope<T> =
+  | { ok: true; value: T }
+  | { ok: false; error: string; key?: MessageKey | undefined; values?: Values | undefined };
 
 /** Broadcast by the service worker after any successful write. */
 export const VAULT_CHANGED = 'vault/changed' as const;
@@ -205,8 +316,19 @@ export function isTrustedSender(sender: SenderIdentity, runtimeId: string): bool
   return sender.id === runtimeId && sender.origin === `chrome-extension://${runtimeId}`;
 }
 
+/**
+ * A refusal from the service worker. Its `key` is what the page translates —
+ * see `errorText` — and its message the English, or the key, for logs.
+ */
 export class BackgroundError extends Error {
   override readonly name = 'BackgroundError';
+  constructor(
+    message: string,
+    readonly key?: MessageKey,
+    readonly values?: Values,
+  ) {
+    super(message);
+  }
 }
 
 /** Typed wrapper around `chrome.runtime.sendMessage`. Throws on failure. */
@@ -216,9 +338,9 @@ export async function send<R extends Request>(request: R): Promise<ResponseFor<R
     | undefined;
 
   if (!response) {
-    throw new BackgroundError('No response from the background service worker.');
+    throw new BackgroundError('No response from the background service worker.', 'error.noWorker');
   }
-  if (!response.ok) throw new BackgroundError(response.error);
+  if (!response.ok) throw new BackgroundError(response.error, response.key, response.values);
   return response.value;
 }
 

@@ -1,5 +1,10 @@
 import { useRef, useState } from 'react';
 import {
+  FOREIGN_APP_NAMES,
+  recogniseForeignBytes,
+  recogniseForeignExport,
+  readCsvExport,
+  type ForeignImport,
   assertUsableBackup,
   dedupeAgainst,
   importEncryptedBackup,
@@ -15,12 +20,54 @@ import type { Mutate } from '../lib/messaging.js';
 import { planScan, startSession, type ScanSession } from '../lib/scan-session.js';
 import { CameraScanner } from '../ui/CameraScanner.js';
 import { decodeQrFromFile } from '../ui/qr.js';
-import { CameraIcon } from '../ui/icons.js';
-import { Button, Callout, Field, Spinner } from '../ui/primitives.js';
+import { CameraIcon, ChevronIcon, DownloadIcon, ImportIcon, TransferIcon } from '../ui/icons.js';
+import { Button, Callout, Field, Spinner, cx } from '../ui/primitives.js';
 import { ScanProgress } from '../ui/ScanProgress.js';
-import { ExportSection } from './ExportSection.js';
-import { Section } from './Section.js';
+import {
+  AccountPicker,
+  EncryptedBackup,
+  MoveToAnotherApp,
+  chosenItems,
+  type ExportSelection,
+} from './ExportSection.js';
+import { PageHeader, Section, SubpageHeader } from './Section.js';
+import type { MessageKey } from '../i18n/locales/en.js';
+import { errorText } from '../i18n/error-text.js';
+import { useT } from '../i18n/react.js';
+import { localise } from '../i18n/error-text.js';
+import { translate } from '../i18n/runtime.js';
 
+type Job = 'backup' | 'import' | 'move';
+
+const JOBS: { id: Job; Icon: typeof DownloadIcon; title: MessageKey; body: MessageKey; heading: MessageKey }[] = [
+  {
+    id: 'backup',
+    Icon: DownloadIcon,
+    title: 'backup.choice.backup.title',
+    body: 'backup.choice.backup.body',
+    heading: 'export.encrypted.description',
+  },
+  {
+    id: 'import',
+    Icon: ImportIcon,
+    title: 'backup.choice.import.title',
+    body: 'backup.choice.import.body',
+    heading: 'import.description',
+  },
+  {
+    id: 'move',
+    Icon: TransferIcon,
+    title: 'export.move.title',
+    body: 'backup.choice.move.body',
+    heading: 'export.move.description',
+  },
+];
+
+/**
+ * Three jobs, chosen first. This tab once opened on "What to export" — a
+ * choice of accounts before any choice of what to do with them — over a
+ * password form, a red warning and a box for pasting links, all at once.
+ */
 export function BackupPanel({
   data,
   mutate,
@@ -30,12 +77,67 @@ export function BackupPanel({
   mutate: Mutate;
   protectionMode: ProtectionMode;
 }) {
+  const t = useT();
   const items = liveItems(data);
+  const [job, setJob] = useState<Job | null>(null);
+  const [selection, setSelection] = useState<ExportSelection>('all');
+  const chosen = chosenItems(items, selection);
+  const open = JOBS.find((entry) => entry.id === job);
+
+  if (open) {
+    return (
+      <>
+        <SubpageHeader title={t(open.title)} description={t(open.heading)} onBack={() => setJob(null)} />
+        {open.id !== 'import' && (
+          <AccountPicker items={items} groups={data.groups} chosen={chosen} onChange={setSelection} />
+        )}
+        {open.id === 'backup' && <EncryptedBackup chosen={chosen} data={data} />}
+        {open.id === 'move' && <MoveToAnotherApp chosen={chosen} data={data} protectionMode={protectionMode} />}
+        {open.id === 'import' && <ImportSection existing={data.items} mutate={mutate} />}
+      </>
+    );
+  }
 
   return (
     <>
-      <ExportSection items={items} data={data} protectionMode={protectionMode} />
-      <ImportSection existing={data.items} mutate={mutate} />
+      <PageHeader title={t('nav.backup')} description={t('backup.description')} />
+      <Section>
+        {JOBS.map(({ id, Icon, title, body }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setJob(id)}
+            // Named by the job alone; what it does is the description.
+            aria-labelledby={`job-${id}`}
+            aria-describedby={`job-${id}-body`}
+            className="flex w-full items-center gap-4 border-b border-zinc-100 px-4 py-4 text-start transition-colors last:border-b-0 hover:bg-zinc-50 dark:border-zinc-800/80 dark:hover:bg-zinc-900"
+          >
+            <span
+              className={cx(
+                'grid h-10 w-10 shrink-0 place-items-center rounded-xl',
+                // Readable exports are the one way out that is not encrypted.
+                id === 'move'
+                  ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
+                  : 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400',
+              )}
+            >
+              <Icon className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span id={`job-${id}`} className="block text-[14px] font-medium">
+                {t(title)}
+              </span>
+              <span
+                id={`job-${id}-body`}
+                className="mt-0.5 block text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400"
+              >
+                {t(body)}
+              </span>
+            </span>
+            <ChevronIcon className="h-4 w-4 shrink-0 text-zinc-400" />
+          </button>
+        ))}
+      </Section>
     </>
   );
 }
@@ -61,7 +163,7 @@ function incompleteExport(scanned: ScanSession): string | undefined {
   const batch = scanned.batch;
   if (!batch || batch.seen.size >= batch.size) return undefined;
   const missing = batch.size - batch.seen.size;
-  return `These screenshots hold ${batch.seen.size} of the ${batch.size} codes in this Google Authenticator export, so the accounts in the other ${missing === 1 ? 'one are' : `${missing} are`} not here. Choose every screenshot of the export together to bring them all across.`;
+  return translate('import.incomplete', { count: missing, seen: batch.seen.size, total: batch.size });
 }
 
 function ImportSection({
@@ -71,10 +173,14 @@ function ImportSection({
   existing: VaultItem[];
   mutate: Mutate;
 }) {
+  const t = useT();
   const fileInput = useRef<HTMLInputElement>(null);
   const [text, setText] = useState('');
   const [backupPassword, setBackupPassword] = useState('');
-  const [pendingFile, setPendingFile] = useState<string | null>(null);
+  // A file that needs a password first: one of ours, or another app's.
+  const [locked, setLocked] = useState<
+    { kind: 'ours'; contents: string } | { kind: 'foreign'; file: ForeignImport } | null
+  >(null);
   const [pending, setPending] = useState<PendingImport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -98,7 +204,7 @@ function ImportSection({
     } else if (files.length === 1) {
       await handleFile(files[0]!);
     } else {
-      setError('Choose one backup file, or one or more screenshots of QR codes.');
+      setError(t('import.oneOrScreenshots'));
     }
   }
 
@@ -123,22 +229,22 @@ function ImportSection({
         try {
           text = await decodeQrFromFile(file);
         } catch (cause) {
-          errors.push({ line: file.name, reason: cause instanceof Error ? cause.message : String(cause) });
+          errors.push({ line: file.name, reason: errorText(cause) });
           continue;
         }
         if (!text) {
-          errors.push({ line: file.name, reason: 'No QR code found in this image.' });
+          errors.push({ line: file.name, reason: t('import.noQrInThis') });
           continue;
         }
 
         const plan = planScan(scanned, text, []);
         if (plan.kind === 'ignore') continue;
         scanned = plan.next;
-        if (plan.kind === 'reject') errors.push({ line: file.name, reason: plan.reason });
+        if (plan.kind === 'reject') errors.push({ line: file.name, reason: localise(plan.reason) });
       }
 
       if (scanned.stored.length === 0 && errors.length === 0) {
-        setError('Those images did not contain any accounts.');
+        setError(t('import.noAccountsInImages'));
         return;
       }
       stage([...scanned.stored], errors, incompleteExport(scanned));
@@ -148,52 +254,92 @@ function ImportSection({
   }
 
   async function handleFile(file: File) {
-
     // Checked before reading: a file chosen here may have come from anyone,
-    // and `file.text()` on a huge one pulls the lot into memory first.
+    // and reading a huge one pulls the lot into memory first.
     if (file.size > MAX_BACKUP_BYTES) {
-      setError('That file is too large to be a backup.');
+      setError(t('import.tooLarge'));
       return;
     }
-    const contents = await file.text();
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const contents = new TextDecoder().decode(bytes);
 
     try {
+      // andOTP's locked backup is bytes, not text.
+      const lockedBytes = recogniseForeignBytes(bytes, file.name);
+      if (lockedBytes) {
+        setLocked({ kind: 'foreign', file: lockedBytes });
+        return;
+      }
+
       const parsed: unknown = JSON.parse(contents);
       if (isBackupFile(parsed)) {
         // Reject a malformed one now, while there is still something useful to
         // say about it — not from inside the crypto after a password is typed.
         assertUsableBackup(parsed);
-        setPendingFile(contents);
+        setLocked({ kind: 'ours', contents });
+        return;
+      }
+
+      // Another app's export: moving here should take one file, not every
+      // account added again by hand.
+      const foreign = recogniseForeignExport(parsed);
+      if (foreign?.needsPassword) {
+        setLocked({ kind: 'foreign', file: foreign });
+        return;
+      }
+      if (foreign) {
+        const result = await foreign.read();
+        if (result.items.length === 0 && result.errors.length === 0) {
+          setError(t('import.noAccountsInFile'));
+          return;
+        }
+        stage(result.items, result.errors);
         return;
       }
     } catch (cause) {
       // A JSON file that is a backup but a bad one has something worth saying;
       // anything else is treated as a list of otpauth:// URIs.
       if (cause instanceof Error && !(cause instanceof SyntaxError)) {
-        setError(cause.message);
+        setError(errorText(cause));
         return;
       }
     }
 
+    // A password manager's spreadsheet: its two-factor column, and nothing else.
+    const sheet = readCsvExport(contents);
+    if (sheet) {
+      if (sheet.items.length === 0 && sheet.errors.length === 0) {
+        setError(t('import.noKeysInCsv'));
+        return;
+      }
+      stage(sheet.items, sheet.errors, t('import.csvWarning'));
+      return;
+    }
+
     const result = importFromText(contents);
     if (result.items.length === 0 && result.errors.length === 0) {
-      setError('That file did not contain any accounts.');
+      setError(t('import.noAccountsInFile'));
       return;
     }
     stage(result.items, result.errors);
   }
 
-  async function decryptStagedFile() {
-    if (!pendingFile) return;
+  async function openLockedFile() {
+    if (!locked) return;
     setBusy(true);
     setError(null);
     try {
-      const payload = await importEncryptedBackup(JSON.parse(pendingFile), backupPassword);
-      stage(payload.items, []);
-      setPendingFile(null);
+      if (locked.kind === 'ours') {
+        const payload = await importEncryptedBackup(JSON.parse(locked.contents), backupPassword);
+        stage(payload.items, []);
+      } else {
+        const result = await locked.file.read(backupPassword);
+        stage(result.items, result.errors);
+      }
+      setLocked(null);
       setBackupPassword('');
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorText(cause));
     } finally {
       setBusy(false);
     }
@@ -226,7 +372,7 @@ function ImportSection({
     // where it waits for the write.
     session.current = plan.next;
     if (plan.kind === 'reject') {
-      setError(plan.reason);
+      setError(localise(plan.reason));
       return false;
     }
     setError(null);
@@ -262,10 +408,7 @@ function ImportSection({
   }
 
   return (
-    <Section
-      title="Import"
-      description="Bring accounts in from a backup file, from another authenticator's export — scanned with your camera or chosen as screenshots — or by pasting otpauth:// links."
-    >
+    <Section>
       <div className="flex flex-col gap-4 p-4">
         {error && <Callout tone="danger">{error}</Callout>}
 
@@ -277,40 +420,44 @@ function ImportSection({
               // user the codes that did. A way out, not the next step — the
               // next step is showing the next code — so it does not shout.
               <Button onClick={() => review(session.current)}>
-                Stop and review {progress.added}
+                {t('import.stopAndReview', { count: progress.added })}
               </Button>
             )}
             <CameraScanner
               onDecode={scanCamera}
               onCancel={cancelScan}
               compact={progress !== null}
-              withoutNativeReader="Chrome on this computer has no built-in QR reader, so a large code — like a Google Authenticator export — often will not scan from a camera. If yours will not, screenshot each code on your phone and pick them all with Choose files."
+              withoutNativeReader={t('import.noNativeReader')}
             />
           </div>
-        ) : pendingFile ? (
+        ) : locked ? (
           <div className="flex flex-col gap-3">
-            <Callout>This backup is encrypted. Enter the password it was created with.</Callout>
+            <Callout>
+              {locked.kind === 'ours'
+                ? t('import.encrypted')
+                : t('import.lockedFrom', { app: FOREIGN_APP_NAMES[locked.file.app] })}
+            </Callout>
             <div className="flex items-end gap-3">
               <div className="flex-1">
                 <Field
-                  label="Backup password"
+                  label={t('import.backupPassword')}
                   type="password"
                   autoFocus
                   value={backupPassword}
                   onChange={(event) => setBackupPassword(event.target.value)}
-                  onKeyDown={(event) => event.key === 'Enter' && void decryptStagedFile()}
+                  onKeyDown={(event) => event.key === 'Enter' && void openLockedFile()}
                 />
               </div>
-              <Button variant="primary" disabled={busy} onClick={decryptStagedFile}>
-                {busy ? <Spinner /> : null} Open backup
+              <Button variant="primary" disabled={busy} onClick={openLockedFile}>
+                {busy ? <Spinner /> : null} {t('import.open')}
               </Button>
               <Button
                 onClick={() => {
-                  setPendingFile(null);
+                  setLocked(null);
                   setBackupPassword('');
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
             </div>
           </div>
@@ -318,11 +465,10 @@ function ImportSection({
           <div className="flex flex-col gap-3">
             {pending.warning && <Callout tone="warning">{pending.warning}</Callout>}
             <Callout tone={pending.fresh.length > 0 ? 'info' : 'warning'}>
-              Found {pending.fresh.length} new{' '}
-              {pending.fresh.length === 1 ? 'account' : 'accounts'}
-              {pending.duplicates.length > 0 &&
-                `, skipping ${pending.duplicates.length} already in your vault`}
-              {pending.errors.length > 0 && `, and ${pending.errors.length} could not be read`}.
+              {t('import.found', { count: pending.fresh.length })}
+              {pending.duplicates.length > 0 && t('import.skipping', { count: pending.duplicates.length })}
+              {pending.errors.length > 0 && t('import.unreadable', { count: pending.errors.length })}
+              {t('import.foundEnd')}
             </Callout>
 
             {pending.fresh.length > 0 && (
@@ -332,7 +478,7 @@ function ImportSection({
                     key={item.id}
                     className="flex justify-between gap-4 border-b border-zinc-100 px-3 py-2 last:border-b-0 dark:border-zinc-900"
                   >
-                    <span className="font-medium">{item.issuer || 'Untitled'}</span>
+                    <span className="font-medium">{item.issuer || t('common.untitled')}</span>
                     <span className="truncate text-zinc-500 dark:text-zinc-400">{item.label}</span>
                   </li>
                 ))}
@@ -341,11 +487,11 @@ function ImportSection({
 
             {pending.errors.length > 0 && (
               <details className="text-[12px] text-zinc-500 dark:text-zinc-400">
-                <summary className="cursor-pointer">Show the lines that failed</summary>
+                <summary className="cursor-pointer">{t('import.showFailed')}</summary>
                 <ul className="mt-2 flex flex-col gap-1">
                   {pending.errors.map((entry, index) => (
                     <li key={index}>
-                      <code className="text-zinc-400">{entry.line}</code> — {entry.reason}
+                      <code className="text-zinc-400">{entry.line}</code> — {localise(entry.reason)}
                     </li>
                   ))}
                 </ul>
@@ -358,25 +504,26 @@ function ImportSection({
                 disabled={busy || pending.fresh.length === 0}
                 onClick={confirmImport}
               >
-                {busy ? <Spinner /> : null} Import {pending.fresh.length}
+                {busy ? <Spinner /> : null} {t('import.import', { count: pending.fresh.length })}
               </Button>
-              <Button onClick={() => setPending(null)}>Cancel</Button>
+              <Button onClick={() => setPending(null)}>{t('common.cancel')}</Button>
             </div>
           </div>
         ) : (
           <>
+            <p className="text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">{t('import.fromApps')}</p>
             <div className="flex flex-wrap gap-2">
               <Button onClick={startScan}>
-                <CameraIcon /> Scan with your camera
+                <CameraIcon /> {t('import.scan')}
               </Button>
               <Button disabled={busy} onClick={() => fileInput.current?.click()}>
-                {busy ? <Spinner /> : null} Choose files…
+                {busy ? <Spinner /> : null} {t('import.choose')}
               </Button>
               <input
                 ref={fileInput}
                 type="file"
                 multiple
-                accept=".authx,.json,.txt,text/plain,application/json,image/png,image/jpeg,image/webp,image/gif,image/bmp"
+                accept=".authx,.json,.2fas,.aes,.csv,.txt,text/plain,text/csv,application/json,image/png,image/jpeg,image/webp,image/gif,image/bmp"
                 className="hidden"
                 onChange={(event) => {
                   const files = Array.from(event.target.files ?? []);
@@ -391,7 +538,7 @@ function ImportSection({
                 htmlFor="import-paste"
                 className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300"
               >
-                …or paste otpauth:// links, one per line
+                {t('import.paste')}
               </label>
               <textarea
                 id="import-paste"
@@ -410,7 +557,7 @@ function ImportSection({
                     stage(result.items, result.errors);
                   }}
                 >
-                  Read links
+                  {t('import.read')}
                 </Button>
               </div>
             </div>

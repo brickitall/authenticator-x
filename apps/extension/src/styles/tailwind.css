@@ -1,4 +1,13 @@
-@import 'tailwindcss';
+/*
+ * Classes come from the extension's own source and nothing else. Left to
+ * detect sources itself, Tailwind scans the whole checkout — test tooling,
+ * store artwork scripts, the server — and a word like "filter" in any of them
+ * becomes a rule in the build. The private tree and the public one then build
+ * different CSS from the same extension, and a store reviewer rebuilding from
+ * the published source cannot match the package.
+ */
+@import 'tailwindcss' source(none);
+@source '../';
 
 /*
  * Theme is driven by an explicit attribute rather than the media query so the

@@ -106,8 +106,9 @@ export const CameraIcon = (p: IconProps) => (
   </Base>
 );
 
+/** Back: points the way the page came from, so it flips for a language read right to left. */
 export const ArrowLeftIcon = (p: IconProps) => (
-  <Base {...p}>
+  <Base {...p} className={`rtl:-scale-x-100 ${p.className ?? ''}`}>
     <path d="M19 12H5m6-6-6 6 6 6" />
   </Base>
 );
@@ -209,5 +210,33 @@ export const InfoIcon = (p: IconProps) => (
   <Base {...p}>
     <circle cx="12" cy="12" r="8.5" />
     <path d="M12 11v5.5M12 7.8h.01" />
+  </Base>
+);
+
+/** An arrow into a tray: a file to keep. */
+export const DownloadIcon = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14" />
+  </Base>
+);
+
+/** An arrow out of a tray: accounts brought in from elsewhere. */
+export const ImportIcon = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19.5h14" />
+  </Base>
+);
+
+/** Two arrows passing: from this app to another. */
+export const TransferIcon = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M4 8h14M14.5 4.5 18 8l-3.5 3.5M20 16H6M9.5 12.5 6 16l3.5 3.5" />
+  </Base>
+);
+
+/** Points onward, and flips for a language read right to left. */
+export const ChevronIcon = (p: IconProps) => (
+  <Base {...p} className={`rtl:-scale-x-100 ${p.className ?? ''}`}>
+    <path d="m9.5 6 6 6-6 6" />
   </Base>
 );

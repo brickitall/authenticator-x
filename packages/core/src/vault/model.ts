@@ -139,6 +139,13 @@ export const DEFAULT_SETTINGS: VaultSettings = {
 export interface AccountState {
   email: string | null;
   plan: 'local' | 'synced';
+  /**
+   * How the account proves who signs in. Absent on vaults signed in before
+   * 0.3, which are all password accounts.
+   */
+  method?: 'password' | 'provider';
+  /** For a provider account: which one. */
+  provider?: 'google' | 'github';
 }
 
 export const DEFAULT_ACCOUNT: AccountState = {

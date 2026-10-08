@@ -1,4 +1,5 @@
 import { MAX_ICON_BYTES } from '@authx/core';
+import { AppError } from '../i18n/errors.js';
 
 /**
  * Turns a picture the user chose into something safe and small enough to live
@@ -25,15 +26,18 @@ const MAX_SOURCE_BYTES = 8 * 1024 * 1024;
 
 export const ICON_ACCEPT = ACCEPTED.join(',');
 
-export class IconTooLargeError extends Error {
+export class IconTooLargeError extends AppError {
   override readonly name = 'IconTooLargeError';
+  constructor() {
+    super('image.wontCompress');
+  }
 }
 
 async function decode(file: File): Promise<ImageBitmap> {
   try {
     return await createImageBitmap(file);
   } catch {
-    throw new Error('That file could not be read as an image.');
+    throw new AppError('image.unreadable');
   }
 }
 
@@ -47,10 +51,10 @@ function encode(canvas: HTMLCanvasElement, quality: number): string {
 
 export async function prepareIcon(file: File): Promise<string> {
   if (!ACCEPTED.includes(file.type)) {
-    throw new Error('Use a PNG, JPEG, WebP, GIF or BMP image.');
+    throw new AppError('image.wrongType');
   }
   if (file.size > MAX_SOURCE_BYTES) {
-    throw new Error('That image is very large. Try one under 8 MB.');
+    throw new AppError('image.tooBig');
   }
 
   const bitmap = await decode(file);
@@ -59,7 +63,7 @@ export async function prepareIcon(file: File): Promise<string> {
     canvas.width = TILE;
     canvas.height = TILE;
     const context = canvas.getContext('2d');
-    if (!context) throw new Error('Could not prepare the image.');
+    if (!context) throw new AppError('image.cannotPrepare');
 
     // Contain rather than crop: a logo with its edges cut off stops being the
     // logo, and the tile has no background to fill so the gaps stay transparent.
@@ -74,9 +78,7 @@ export async function prepareIcon(file: File): Promise<string> {
       if (encoded.length <= MAX_ICON_BYTES) return encoded;
     }
 
-    throw new IconTooLargeError(
-      'That image would not compress small enough. A simple logo works better than a photograph.',
-    );
+    throw new IconTooLargeError();
   } finally {
     bitmap.close();
   }

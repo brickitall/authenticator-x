@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { liveItems } from '@authx/core';
 import { useActivityPing, useTheme, useVault } from '../ui/hooks.js';
-import { ArchiveIcon, CloudLockIcon, InfoIcon, KeyIcon, Logo, ShieldIcon } from '../ui/icons.js';
+import { ArchiveIcon, CloudLockIcon, KeyIcon, Logo, SettingsIcon, ShieldIcon } from '../ui/icons.js';
+import { APP_NAME } from '../lib/name.js';
 import { Spinner, cx } from '../ui/primitives.js';
 import { RecoveryScreen } from '../popup/RecoveryScreen.js';
 import { SetupScreen } from '../popup/SetupScreen.js';
@@ -10,28 +11,43 @@ import { AccountPanel } from './AccountPanel.js';
 import { AccountsPanel } from './AccountsPanel.js';
 import { BackupPanel } from './BackupPanel.js';
 import { SecurityPanel } from './SecurityPanel.js';
-import { AboutPanel } from './AboutPanel.js';
-import { takeScanRequest } from '../lib/deep-link.js';
+import { GeneralPanel } from './GeneralPanel.js';
+import { takeAccountRequest, takeScanRequest } from '../lib/deep-link.js';
 import { SourceLink } from '../ui/SourceLink.js';
-import { LICENCE, SECURITY_MODEL_URL } from '../lib/links.js';
+import { useT } from '../i18n/react.js';
 
 /** Sent here by the popup to scan, which it cannot ask for the camera to do. */
 const OPENED_TO_SCAN = takeScanRequest();
+/** Sent here by the popup to sign in, or to approve a browser asking to join. */
+const OPENED_FOR_ACCOUNT = takeAccountRequest();
 
+/**
+ * One tab per job, in the order people need them. It was Accounts, "Backup &
+ * import", Security, "Account & sync", About: two tabs both called account,
+ * and Security holding the theme, the sort order and the language.
+ */
 const TABS = [
-  { id: 'accounts', label: 'Accounts', Icon: KeyIcon },
-  { id: 'backup', label: 'Backup & import', Icon: ArchiveIcon },
-  { id: 'security', label: 'Security', Icon: ShieldIcon },
-  { id: 'account', label: 'Account & sync', Icon: CloudLockIcon },
-  { id: 'about', label: 'About', Icon: InfoIcon },
+  { id: 'accounts', label: 'nav.accounts', Icon: KeyIcon },
+  { id: 'sync', label: 'nav.sync', Icon: CloudLockIcon },
+  { id: 'backup', label: 'nav.backup', Icon: ArchiveIcon },
+  { id: 'security', label: 'nav.security', Icon: ShieldIcon },
+  { id: 'general', label: 'nav.general', Icon: SettingsIcon },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
 
 export function App() {
+  const t = useT();
   const { status, data, protection, error, refresh, mutate, setStatus } = useVault();
-  const [tab, setTab] = useState<TabId>('accounts');
+  const [tab, setTab] = useState<TabId>(OPENED_FOR_ACCOUNT ? 'sync' : 'accounts');
   const [recovering, setRecovering] = useState(false);
+  // Bumped on every click in the sidebar, so choosing the tab already open
+  // goes back to its first page — out of Backup's import, say.
+  const [visit, setVisit] = useState(0);
+  const go = (next: TabId) => {
+    setTab(next);
+    setVisit((count) => count + 1);
+  };
   // State rather than the constant: the Accounts panel remounts every time
   // its tab is chosen, and would otherwise open the camera again each time.
   const [scanPending, setScanPending] = useState(OPENED_TO_SCAN);
@@ -68,7 +84,12 @@ export function App() {
           {recovering ? (
             <RecoveryScreen onRecovered={authenticated} onCancel={() => setRecovering(false)} />
           ) : status.state === 'uninitialized' ? (
-            <SetupScreen onCreated={authenticated} />
+            <SetupScreen
+              onCreated={(next, then) => {
+                if (then === 'signIn') setTab('sync');
+                authenticated(next);
+              }}
+            />
           ) : (
             <UnlockScreen
               onUnlocked={authenticated}
@@ -83,32 +104,37 @@ export function App() {
 
   const count = liveItems(data).length;
   const signedIn = Boolean(data.account.email) && data.account.plan === 'synced';
+  // The one thing that can still go permanently wrong, marked where it is fixed.
+  const recoveryReady = status.hasRecovery && (!signedIn || status.accountRecovery);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-    <div className="mx-auto flex w-full max-w-5xl gap-10 px-6 py-10">
+    <div className="mx-auto flex w-full max-w-5xl gap-12 px-6 py-10">
       <aside className="sticky top-10 flex h-[calc(100vh-5rem)] w-56 shrink-0 flex-col">
-        <div className="mb-7 flex items-center gap-3 px-2">
+        <div className="mb-8 flex items-center gap-3 px-3">
           <Logo className="h-8 w-8" />
           <div className="leading-tight">
-            <p className="text-[14.5px] font-semibold tracking-[-0.01em]">Authenticator X</p>
+            <p className="text-[14.5px] font-semibold tracking-[-0.01em]">{APP_NAME}</p>
             <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
-              {count} {count === 1 ? 'account' : 'accounts'}
+              {t('options.count', { count })}
             </p>
           </div>
         </div>
 
-        <nav className="flex flex-col gap-0.5">
+        <nav className="flex flex-col gap-1">
           {TABS.map(({ id, label, Icon }) => (
             <button
               key={id}
               type="button"
-              onClick={() => setTab(id)}
+              onClick={() => go(id)}
+              aria-current={tab === id ? 'page' : undefined}
+              // Said beside the name, not in it: the tab is still "Security".
+              aria-description={id === 'security' && !recoveryReady ? t('nav.needsAttention') : undefined}
               className={cx(
-                'flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors',
+                'flex items-center gap-3 rounded-xl px-3 py-2.5 text-start text-[14px] font-medium transition-colors',
                 tab === id
-                  ? 'bg-white text-brand-700 shadow-[0_1px_2px_rgba(16,24,40,0.06)] ring-1 ring-zinc-200/80 dark:bg-zinc-900 dark:text-brand-300 dark:ring-zinc-800'
-                  : 'text-zinc-600 hover:bg-white/70 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900/60 dark:hover:text-zinc-200',
+                  ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300'
+                  : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-200',
               )}
             >
               <Icon
@@ -117,29 +143,26 @@ export function App() {
                   tab === id ? 'text-brand-600 dark:text-brand-400' : 'text-zinc-400 dark:text-zinc-500',
                 )}
               />
-              {label}
+              {t(label)}
+              {id === 'security' && !recoveryReady && (
+                <span className="ms-auto h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
+              )}
             </button>
           ))}
         </nav>
 
         {/* What someone deciding whether to trust this with their codes wants
-            to know, where they can always see it. */}
-        <div className="mt-auto rounded-2xl border border-zinc-200/80 bg-white p-3.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-          <p className="flex items-center gap-2 text-[12.5px] font-semibold">
-            <ShieldIcon className="h-[18px] w-[18px] text-emerald-600 dark:text-emerald-400" />
-            Encrypted on this device
+            to know, where they can always see it — one line, not a card. */}
+        <div className="mt-auto flex flex-col gap-1.5 px-3 text-[12px] text-zinc-500 dark:text-zinc-400">
+          <p className="flex items-center gap-1.5 font-medium text-zinc-600 dark:text-zinc-300">
+            <ShieldIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            {t('common.encryptedHere')}
           </p>
-          <p className="mt-1.5 text-[11.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-            AES-256-GCM before anything is stored or synced. The code is public under {LICENCE}.
-          </p>
-          <div className="mt-2.5 flex flex-col gap-1.5 text-[12px]">
-            <SourceLink>Open source on GitHub</SourceLink>
-            <SourceLink href={SECURITY_MODEL_URL}>Security model</SourceLink>
-          </div>
+          <SourceLink>{t('options.sourceOnGithub')}</SourceLink>
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 pb-16">
+      <main key={visit} className="min-w-0 max-w-[720px] flex-1 pb-16">
         {tab === 'accounts' && (
           <AccountsPanel
             data={data}
@@ -160,16 +183,18 @@ export function App() {
             accountRecovery={status.accountRecovery}
           />
         )}
-        {tab === 'account' && (
+        {tab === 'sync' && (
           <AccountPanel
             data={data}
             protectionMode={protection}
+            // Only on the first visit: coming back to the tab later starts on its card.
+            openOn={visit === 0 && OPENED_FOR_ACCOUNT !== 'account' ? OPENED_FOR_ACCOUNT : null}
             accountRecovery={status.accountRecovery}
-            onOpenSecurity={() => setTab('security')}
-            onOpenAccounts={() => setTab('accounts')}
+            onOpenSecurity={() => go('security')}
+            onOpenAccounts={() => go('accounts')}
           />
         )}
-        {tab === 'about' && <AboutPanel />}
+        {tab === 'general' && <GeneralPanel data={data} mutate={mutate} />}
       </main>
     </div>
     </div>

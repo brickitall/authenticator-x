@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { liveGroups, liveItems, type VaultData } from '@authx/core';
 import type { Mutate } from '../lib/messaging.js';
 import { PlusIcon, TrashIcon } from '../ui/icons.js';
-import { Button, Callout, Field, cx } from '../ui/primitives.js';
+import { Button, Field, cx } from '../ui/primitives.js';
 import { Section } from './Section.js';
+import { useT } from '../i18n/react.js';
 
 /**
  * Creating, ordering and removing groups.
@@ -12,6 +13,7 @@ import { Section } from './Section.js';
  * the two lists would otherwise have to be kept in sync by eye.
  */
 export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate }) {
+  const t = useT();
   const [name, setName] = useState('');
   const [editing, setEditing] = useState<{ id: string; name: string } | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
@@ -23,8 +25,8 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
 
   return (
     <Section
-      title="Groups"
-      description="Headings in the list, so a long vault can be read at a glance. Accounts are put into one from the account's own Edit screen."
+      title={t('groups.title')}
+      description={t('groups.description')}
     >
       <div className="flex flex-col gap-4 p-4">
         <form
@@ -38,22 +40,19 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
         >
           <div className="flex-1">
             <Field
-              label="New group"
-              placeholder="Work"
+              label={t('groups.new')}
+              placeholder={t('groups.newPlaceholder')}
               value={name}
               onChange={(event) => setName(event.target.value)}
             />
           </div>
           <Button type="submit" variant="primary" disabled={name.trim().length === 0}>
-            <PlusIcon /> Add
+            <PlusIcon /> {t('groups.add')}
           </Button>
         </form>
 
         {groups.length === 0 ? (
-          <Callout>
-            No groups yet. Everything shows in one list, which is the right answer until there is
-            enough in it to need dividing.
-          </Callout>
+          <p className="text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">{t('groups.none')}</p>
         ) : (
           <ul className="rounded-xl border border-zinc-200 dark:border-zinc-800">
             {groups.map((group, index) => (
@@ -66,7 +65,7 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
                     <button
                       key={direction}
                       type="button"
-                      aria-label={direction === -1 ? `Move ${group.name} up` : `Move ${group.name} down`}
+                      aria-label={t(direction === -1 ? 'groups.moveUp' : 'groups.moveDown', { name: group.name })}
                       disabled={direction === -1 ? index === 0 : index === groups.length - 1}
                       onClick={() => void mutate({ op: 'groups/move', id: group.id, direction })}
                       className={cx(
@@ -95,10 +94,10 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
                       className="h-8 flex-1 rounded-lg border border-zinc-200 px-2 text-[13px] dark:border-zinc-700 dark:bg-zinc-900"
                     />
                     <Button size="sm" type="submit" variant="primary">
-                      Save
+                      {t('common.save')}
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>
-                      Cancel
+                      {t('common.cancel')}
                     </Button>
                   </form>
                 ) : (
@@ -106,14 +105,14 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13px] font-medium">{group.name}</p>
                       <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
-                        {countIn(group.id)} {countIn(group.id) === 1 ? 'account' : 'accounts'}
+                        {t('groups.count', { count: countIn(group.id) })}
                       </p>
                     </div>
 
                     {confirmingDelete === group.id ? (
                       <div className="flex items-center gap-2">
                         <span className="text-[12px] text-zinc-500 dark:text-zinc-400">
-                          Accounts stay, ungrouped.
+                          {t('groups.removeNote')}
                         </span>
                         <Button
                           size="sm"
@@ -123,10 +122,10 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
                             setConfirmingDelete(null);
                           }}
                         >
-                          Remove
+                          {t('common.remove')}
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => setConfirmingDelete(null)}>
-                          Cancel
+                          {t('common.cancel')}
                         </Button>
                       </div>
                     ) : (
@@ -135,12 +134,12 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
                           size="sm"
                           onClick={() => setEditing({ id: group.id, name: group.name })}
                         >
-                          Rename
+                          {t('groups.rename')}
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
-                          aria-label={`Remove ${group.name}`}
+                          aria-label={t('groups.removeNamed', { name: group.name })}
                           onClick={() => setConfirmingDelete(group.id)}
                         >
                           <TrashIcon />
@@ -156,8 +155,7 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
 
         {groups.length > 0 && ungrouped > 0 && (
           <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
-            {ungrouped} {ungrouped === 1 ? 'account is' : 'accounts are'} in no group, and appear
-            under “Ungrouped” at the end of the list.
+            {t('groups.ungrouped', { count: ungrouped })}
           </p>
         )}
       </div>

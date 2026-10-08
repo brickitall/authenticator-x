@@ -115,6 +115,52 @@ would throw on, gives colliding ids new ones, strips a picture that is not a
 raster this app made, and resets sync bookkeeping — an import is a local change
 this device has never pushed, whatever the file claimed.
 
+### Other apps' exports
+
+Aegis, 2FAS, andOTP, Bitwarden, FreeOTP+, Proton Authenticator, Ente Auth and
+the Authenticator extension each write their own format, and moving here should
+take one of their files rather than every account typed again
+(`vault/foreign.ts`). The same rules hold as for our own backups, and harder:
+these files are another program's idea of well formed.
+
+- Key-derivation settings come from the file, so they are bounded before
+  anything runs — Aegis's scrypt to 256 MiB and p ≤ 16, andOTP's PBKDF2 to the
+  same ten million rounds as ours. scrypt itself is ours (`crypto/scrypt.ts`;
+  Web Crypto has none and the core takes no dependencies), checked against
+  RFC 7914 and Node's own.
+- Every entry goes through the checks a pasted otpauth:// link does. One that
+  cannot become a working account — a Steam Guard code, an unknown hash, a key
+  that is not base32 — is listed as skipped with the reason, and costs only
+  itself.
+- A file locked with Argon2 (Proton's and Ente's locked exports, the
+  Authenticator extension's) is recognised and refused by name: none of this
+  code implements Argon2, and misreading is worse than saying so.
+- FreeOTP stores the HOTP counter of the code it last showed; read as it is,
+  the first code here would be one the service already spent, so it is read one
+  on.
+
+The tests use the files Aegis keeps for its own importers (GPL-3.0), which hold
+the same accounts in every format, so each must read into exactly those.
+
+Password managers — Apple Passwords, 1Password, Bitwarden, KeePassXC, Proton
+Pass, LastPass, Dashlane — export a spreadsheet with a column for the code
+beside the passwords (`vault/csv.ts`). Only that column is read: a row with no
+key is a password, not an account, and is left out without a word; the
+passwords themselves are never read into anything this app keeps, and the page
+says to delete the file. The login's address becomes the account's one recorded
+site, so its code is offered there and the fill shortcut can use it.
+
+### Filling with one key
+
+`Alt+Shift+F` fills the code for the page without opening anything. A command
+grants `activeTab` for that tab exactly as clicking the icon does, so it adds no
+permission. Because nobody is looking when it fills, it fills only where it is
+certain (`itemForShortcutFill`): exactly one time-based account whose recorded
+domains — or, when it records none, its service's own domains from the
+catalogue — contain the host. Never the issuer guess that orders the popup's
+list. Anything less certain opens the popup, which shows what it is about to do
+and warns before filling somewhere unexpected.
+
 ### Pictures the user supplies
 
 An account can carry its own image (`VaultItem.icon`), which is the answer for
@@ -157,6 +203,63 @@ overwrite each other.
 MV3 workers are killed aggressively, so nothing is assumed to survive between
 messages: state is rehydrated from storage on every request, with an in-memory
 cache that is only an optimisation.
+
+## Languages
+
+The pages speak fifty languages: every language Chrome gives a store page in,
+less the regional variants of English, Spanish and Portuguese, which share a
+file. `LOCALES` in `apps/extension/src/i18n/locales.ts` lists them in the
+order the picker shows. Each is one file in
+`apps/extension/src/i18n/locales/`; English (`en.ts`) is the source, and the
+compiler holds every other file to its keys. A message is plain text with
+`{values}`, `<tags>` the page decides how to draw, and plural forms picked by
+`Intl.PluralRules` — never HTML, so a translation cannot inject markup.
+
+English, German, French, Spanish, Brazilian Portuguese, Italian, Dutch,
+Japanese, Korean, Traditional Chinese, Vietnamese and Arabic came first. The
+other thirty-eight were written in October 2026 without a native speaker
+reading them; they follow the same terms throughout and pass every test, but
+a report from someone who speaks one is worth more than another pass by us.
+
+The language follows the browser's, unless one is chosen under General →
+Appearance. Every Portuguese reader gets the Brazilian file. Chinese goes by
+region or script: `zh-TW`, `zh-HK`, `zh-MO` and `zh-Hant` get Traditional,
+plain `zh`, `zh-CN`, `zh-SG` and `zh-Hans` get Simplified. The older tags some
+browsers still send — `iw`, `in`, `nb`, `nn`, `tl` — find Hebrew, Indonesian,
+Norwegian and Filipino.
+
+Arabic, Hebrew and Persian are read right to left, so the page is mirrored,
+not only translated:
+`<html dir>` follows the language, layout uses logical sides (`ms-`, `pe-`,
+`start-`, `text-start`) rather than left and right, and arrows that point
+"back" or "onward" flip. Names people typed keep their own direction
+(`dir="auto"`), so an English service name inside an Arabic page keeps its
+brackets and its beginning.
+
+Messages that count carry the forms their language uses — Arabic all six,
+Slovenian its dual, Latvian a "zero" form that also covers 10 to 20 — and the
+test refuses one without `one` and `other` where the language has them; a
+missing form falls back to `other`. Counts are written by `Intl.NumberFormat`,
+so Persian, Bengali and Marathi show their own digits, and the numbers written
+into those translations use the same ones.
+
+The choice of language lives in `chrome.storage.local`, outside the vault,
+because the screens that need it most come before the vault is open; it says
+nothing about anyone's accounts. Every open page follows a change at once.
+
+The service worker has no language: two pages in two languages share it. It
+throws an `AppError` naming a message key, and the page translates the key.
+English that cannot carry a key — from `@authx/core`, or from the sync server —
+is matched by its exact sentence in `i18n/errors.ts`. `test/i18n.test.ts` reads
+the core and the server and fails on a sentence a person could see that has no
+translation, and reads the pages and fails on text written into them.
+
+The store listing's name and summary come from `_locales/`, written at build
+time from `scripts/store-locales.mjs`; Chrome picks those by the browser's
+language, not by the choice in Settings. `test/store-listing.test.ts` refuses a
+store page in a language the extension does not speak, and a description whose
+count of languages is out of date. Why each language's listing reads the way
+it does is in `docs/store-listing.md`.
 
 ## Content Security Policy
 

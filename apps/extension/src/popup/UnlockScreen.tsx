@@ -1,7 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { send, type VaultStatus } from '../lib/messaging.js';
 import { Logo } from '../ui/icons.js';
+import { APP_NAME } from '../lib/name.js';
 import { Button, Field, Spinner } from '../ui/primitives.js';
+import { errorText } from '../i18n/error-text.js';
+import { useT } from '../i18n/react.js';
 
 export function UnlockScreen({
   onUnlocked,
@@ -12,6 +15,7 @@ export function UnlockScreen({
   hasRecovery: boolean;
   onUseRecoveryKey: () => void;
 }) {
+  const t = useT();
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +32,7 @@ export function UnlockScreen({
     try {
       onUnlocked(await send({ type: 'vault/unlock', password }));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorText(cause));
       setPassword('');
       setBusy(false);
     }
@@ -39,9 +43,9 @@ export function UnlockScreen({
       <header className="flex flex-col items-center gap-3 text-center">
         <Logo className="h-12 w-12" />
         <div>
-          <h1 className="text-[17px] font-semibold">Authenticator X</h1>
+          <h1 className="text-[17px] font-semibold">{APP_NAME}</h1>
           <p className="mt-1 text-[13px] text-zinc-500 dark:text-zinc-400">
-            Enter your master password to unlock.
+            {t('unlock.prompt')}
           </p>
         </div>
       </header>
@@ -52,13 +56,13 @@ export function UnlockScreen({
         autoFocus
         value={password}
         onChange={(event) => setPassword(event.target.value)}
-        placeholder="Master password"
+        placeholder={t('unlock.placeholder')}
         error={error}
       />
 
       <Button type="submit" variant="primary" disabled={busy}>
         {busy ? <Spinner /> : null}
-        Unlock
+        {t('unlock.submit')}
       </Button>
 
       {hasRecovery && (
@@ -70,10 +74,13 @@ export function UnlockScreen({
           onClick={onUseRecoveryKey}
           className="group text-[12px] text-zinc-500 dark:text-zinc-400"
         >
-          Forgotten it?{' '}
-          <span className="font-medium text-brand-600 underline-offset-2 group-hover:underline dark:text-brand-400">
-            Use your recovery key
-          </span>
+          {t.rich('unlock.forgot', {}, {
+            link: (chunk) => (
+              <span className="font-medium text-brand-600 underline-offset-2 group-hover:underline dark:text-brand-400">
+                {chunk}
+              </span>
+            ),
+          })}
         </button>
       )}
     </form>

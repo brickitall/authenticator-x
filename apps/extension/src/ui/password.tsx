@@ -2,13 +2,14 @@ import { useId, useState, type ReactNode } from 'react';
 import { scorePassword } from '@authx/core';
 import { EyeIcon, EyeOffIcon } from './icons.js';
 import { cx } from './primitives.js';
+import { useT } from '../i18n/react.js';
 
 const LEVELS = [
-  { label: 'Too weak', bar: 'bg-red-500', text: 'text-red-600 dark:text-red-400' },
-  { label: 'Weak', bar: 'bg-red-500', text: 'text-red-600 dark:text-red-400' },
-  { label: 'Fair', bar: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400' },
-  { label: 'Strong', bar: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' },
-  { label: 'Very strong', bar: 'bg-emerald-600', text: 'text-emerald-600 dark:text-emerald-400' },
+  { bar: 'bg-red-500', text: 'text-red-600 dark:text-red-400' },
+  { bar: 'bg-red-500', text: 'text-red-600 dark:text-red-400' },
+  { bar: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400' },
+  { bar: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' },
+  { bar: 'bg-emerald-600', text: 'text-emerald-600 dark:text-emerald-400' },
 ] as const;
 
 /**
@@ -16,6 +17,7 @@ const LEVELS = [
  * reads as a hint to skip; bars that fill as you type get used.
  */
 export function StrengthMeter({ password }: { password: string }) {
+  const t = useT();
   const { score } = scorePassword(password);
   const level = LEVELS[score]!;
   const filled = Math.max(1, score);
@@ -33,7 +35,11 @@ export function StrengthMeter({ password }: { password: string }) {
           />
         ))}
       </div>
-      <span className={cx('w-20 text-right text-[11px] font-medium', level.text)}>{level.label}</span>
+      {/* At least the width of the longest English word, so the bars do not
+          jump as it changes; a longer word in another language widens it. */}
+      <span className={cx('min-w-20 text-end text-[11px] font-medium whitespace-nowrap', level.text)}>
+        {t(`meter.${score}` as 'meter.0')}
+      </span>
     </div>
   );
 }
@@ -68,6 +74,7 @@ export function PasswordField({
   /** A small link on the label row, such as "Forgot password?". */
   labelAction?: ReactNode;
 }) {
+  const t = useT();
   const [shown, setShown] = useState(false);
   const id = useId();
 
@@ -90,7 +97,7 @@ export function PasswordField({
           spellCheck={false}
           aria-invalid={error ? true : undefined}
           className={cx(
-            'h-10 w-full rounded-xl border pr-10 pl-3 text-sm transition-colors',
+            'h-10 w-full rounded-xl border pe-10 ps-3 text-sm transition-colors',
             'bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-50',
             error
               ? 'border-red-400 dark:border-red-500'
@@ -100,9 +107,9 @@ export function PasswordField({
         <button
           type="button"
           onClick={() => setShown((current) => !current)}
-          aria-label={shown ? 'Hide password' : 'Show password'}
-          title={shown ? 'Hide password' : 'Show password'}
-          className="absolute inset-y-0 right-0 grid w-10 place-items-center rounded-r-xl text-[16px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+          aria-label={shown ? t('password.hide') : t('password.show')}
+          title={shown ? t('password.hide') : t('password.show')}
+          className="absolute inset-y-0 end-0 grid w-10 place-items-center rounded-e-xl text-[16px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
         >
           {shown ? <EyeOffIcon /> : <EyeIcon />}
         </button>

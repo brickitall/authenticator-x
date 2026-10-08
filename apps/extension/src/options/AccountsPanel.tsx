@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   buildOtpUri,
-  itemTitle,
   liveGroups,
   liveItems,
   sortItems,
@@ -14,11 +13,14 @@ import { AddSheet } from '../popup/AddSheet.js';
 import { BrandMark } from '../ui/BrandMark.js';
 import { ICON_ACCEPT, prepareIcon } from '../ui/icon-upload.js';
 import { ServiceField } from '../ui/ServiceField.js';
-import { PlusIcon, QrIcon, TrashIcon } from '../ui/icons.js';
+import { PlusIcon, QrIcon, SearchIcon, TrashIcon } from '../ui/icons.js';
 import { ShareAccount } from '../ui/ShareAccount.js';
 import { Button, Callout, Field, cx } from '../ui/primitives.js';
 import { GroupsPanel } from './GroupsPanel.js';
-import { Section } from './Section.js';
+import { PageHeader, Section } from './Section.js';
+import { errorText } from '../i18n/error-text.js';
+import { useT } from '../i18n/react.js';
+import { titleOf } from '../i18n/titles.js';
 
 export function AccountsPanel({
   data,
@@ -32,6 +34,7 @@ export function AccountsPanel({
   scanOnOpen?: boolean;
   onScanOpened?: () => void;
 }) {
+  const t = useT();
   const [adding, setAdding] = useState<'choose' | 'camera' | null>(scanOnOpen ? 'camera' : null);
 
   useEffect(() => {
@@ -44,6 +47,13 @@ export function AccountsPanel({
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
 
   const items = useMemo(() => sortItems(liveItems(data), data.settings.sortBy), [data]);
+  const [query, setQuery] = useState('');
+  // The same match as the popup's search, so an account found there is found here.
+  const shown = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return items;
+    return items.filter((item) => `${item.issuer} ${item.label} ${item.note}`.toLowerCase().includes(needle));
+  }, [items, query]);
   const deleted = useMemo(
     () => data.items.filter((item) => item.deletedAt !== null).sort((a, b) => b.deletedAt! - a.deletedAt!),
     [data.items],
@@ -51,22 +61,42 @@ export function AccountsPanel({
 
   return (
     <>
-      <Section
-        title="Accounts"
-        description="Everything stored in this vault. Codes are generated on this device, never by a server."
+      <PageHeader
+        title={t('accounts.title')}
+        description={t('accounts.description')}
         action={
           <Button variant="primary" onClick={() => setAdding('choose')}>
-            <PlusIcon /> Add account
+            <PlusIcon /> {t('add.submit')}
           </Button>
         }
-      >
+      />
+
+      {/* Only once there is enough to search: an empty box over three
+          accounts is clutter. */}
+      {items.length > 5 && (
+        <div className="relative mb-3">
+          <SearchIcon className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-[16px] text-zinc-400" />
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t('vault.search')}
+            aria-label={t('vault.search')}
+            className="h-10 w-full rounded-xl border border-zinc-200 bg-white ps-9 pe-3 text-[13.5px] placeholder:text-zinc-400 focus:border-brand-500 dark:border-zinc-800 dark:bg-zinc-900"
+          />
+        </div>
+      )}
+
+      <Section>
         {items.length === 0 ? (
           <p className="px-4 py-10 text-center text-[13px] text-zinc-400">
-            No accounts yet. Add one to get started.
+            {t('accounts.empty')}
           </p>
+        ) : shown.length === 0 ? (
+          <p className="px-4 py-10 text-center text-[13px] text-zinc-400">{t('vault.noMatch', { query })}</p>
         ) : (
           <ul>
-            {items.map((item) => (
+            {shown.map((item) => (
               <li
                 key={item.id}
                 className="flex items-center gap-3.5 border-b border-zinc-100 px-4 py-3 last:border-b-0 dark:border-zinc-900"
@@ -79,18 +109,22 @@ export function AccountsPanel({
                   size={30}
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium">{itemTitle(item)}</p>
+                  <p dir="auto" className="truncate text-[13px] font-medium rtl:text-right">
+                    {titleOf(item)}
+                  </p>
                   <p className="truncate text-[12px] text-zinc-500 dark:text-zinc-400">
                     {/* With no issuer the title already is the label; saying
                         it again underneath is noise, as the popup knows. */}
-                    {itemTitle(item) !== item.label && (
+                    {titleOf(item) !== item.label && (
                       <>
                         {item.label || '—'}
                         <span className="mx-1.5 text-zinc-300 dark:text-zinc-700">·</span>
                       </>
                     )}
-                    {item.type.toUpperCase()} {item.digits} digits
-                    {item.type === 'totp' ? ` · ${item.period}s` : ` · counter ${item.counter}`}
+                    {t('accounts.digits', { type: item.type.toUpperCase(), digits: item.digits })}
+                    {item.type === 'totp'
+                      ? t('accounts.period', { seconds: item.period })
+                      : t('accounts.counter', { counter: String(item.counter) })}
                     {item.algorithm !== 'SHA1' && ` · ${item.algorithm}`}
                   </p>
                 </div>
@@ -107,13 +141,13 @@ export function AccountsPanel({
                     size="sm"
                     variant="ghost"
                     onClick={() => setSharing(item)}
-                    aria-label={`Move ${itemTitle(item)} to another app`}
-                    title="Show its QR code, to move it to another app"
+                    aria-label={t('accounts.moveNamed', { name: titleOf(item) })}
+                    title={t('row.shareHint')}
                   >
                     <QrIcon />
                   </Button>
                   <Button size="sm" onClick={() => setEditing(item)}>
-                    Edit
+                    {t('accounts.edit')}
                   </Button>
                   {confirmingDelete === item.id ? (
                     <>
@@ -125,17 +159,17 @@ export function AccountsPanel({
                           setConfirmingDelete(null);
                         }}
                       >
-                        Delete
+                        {t('common.delete')}
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => setConfirmingDelete(null)}>
-                        Cancel
+                        {t('common.cancel')}
                       </Button>
                     </>
                   ) : (
                     <Button
                       size="sm"
                       variant="ghost"
-                      aria-label={`Delete ${itemTitle(item)}`}
+                      aria-label={t('accounts.deleteNamed', { name: titleOf(item) })}
                       onClick={() => setConfirmingDelete(item.id)}
                     >
                       <TrashIcon />
@@ -150,8 +184,8 @@ export function AccountsPanel({
 
       {deleted.length > 0 && (
         <Section
-          title="Recently deleted"
-          description="Kept so other devices learn about the removal once sync is switched on. Restore anything you removed by mistake."
+          title={t('accounts.deleted.title')}
+          description={t('accounts.deleted.description')}
         >
           <ul>
             {deleted.map((item) => (
@@ -161,14 +195,14 @@ export function AccountsPanel({
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13px] font-medium text-zinc-500 line-through dark:text-zinc-400">
-                    {itemTitle(item)}
+                    {titleOf(item)}
                   </p>
                   <p className="text-[12px] text-zinc-400 dark:text-zinc-500">
-                    Deleted {new Date(item.deletedAt!).toLocaleDateString()}
+                    {t('accounts.deleted.on', { date: new Date(item.deletedAt!).toLocaleDateString(t.locale) })}
                   </p>
                 </div>
                 <Button size="sm" onClick={() => void mutate({ op: 'items/restore', id: item.id })}>
-                  Restore
+                  {t('accounts.restore')}
                 </Button>
               </li>
             ))}
@@ -197,7 +231,7 @@ export function AccountsPanel({
       {sharing && (
         <Modal size="fit" onClose={() => setSharing(null)}>
           <div className="p-6">
-            <h2 className="text-[16px] font-semibold">Move {itemTitle(sharing)} to another app</h2>
+            <h2 className="text-[16px] font-semibold">{t('accounts.moveNamed', { name: titleOf(sharing) })}</h2>
             {sharing.issuer && sharing.label && (
               <p className="mt-0.5 mb-4 text-[12.5px] text-zinc-500 dark:text-zinc-400">{sharing.label}</p>
             )}
@@ -206,7 +240,7 @@ export function AccountsPanel({
             </div>
             <div className="mt-4 flex justify-end">
               <Button size="sm" variant="ghost" onClick={() => setSharing(null)}>
-                Close
+                {t('common.close')}
               </Button>
             </div>
           </div>
@@ -289,6 +323,7 @@ function ItemEditor({
   onSave: (patch: Partial<VaultItem>) => Promise<void>;
   onCancel: () => void;
 }) {
+  const t = useT();
   const [issuer, setIssuer] = useState(item.issuer);
   const [label, setLabel] = useState(item.label);
   const [note, setNote] = useState(item.note);
@@ -318,7 +353,7 @@ function ItemEditor({
       }}
     >
       <header className="border-b border-zinc-100 px-5 py-4 dark:border-zinc-900">
-        <h2 className="text-[15px] font-semibold">Edit account</h2>
+        <h2 className="text-[15px] font-semibold">{t('editor.title')}</h2>
       </header>
 
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5 scrollarea">
@@ -331,16 +366,14 @@ function ItemEditor({
             size={52}
           />
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-medium">Picture</p>
+            <p className="text-[13px] font-medium">{t('editor.picture')}</p>
             <p className="mt-0.5 text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-              {icon
-                ? 'Your own image, used instead of the service mark.'
-                : 'Choose one for services that have no logo here, or to tell two accounts apart.'}
+              {icon ? t('editor.pictureOwn') : t('editor.pictureNone')}
             </p>
           </div>
           <div className="flex shrink-0 gap-2">
             <Button size="sm" onClick={() => pickIcon.current?.click()}>
-              {icon ? 'Replace' : 'Choose image…'}
+              {icon ? t('editor.replace') : t('editor.choose')}
             </Button>
             {icon && (
               <Button
@@ -351,7 +384,7 @@ function ItemEditor({
                   setIconError(null);
                 }}
               >
-                Remove
+                {t('common.remove')}
               </Button>
             )}
           </div>
@@ -368,7 +401,7 @@ function ItemEditor({
               try {
                 setIcon(await prepareIcon(file));
               } catch (cause) {
-                setIconError(cause instanceof Error ? cause.message : String(cause));
+                setIconError(errorText(cause));
               }
             }}
           />
@@ -384,22 +417,22 @@ function ItemEditor({
             if (domains.trim().length === 0) setDomains(brand.domains.slice(0, 2).join(', '));
           }}
         />
-        <Field label="Account" value={label} onChange={(event) => setLabel(event.target.value)} />
+        <Field label={t('add.account')} value={label} onChange={(event) => setLabel(event.target.value)} />
         <Field
-          label="Websites"
+          label={t('editor.websites')}
           value={domains}
           onChange={(event) => setDomains(event.target.value)}
-          placeholder="github.com, gist.github.com"
-          hint="Comma-separated. Used to suggest this account on matching sites."
+          placeholder={t('editor.websitesPlaceholder')}
+          hint={t('editor.websitesHint')}
         />
-        <Field label="Note" value={note} onChange={(event) => setNote(event.target.value)} />
+        <Field label={t('editor.note')} value={note} onChange={(event) => setNote(event.target.value)} />
 
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor="item-group"
             className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300"
           >
-            Group
+            {t('editor.group')}
           </label>
           <select
             id="item-group"
@@ -407,7 +440,7 @@ function ItemEditor({
             onChange={(event) => setGroupId(event.target.value || null)}
             className="h-10 rounded-xl border border-zinc-200 bg-white px-2.5 text-sm dark:border-zinc-800 dark:bg-zinc-900"
           >
-            <option value="">Ungrouped</option>
+            <option value="">{t('editor.ungrouped')}</option>
             {groups.map((group) => (
               <option key={group.id} value={group.id}>
                 {group.name}
@@ -416,7 +449,7 @@ function ItemEditor({
           </select>
           {groups.length === 0 && (
             <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
-              Create a group under Accounts first.
+              {t('editor.noGroups')}
             </p>
           )}
         </div>
@@ -429,13 +462,13 @@ function ItemEditor({
         <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[13px] font-medium">Setup key</p>
+              <p className="text-[13px] font-medium">{t('editor.setupKey')}</p>
               <p className="mt-0.5 text-[12px] text-zinc-500 dark:text-zinc-400">
-                The secret behind this account. Anyone who sees it can generate your codes.
+                {t('editor.setupKeyHint')}
               </p>
             </div>
             <Button size="sm" onClick={() => setRevealed((value) => !value)}>
-              {revealed ? 'Hide' : 'Reveal'}
+              {revealed ? t('editor.hide') : t('editor.reveal')}
             </Button>
           </div>
           {revealed && (
@@ -447,8 +480,7 @@ function ItemEditor({
                 {buildOtpUri(item)}
               </code>
               <Callout tone="warning">
-                Only show this on a screen nobody else can see. Copying this link into another
-                authenticator app is how you move the account to a phone.
+                {t('editor.revealWarning')}
               </Callout>
             </div>
           )}
@@ -464,9 +496,9 @@ function ItemEditor({
           'shadow-[0_-10px_16px_-12px_rgba(0,0,0,0.18)] dark:border-zinc-900',
         )}
       >
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={onCancel}>{t('common.cancel')}</Button>
         <Button type="submit" variant="primary">
-          Save changes
+          {t('editor.save')}
         </Button>
       </footer>
     </form>

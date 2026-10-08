@@ -13,6 +13,8 @@
  * every menu on the way to it, which is not.
  */
 
+import type { MessageKey } from '../i18n/locales/en.js';
+
 export type Method = 'transfer' | 'one-by-one' | 'aegis' | 'bitwarden' | 'text';
 
 export interface Destination {
@@ -24,7 +26,8 @@ export interface Destination {
   allAtOnce: boolean;
   /** Best first. */
   methods: Method[];
-  steps: string;
+  /** What to do in that app, as a message key. */
+  steps: MessageKey;
 }
 
 export const DESTINATIONS: Destination[] = [
@@ -34,7 +37,7 @@ export const DESTINATIONS: Destination[] = [
     brand: 'Google',
     allAtOnce: true,
     methods: ['transfer'],
-    steps: 'In Google Authenticator: menu → Transfer accounts → Import accounts, then scan the codes in order.',
+    steps: 'dest.google.steps',
   },
   {
     id: 'microsoft',
@@ -42,8 +45,7 @@ export const DESTINATIONS: Destination[] = [
     brand: 'Microsoft',
     allAtOnce: false,
     methods: ['one-by-one'],
-    steps:
-      'Microsoft Authenticator cannot import from another app, so the accounts go one after another. In it: + → Other account, scan, then Next here.',
+    steps: 'dest.microsoft.steps',
   },
   {
     id: 'apple',
@@ -51,8 +53,7 @@ export const DESTINATIONS: Destination[] = [
     brand: 'Apple',
     allAtOnce: false,
     methods: ['one-by-one'],
-    steps:
-      'Passwords imports codes only one at a time. In the Passwords app: Codes → +, scan, then Next here.',
+    steps: 'dest.apple.steps',
   },
   {
     id: 'authy',
@@ -60,7 +61,7 @@ export const DESTINATIONS: Destination[] = [
     brand: 'Authy',
     allAtOnce: false,
     methods: ['one-by-one'],
-    steps: 'Authy cannot import from another app, so the accounts go one after another. In Authy: + → Scan QR code, then Next here.',
+    steps: 'dest.authy.steps',
   },
   {
     id: '1password',
@@ -68,8 +69,7 @@ export const DESTINATIONS: Destination[] = [
     brand: '1Password',
     allAtOnce: false,
     methods: ['one-by-one'],
-    steps:
-      '1Password adds codes one login at a time. Open or create the login → Edit → add a one-time password → scan, then Next here. On a computer it can read the code straight off this screen.',
+    steps: 'dest.1password.steps',
   },
   {
     id: 'bitwarden',
@@ -77,8 +77,7 @@ export const DESTINATIONS: Destination[] = [
     brand: 'Bitwarden',
     allAtOnce: true,
     methods: ['bitwarden', 'transfer'],
-    steps:
-      'Password manager: Import data → file format “Bitwarden (json)” → choose the file. Bitwarden Authenticator app: import from Google Authenticator and scan the transfer codes.',
+    steps: 'dest.bitwarden.steps',
   },
   {
     id: 'proton',
@@ -86,8 +85,7 @@ export const DESTINATIONS: Destination[] = [
     brand: 'Proton',
     allAtOnce: true,
     methods: ['transfer', 'aegis'],
-    steps:
-      'In Proton Authenticator, import from Google Authenticator and scan the transfer codes — or import from Aegis and choose the file.',
+    steps: 'dest.proton.steps',
   },
   {
     id: 'ente',
@@ -95,8 +93,7 @@ export const DESTINATIONS: Destination[] = [
     brand: 'Ente',
     allAtOnce: true,
     methods: ['transfer', 'text'],
-    steps:
-      'In Ente Auth, import codes from Google Authenticator and scan the transfer codes — or choose “Plain text” and the .txt file.',
+    steps: 'dest.ente.steps',
   },
   {
     id: 'aegis',
@@ -104,7 +101,7 @@ export const DESTINATIONS: Destination[] = [
     brand: 'Aegis Authenticator',
     allAtOnce: true,
     methods: ['aegis', 'transfer'],
-    steps: 'In Aegis: Import & Export → Import from file → Aegis, and choose the file.',
+    steps: 'dest.aegis.steps',
   },
   {
     id: '2fas',
@@ -112,16 +109,15 @@ export const DESTINATIONS: Destination[] = [
     brand: '2FAS',
     allAtOnce: true,
     methods: ['transfer', 'aegis'],
-    steps:
-      'In 2FAS, import from Google Authenticator and scan the transfer codes — or import from Aegis and choose the file.',
+    steps: 'dest.2fas.steps',
   },
   {
     id: 'other',
+    // Shown as `dest.other.name`, in the page's language.
     name: 'Another app',
     brand: '',
     allAtOnce: false,
     methods: ['one-by-one', 'transfer', 'text'],
-    steps:
-      'Every authenticator scans a setup code, so one after another always works. Many also import Google Authenticator’s transfer codes, or a file of otpauth:// links — look for an import option.',
+    steps: 'dest.other.steps',
   },
 ];

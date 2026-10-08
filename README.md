@@ -2,7 +2,7 @@
   <img src="apps/extension/public/icons/icon-128.png" width="88" height="88" alt="">
 </p>
 
-<h1 align="center">Authenticator X</h1>
+<h1 align="center">Keyrook Authenticator</h1>
 
 <p align="center">
   Two-factor codes (TOTP and HOTP) in your browser, encrypted on your own machine.<br>
@@ -57,9 +57,14 @@ release. Each store release is tagged here (`vX.Y.Z`).
   your camera at a code, by uploading a QR image, or by typing a setup key.
 - **Import from Google Authenticator** — scan its "Export accounts" codes, several
   in one sitting and in any order, or pick screenshots of them.
+- **Move in from other apps** — the exports of Aegis, 2FAS, andOTP, Bitwarden,
+  FreeOTP+, Proton Authenticator, Ente Auth and the Authenticator extension,
+  locked or not, and the two-factor column of a password manager's CSV. The
+  passwords in such a file are never kept.
 - **Codes** for TOTP (RFC 6238) and HOTP (RFC 4226), SHA-1/256/512, 6–10 digits,
   any period, verified against every published RFC test vector.
-- **Autofill** into the one-time-code field of the page you opened the popup on.
+- **Autofill** into the one-time-code field of the page you opened the popup on,
+  or with Alt+Shift+F where exactly one account belongs to the site.
 - **A code without saving** — paste a key, see its code, keep nothing. The same
   is on [the website](https://pricingrank.org/authenticator-x/code/), where the
   page's own security policy stops the key from leaving it.
@@ -74,13 +79,14 @@ release. Each store release is tagged here (`vX.Y.Z`).
   password first, when the vault has one.
 - **A recovery key** on a printable sheet for when the password is forgotten.
 - **Optional sync**, free and end-to-end encrypted, with no cap on how many
-  accounts you keep.
+  accounts you keep. Sign in with an email address, Google or GitHub.
+- **Fifty languages**, right to left where the language is.
 - **Service logos** for over 500 services, compiled in and never fetched — a
   logo requested at display time would tell whoever serves it which services
   you have 2FA on.
 
 <p align="center">
-  <img src=".github/assets/screenshot-sync.png" width="760" alt="Settings: optional sync, encrypted on the device before anything leaves it">
+  <img src=".github/assets/screenshot-sync.png" width="760" alt="Two browsers in sync, one light and one dark: encrypted on the device before anything leaves it">
 </p>
 
 ## Security in brief
@@ -90,7 +96,9 @@ stored in the clear: it is wrapped by a non-extractable key the browser holds,
 or by a key derived from your master password with PBKDF2-SHA256 at 600,000
 rounds. Sync derives two unlinkable keys from the account password — one wraps
 the data key and never leaves the device, the other proves the password to the
-server. The extension declares no host permissions; reading a QR from a page
+server. An account made with Google or GitHub has no password: a new browser
+receives the data key only from one already signed in, after both show the
+same code, or from the recovery key. The extension declares no host permissions; reading a QR from a page
 and filling a code both run under `activeTab`, granted only for the tab you
 invoked it on. Details: [docs/architecture.md](docs/architecture.md) and
 [docs/security-model.md](docs/security-model.md).

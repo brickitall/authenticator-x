@@ -12,6 +12,7 @@ import { VaultScreen } from './VaultScreen.js';
 export function App() {
   const { status, data, error, refresh, mutate, setStatus } = useVault();
   const [recovering, setRecovering] = useState(false);
+  const [signInNext, setSignInNext] = useState(false);
 
   useTheme(data?.settings.theme);
   useActivityPing(status?.state === 'unlocked');
@@ -40,7 +41,16 @@ export function App() {
     );
   }
 
-  if (status.state === 'uninitialized') return <SetupScreen onCreated={handleAuthenticated} />;
+  if (status.state === 'uninitialized') {
+    return (
+      <SetupScreen
+        onCreated={(next, then) => {
+          setSignInNext(then === 'signIn');
+          handleAuthenticated(next);
+        }}
+      />
+    );
+  }
 
   if (recovering) {
     return (
@@ -73,6 +83,7 @@ export function App() {
       protection={status.protection}
       mutate={mutate}
       refresh={refresh}
+      startWithSignIn={signInNext}
     />
   );
 }

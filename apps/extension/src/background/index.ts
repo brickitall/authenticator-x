@@ -19,6 +19,8 @@ import {
   deleteItem,
   deviceKeyring,
   exportDataKey,
+  generateCode,
+  itemForShortcutFill,
   importDataKey,
   keyringForFile,
   moveGroup,
@@ -37,17 +39,25 @@ import {
   updateSettings,
   verifyPassword,
   type Keyring,
+  type OwnerProof,
+  type ProviderTicket,
+  type SignInProvider,
   type UnlockedVault,
   type VaultData,
   type VaultFile,
 } from '@authx/core';
-import { SYNC_ENABLED } from '../lib/config.js';
+import { SYNC_API_URL, SYNC_ENABLED } from '../lib/config.js';
+import { FILL_COMMAND } from '../lib/commands.js';
+import { APP_NAME } from '../lib/name.js';
+import { AppError, fail } from '../i18n/errors.js';
 import { createSerialiser } from '../lib/serial.js';
 import {
   accountAuthHash,
   changeAccountPassword,
   deleteAccount,
+  endSession,
   followLocalRecovery,
+  hasAccountPassword,
   isSignedIn,
   listDevices,
   markSignedOutElsewhere,
@@ -61,6 +71,28 @@ import {
   signOut,
   signUp,
 } from './sync.js';
+import {
+  acceptPairing,
+  approvePairing,
+  cancelProviderSignIn,
+  createProviderAccount,
+  denyPairing,
+  joinWithRecoveryKey,
+  openPairings,
+  ownerProof,
+  pendingView,
+  pollPairing,
+  beginTabFlow,
+  providerFlow,
+  providerOffer,
+  refreshProviderOffer,
+  requestPairing,
+  setTabOutcome,
+  startProviderSignIn,
+  takeTabFlow,
+  takeTabOutcome,
+  ticketFrom,
+} from './provider.js';
 import { tokenStore } from '../lib/account.js';
 import { destroyDeviceKey, getDeviceKey, getOrCreateDeviceKey } from '../lib/deviceKey.js';
 import {
@@ -70,7 +102,9 @@ import {
   type FieldDetection,
   type Mutation,
   type ProtectionChoice,
+  type ProviderStartResult,
   type Request,
+  type SignInResult,
   type SyncSummary,
   type TabContext,
   type VaultStatus,
@@ -105,7 +139,7 @@ async function mutateVault<T>(
 ): Promise<T> {
   return serial(async () => {
     const unlocked = await getUnlocked();
-    if (!unlocked) throw new Error('Vault is locked.');
+    if (!unlocked) fail('error.vaultLocked');
     const { data, result } = await run(unlocked);
     await persist(data);
     return result;
@@ -169,7 +203,7 @@ async function status(): Promise<VaultStatus> {
 
 async function persist(data: VaultData): Promise<void> {
   const unlocked = cached;
-  if (!unlocked) throw new Error('Vault is locked.');
+  if (!unlocked) fail('error.vaultLocked');
 
   const file = await sealVault(unlocked.file, unlocked.dataKey, data);
   await saveVaultFile(file);
@@ -183,7 +217,10 @@ function broadcastChange(): void {
 }
 
 async function setLockedTitle(locked: boolean): Promise<void> {
-  await chrome.action.setTitle({ title: locked ? 'Authenticator X — locked' : 'Authenticator X' });
+  // In the browser's language, from _locales: the worker has no page, and so
+  // no language of its own to say it in.
+  const lockedTitle = chrome.i18n?.getMessage('actionLocked') || `${APP_NAME} — locked`;
+  await chrome.action.setTitle({ title: locked ? lockedTitle : APP_NAME });
 }
 
 async function scheduleAutoLock(file: VaultFile, minutes: number): Promise<void> {
@@ -256,9 +293,9 @@ function applyMutation(data: VaultData, mutation: Mutation): { data: VaultData }
 // --- Active-tab helpers -----------------------------------------------------
 
 async function requireUnlocked(): Promise<UnlockedVault> {
-  if (!SYNC_ENABLED) throw new Error('Sync is not available in this build.');
+  if (!SYNC_ENABLED) fail('error.syncUnavailable');
   const unlocked = await getUnlocked();
-  if (!unlocked) throw new Error('Vault is locked.');
+  if (!unlocked) fail('error.vaultLocked');
   return unlocked;
 }
 
@@ -267,8 +304,6 @@ async function scheduleSync(): Promise<void> {
   chrome.alarms.create(SYNC_ALARM, { periodInMinutes: SYNC_INTERVAL_MINUTES });
 }
 
-const SIGNED_OUT_ELSEWHERE =
-  'This device was signed out of sync — the password was changed or the device was removed on another one. Sign in again.';
 
 /**
  * The server has ended this device's session. Recorded in the vault — keeping
@@ -295,7 +330,7 @@ async function withSession<T>(run: () => Promise<T>): Promise<T> {
         const unlocked = await getUnlocked();
         if (unlocked) await endSessionInTurn(unlocked);
       });
-      throw new Error(SIGNED_OUT_ELSEWHERE);
+      fail('error.signedOutElsewhere');
     }
     throw error;
   }
@@ -310,7 +345,7 @@ async function syncInTurn(unlocked: UnlockedVault) {
   // Signed in with no session left: another call already met the 401.
   if (!(await tokenStore.get())) {
     await endSessionInTurn(unlocked);
-    throw new Error(SIGNED_OUT_ELSEWHERE);
+    fail('error.signedOutElsewhere');
   }
 
   let outcome;
@@ -319,7 +354,7 @@ async function syncInTurn(unlocked: UnlockedVault) {
   } catch (error) {
     if (error instanceof SyncHttpError && error.status === 401) {
       await endSessionInTurn(unlocked);
-      throw new Error(SIGNED_OUT_ELSEWHERE);
+      fail('error.signedOutElsewhere');
     }
     throw error;
   }
@@ -362,13 +397,56 @@ async function firstSync(): Promise<{ sync: SyncSummary | null; syncError: strin
 }
 
 /**
+ * Redeems a provider's ticket in the write queue, and says where that left
+ * this browser: signed in, or with an account to create or one to join.
+ */
+async function completeProviderSignIn(provider: SignInProvider, ticket: ProviderTicket): Promise<ProviderStartResult> {
+  const outcome = await serial(async () => {
+    const unlocked = await requireUnlocked();
+    if (isSignedIn(unlocked.data)) fail('error.alreadySignedIn');
+    const started = await startProviderSignIn(unlocked, provider, ticket);
+    if (started.kind === 'signedIn') {
+      await saveVaultFile(started.file);
+      cached = { ...unlocked, file: started.file, data: started.data };
+      broadcastChange();
+      await scheduleSync();
+    }
+    return started;
+  });
+  if (outcome.kind !== 'signedIn') {
+    broadcastChange();
+    return { kind: outcome.kind, email: outcome.email };
+  }
+  return { kind: 'signedIn', status: await status(), ...(await firstSync()) };
+}
+
+/**
+ * Takes the account's data key, for a caller holding the write queue. Like a
+ * password sign-in, the key changes: a vault with a master password keeps it
+ * in session memory, and one with a device key reads it through that.
+ */
+async function adoptInTurn(joined: { file: VaultFile; dataKey: CryptoKey; data: VaultData }): Promise<void> {
+  await saveVaultFile(joined.file);
+  cached = { file: joined.file, dataKey: joined.dataKey, data: joined.data };
+  if (joined.file.protection.mode === 'passphrase') {
+    await saveSessionKey(await exportDataKey(joined.dataKey));
+  }
+  broadcastChange();
+  await scheduleSync();
+}
+
+async function joinedResult(): Promise<SignInResult> {
+  return { status: await status(), ...(await firstSync()) };
+}
+
+/**
  * Publishes a change to the account's recovery kit and applies it here. Syncs
  * first, so the change is ordered after any another device already made. The
  * caller brings proof of the account password: see `publishRecovery`.
  */
 async function changeAccountKit(
   current: UnlockedVault,
-  authHash: string,
+  proof: OwnerProof,
   change: (
     unlocked: UnlockedVault,
     issuedAt: number,
@@ -379,7 +457,7 @@ async function changeAccountKit(
   const issuedAt = Math.max(Date.now(), (unlocked.data.sync.recoveryAt ?? 0) + 1);
   const { file, recoveryKey } = await change(unlocked, issuedAt);
 
-  await publishRecovery(unlocked.dataKey, authHash, file.recovery, recoveryKey, issuedAt);
+  await publishRecovery(unlocked.dataKey, proof, file.recovery, recoveryKey, issuedAt);
 
   const data = { ...unlocked.data, sync: { ...unlocked.data.sync, recoveryAt: issuedAt } };
   const sealed = await sealVault(file, unlocked.dataKey, data);
@@ -387,6 +465,21 @@ async function changeAccountKit(
   cached = { ...unlocked, file: sealed, data };
   broadcastChange();
   return recoveryKey;
+}
+
+/**
+ * What a change to the signed-in account needs, worked out before any
+ * serialised turn: the account password's proof, or for a provider account a
+ * fresh sign-in in the provider's window. Null when not signed in.
+ */
+async function accountProofIfSignedIn(password: string | undefined): Promise<OwnerProof | null> {
+  const unlocked = await getUnlocked();
+  if (!unlocked) fail('error.vaultLocked');
+  if (!isSignedIn(unlocked.data)) return null;
+  return ownerProof(unlocked.data, async () => {
+    if (!password) fail('error.enterAccountPassword');
+    return accountAuthHash(unlocked.data, password);
+  });
 }
 
 /** Issues a kit whose `createdAt` is the account state's `issuedAt`. */
@@ -430,17 +523,15 @@ async function tabContext(): Promise<TabContext> {
 
 async function injectAndSend(request: { type: string; code?: string }): Promise<FieldDetection> {
   const tab = await activeTab();
-  if (!tab?.id) throw new Error('No active tab.');
+  if (!tab?.id) fail('error.noActiveTab');
   if (!tab.url || !/^https?:/.test(tab.url)) {
-    throw new Error('Autofill only works on regular web pages.');
+    fail('error.autofillNotHere');
   }
 
   try {
     await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
   } catch {
-    throw new Error(
-      'Chrome would not let the extension read this page. Open the popup from the page you want to fill.',
-    );
+    fail('error.autofillBlocked');
   }
 
   // Frame 0 explicitly. `executeScript` put the script in the top frame only,
@@ -457,7 +548,7 @@ async function handle(request: Request): Promise<unknown> {
       return status();
 
     case 'vault/create': {
-      if (await loadVaultFile()) throw new Error('A vault already exists on this device.');
+      if (await loadVaultFile()) fail('error.vaultExists');
       const unlocked = await createVault(await keyringFor(request.protection));
       await saveVaultFile(unlocked.file);
       return openSession(unlocked);
@@ -465,11 +556,11 @@ async function handle(request: Request): Promise<unknown> {
 
     case 'vault/unlock': {
       const file = await loadVaultFile();
-      if (!file) throw new Error('No vault on this device yet.');
+      if (!file) fail('error.noVault');
       try {
         return await openSession(await unlockVault(file, await keyringForFile(file, request.password)));
       } catch (error) {
-        if (error instanceof DecryptionError) throw new Error('Wrong master password.');
+        if (error instanceof DecryptionError) fail('error.wrongMasterPassword');
         throw error;
       }
     }
@@ -479,12 +570,12 @@ async function handle(request: Request): Promise<unknown> {
     // serialiser.
     case 'vault/confirmPassword': {
       const file = await loadVaultFile();
-      if (!file) throw new Error('No vault on this device yet.');
+      if (!file) fail('error.noVault');
       try {
         await unlockVault(file, await keyringForFile(file, request.password));
         return undefined;
       } catch (error) {
-        if (error instanceof DecryptionError) throw new Error('Wrong master password.');
+        if (error instanceof DecryptionError) fail('error.wrongMasterPassword');
         throw error;
       }
     }
@@ -504,16 +595,17 @@ async function handle(request: Request): Promise<unknown> {
     case 'vault/setProtection':
       return serial(async () => {
       const unlocked = await getUnlocked();
-      if (!unlocked) throw new Error('Vault is locked.');
-      const signedIn = isSignedIn(unlocked.data);
+      if (!unlocked) fail('error.vaultLocked');
+      // A Google or GitHub account has no password for this one to equal.
+      const signedIn = hasAccountPassword(unlocked.data);
 
       // Proving knowledge of the current password is required before it can be
       // replaced or removed — otherwise anyone at an unlocked screen could
       // silently downgrade the vault's protection.
       if (unlocked.file.protection.mode === 'passphrase') {
-        if (!request.currentPassword) throw new Error('Enter your current master password.');
+        if (!request.currentPassword) fail('error.enterCurrentMasterPassword');
         if (!(await verifyPassword(unlocked.file, request.currentPassword))) {
-          throw new Error('Current password is incorrect.');
+          fail('error.currentPasswordWrong');
         }
       }
 
@@ -544,18 +636,19 @@ async function handle(request: Request): Promise<unknown> {
       return undefined;
       });
 
-    case 'vault/createRecoveryKit':
+    case 'vault/createRecoveryKit': {
+      // Proved before the turn, not in it: a provider's sign-in window can be
+      // open for minutes, and the vault must not wait on it.
+      const proof = await accountProofIfSignedIn(request.password);
       return serial(async () => {
         const unlocked = await getUnlocked();
-        if (!unlocked) throw new Error('Vault is locked.');
+        if (!unlocked) fail('error.vaultLocked');
 
         // Signed in, the kit is the account's: the server gets it first, and
         // if it cannot, no key is shown that would only half work. It takes the
         // account password — a kit is a way to reset the account.
         if (isSignedIn(unlocked.data)) {
-          if (!request.password) throw new Error('Enter your account password.');
-          const authHash = await accountAuthHash(unlocked.data, request.password);
-          const recoveryKey = await changeAccountKit(unlocked, authHash, issueKit);
+          const recoveryKey = await changeAccountKit(unlocked, proof!, issueKit);
           return { recoveryKey: recoveryKey! };
         }
 
@@ -567,18 +660,18 @@ async function handle(request: Request): Promise<unknown> {
         broadcastChange();
         return { recoveryKey };
       });
+    }
 
-    case 'vault/removeRecoveryKit':
+    case 'vault/removeRecoveryKit': {
+      const proof = await accountProofIfSignedIn(request.password);
       return serial(async () => {
         const unlocked = await getUnlocked();
-        if (!unlocked) throw new Error('Vault is locked.');
+        if (!unlocked) fail('error.vaultLocked');
 
         // Removed from the account too, and so from every other device: the
         // usual reason to remove a kit is that the sheet has gone missing.
         if (isSignedIn(unlocked.data)) {
-          if (!request.password) throw new Error('Enter your account password.');
-          const authHash = await accountAuthHash(unlocked.data, request.password);
-          await changeAccountKit(unlocked, authHash, async (synced) => ({
+          await changeAccountKit(unlocked, proof!, async (synced) => ({
             file: removeRecoveryKit(synced.file),
             recoveryKey: null,
           }));
@@ -591,27 +684,28 @@ async function handle(request: Request): Promise<unknown> {
         broadcastChange();
         return undefined;
       });
+    }
 
     case 'vault/recover':
       return serial(async () => {
         const file = await loadVaultFile();
-        if (!file) throw new Error('No vault on this device yet.');
+        if (!file) fail('error.noVault');
 
         let opened;
         try {
           opened = await unlockWithRecoveryKey(file, request.recoveryKey);
         } catch (error) {
-          if (error instanceof DecryptionError) throw new Error('That recovery key does not match.');
+          if (error instanceof DecryptionError) fail('error.recoveryKeyNoMatch');
           throw error;
         }
 
         // A signed-in vault's new password becomes the account's too, so it has
         // to be strong enough to leave the device. Choosing the device key
         // instead leaves the account's password as it was.
-        const signedIn = isSignedIn(opened.data);
+        const signedIn = hasAccountPassword(opened.data);
         if (signedIn && request.next.mode === 'passphrase') {
           const problem = accountPasswordProblem(request.next.password);
-          if (problem) throw new Error(problem);
+          if (problem) fail('error.accountPasswordWeak');
         }
 
         // Re-protect before handing back a session. Leaving the vault opened but
@@ -673,7 +767,7 @@ async function handle(request: Request): Promise<unknown> {
         // password away from gone. A failure here costs the account nothing —
         // Settings keeps asking until a key exists.
         try {
-          recoveryKey = await changeAccountKit(cached, result.authHash, issueKit);
+          recoveryKey = await changeAccountKit(cached, { authHash: result.authHash }, issueKit);
         } catch {
           recoveryKey = null;
         }
@@ -725,11 +819,12 @@ async function handle(request: Request): Promise<unknown> {
     case 'account/changePassword':
       return serial(async () => {
         const unlocked = await getUnlocked();
-        if (!unlocked) throw new Error('Vault is locked.');
-        if (!isSignedIn(unlocked.data)) throw new Error('Not signed in.');
+        if (!unlocked) fail('error.vaultLocked');
+        if (!isSignedIn(unlocked.data)) fail('error.notSignedIn');
+        if (!hasAccountPassword(unlocked.data)) fail('error.providerHasNoPassword');
         const locksWithPassword = unlocked.file.protection.mode === 'passphrase';
         if (locksWithPassword && !(await verifyPassword(unlocked.file, request.currentPassword))) {
-          throw new Error('Current password is incorrect.');
+          fail('error.currentPasswordWrong');
         }
         // The account first, so a refusal leaves both exactly as they were.
         await changeAccountPassword(unlocked, request.currentPassword, request.nextPassword);
@@ -753,18 +848,112 @@ async function handle(request: Request): Promise<unknown> {
       await requireUnlocked();
       return withSession(() => revokeDevice(request.id));
 
-    case 'account/delete':
+    case 'account/delete': {
+      const proof = await accountProofIfSignedIn(request.password);
       return withSession(() =>
         mutateVault(async (unlocked) => {
-          const data = await deleteAccount(unlocked.data, request.password);
+          const data = await deleteAccount(unlocked.data, proof!);
           await chrome.alarms.clear(SYNC_ALARM);
           return { data, result: undefined };
         }),
       );
+    }
+
+    case 'provider/offered':
+      return SYNC_ENABLED ? providerOffer() : { providers: [], inTab: false };
+
+    case 'provider/pending': {
+      const unlocked = await getUnlocked();
+      return unlocked && !isSignedIn(unlocked.data) ? pendingView() : null;
+    }
+
+    case 'provider/begin':
+      if (isSignedIn((await requireUnlocked()).data)) fail('error.alreadySignedIn');
+      return { url: await beginTabFlow(request.provider) };
+
+    case 'provider/outcome':
+      return takeTabOutcome();
+
+    case 'provider/start':
+      if (isSignedIn((await requireUnlocked()).data)) fail('error.alreadySignedIn');
+      // The provider's window first, outside the queue: it can stay open for
+      // minutes, and nothing else may wait on it.
+      return completeProviderSignIn(request.provider, await providerFlow(request.provider, 'signin'));
+
+    case 'provider/create': {
+      const recoveryKey = await serial(async () => {
+        const unlocked = await requireUnlocked();
+        if (isSignedIn(unlocked.data)) fail('error.alreadySignedIn');
+        const result = await createProviderAccount(unlocked);
+        await saveVaultFile(result.file);
+        cached = { ...unlocked, file: result.file, data: result.data };
+        // Said now, not left to the first sync's save: if that sync fails,
+        // every open page would otherwise still show a signed-out vault.
+        broadcastChange();
+        await scheduleSync();
+        return result.recoveryKey;
+      });
+      return { status: await status(), recoveryKey, ...(await firstSync()) };
+    }
+
+    case 'provider/cancel':
+      await serial(async () => {
+        // A browser that was joining holds a session it never used. One that
+        // signed in some other way meanwhile keeps the session it has.
+        const joining = await cancelProviderSignIn();
+        const unlocked = await getUnlocked();
+        if (joining && unlocked && !isSignedIn(unlocked.data)) await endSession();
+      });
+      broadcastChange();
+      return undefined;
+
+    case 'pairing/request':
+      return requestPairing(await requireUnlocked(), request.password);
+
+    case 'pairing/poll': {
+      // In the queue: an approval replaces this vault's key with the account's.
+      const progress = await serial(async () => {
+        const unlocked = await requireUnlocked();
+        const polled = await pollPairing(unlocked, request.password);
+        if (polled.state === 'joined') await adoptInTurn(polled);
+        return polled;
+      });
+      if (progress.state !== 'joined') return progress;
+      return { state: 'joined', ...(await joinedResult()) };
+    }
+
+    case 'pairing/recover':
+      await serial(async () => {
+        const unlocked = await requireUnlocked();
+        await adoptInTurn(await joinWithRecoveryKey(unlocked, request.recoveryKey, request.password));
+      });
+      return joinedResult();
+
+    case 'pairing/list': {
+      const unlocked = await requireUnlocked();
+      // Only a provider account's browsers join by approval; a password
+      // account's type the password.
+      if (!isSignedIn(unlocked.data) || unlocked.data.account.method !== 'provider') return [];
+      return withSession(openPairings);
+    }
+
+    case 'pairing/accept':
+      await requireUnlocked();
+      return withSession(() => acceptPairing(request.id));
+
+    case 'pairing/approve': {
+      const unlocked = await requireUnlocked();
+      if (!isSignedIn(unlocked.data)) fail('error.notSignedIn');
+      return withSession(() => approvePairing(unlocked, request.id));
+    }
+
+    case 'pairing/deny':
+      await requireUnlocked();
+      return withSession(() => denyPairing(request.id));
 
     case 'account/sync': {
       const summary = await syncNow();
-      if (!summary) throw new Error('Not signed in.');
+      if (!summary) fail('error.notSignedIn');
       return summary;
     }
 
@@ -781,7 +970,7 @@ async function handle(request: Request): Promise<unknown> {
 
     case 'tab/captureQr': {
       const tab = await activeTab();
-      if (!tab?.windowId) throw new Error('No active tab.');
+      if (!tab?.windowId) fail('error.noActiveTab');
       const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' });
       return { dataUrl };
     }
@@ -804,10 +993,104 @@ chrome.runtime.onMessage.addListener((message: Request, sender, sendResponse) =>
       sendResponse({
         ok: false,
         error: error instanceof Error ? error.message : String(error),
+        // The page says it in its own language; see i18n/errors.ts.
+        ...(error instanceof AppError ? { key: error.key, values: error.values } : {}),
       } satisfies Envelope<never>),
     );
 
   return true; // Keep the message channel open for the async response.
+});
+
+/**
+ * A sign-in made in the options tab comes back as a message from the sync
+ * server's return page: the manifest's `externally_connectable` lets that one
+ * origin send one, and nothing else on the web. It carries what the sign-in
+ * window's redirect would — worth nothing without the verifier this worker
+ * kept — and an answer to a sign-in this browser is not waiting for is
+ * refused without touching anything.
+ */
+const SYNC_ORIGIN = SYNC_ENABLED ? new URL(SYNC_API_URL).origin : null;
+
+chrome.runtime.onMessageExternal?.addListener((message: unknown, sender, sendResponse) => {
+  const answer = (message as { answer?: unknown } | null)?.answer;
+  const tabId = sender.tab?.id;
+  if (
+    !SYNC_ORIGIN ||
+    sender.origin !== SYNC_ORIGIN ||
+    tabId === undefined ||
+    typeof answer !== 'string' ||
+    answer.length > 4096
+  ) {
+    return false;
+  }
+  finishInTab(new URLSearchParams(answer), tabId).then(sendResponse, () => sendResponse(false));
+  return true;
+});
+
+async function finishInTab(answer: URLSearchParams, tabId: number): Promise<boolean> {
+  const flow = await takeTabFlow(answer);
+  if (!flow) return false;
+  try {
+    const result = await completeProviderSignIn(flow.provider, ticketFrom(answer, flow.provider, flow.verifier));
+    // A new account or a join is what `provider/pending` already says.
+    if (result.kind === 'signedIn') await setTabOutcome(result);
+  } catch (error) {
+    // Backing out at the provider is a choice, not something to report.
+    if (!(error instanceof AppError && error.key === 'error.signinCancelled')) {
+      await setTabOutcome({
+        kind: 'error',
+        message: error instanceof Error ? error.message : String(error),
+        ...(error instanceof AppError ? { key: error.key, values: error.values } : {}),
+      });
+    }
+  }
+  await chrome.tabs.update(tabId, { url: chrome.runtime.getURL('options.html#account') });
+  return true;
+}
+
+/**
+ * Filling a code with one keystroke, on the page the person is on. The
+ * shortcut grants `activeTab` for that tab, as clicking the toolbar icon does,
+ * so nothing here reaches further than the popup already could.
+ *
+ * It fills only when exactly one account belongs to the site
+ * (`itemForShortcutFill`). Anything less certain — a locked vault, autofill
+ * switched off, no account or two, a page with no code field — opens the
+ * popup instead, which shows what it is about to do and warns before filling
+ * anywhere unexpected.
+ */
+async function fillFromShortcut(tab: chrome.tabs.Tab | undefined): Promise<void> {
+  // Chrome 127 and later; before that the popup cannot be opened for someone.
+  const choose = () => void chrome.action.openPopup?.().catch(() => undefined);
+  const unlocked = await getUnlocked();
+  if (!unlocked || !unlocked.data.settings.autofillEnabled || tab?.id === undefined || !tab.url) return choose();
+
+  let hostname: string | null = null;
+  try {
+    const url = new URL(tab.url);
+    if (url.protocol === 'https:' || url.protocol === 'http:') hostname = url.hostname;
+  } catch {
+    hostname = null;
+  }
+  const item = itemForShortcutFill(unlocked.data.items, hostname);
+  if (!item) return choose();
+
+  try {
+    const filled = await injectAndSend({ type: 'authx/fill', code: await generateCode(item) });
+    if (!filled.found) return choose();
+  } catch {
+    return choose();
+  }
+
+  // Said where the eyes are not: a tick on the toolbar icon, for a moment.
+  const tabId = tab.id;
+  await chrome.action.setBadgeBackgroundColor({ tabId, color: '#16a34a' });
+  await chrome.action.setBadgeText({ tabId, text: '✓' });
+  setTimeout(() => void chrome.action.setBadgeText({ tabId, text: '' }).catch(() => undefined), 1500);
+}
+
+chrome.commands.onCommand.addListener((command, tab) => {
+  if (command === FILL_COMMAND) void fillFromShortcut(tab);
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -825,6 +1108,8 @@ chrome.runtime.onStartup.addListener(() => {
 
 chrome.runtime.onInstalled.addListener(async (details) => {
   await setLockedTitle(true);
+  // So the first sign-in card is drawn with its buttons, not without them.
+  if (SYNC_ENABLED) void refreshProviderOffer().catch(() => undefined);
   if (details.reason === 'install') {
     await chrome.tabs.create({ url: chrome.runtime.getURL('options.html#welcome') });
   }

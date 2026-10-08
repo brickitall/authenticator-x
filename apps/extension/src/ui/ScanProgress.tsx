@@ -1,9 +1,6 @@
 import type { ScanSession } from '../lib/scan-session.js';
 import { Callout } from './primitives.js';
-
-export function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
-}
+import { useT } from '../i18n/react.js';
 
 /**
  * Where a camera scan has got to, shown while the camera is still running.
@@ -16,16 +13,15 @@ export function plural(count: number, one: string, many: string): string {
  * that has not happened, and the user might close the tab believing it had.
  */
 export function ScanProgress({ session, storing }: { session: ScanSession; storing: boolean }) {
+  const t = useT();
   const { batch, added, skipped } = session;
-  const verb = storing ? 'added' : 'found';
-  const accounts = plural(added, 'account', 'accounts');
+  const accounts = t(storing ? 'scan.added' : 'scan.found', { count: added });
   return (
     <Callout tone="info">
       {batch
-        ? `Code ${batch.seen.size} of ${batch.size} scanned — ${accounts} ${verb}. Show the next code.`
-        : `${accounts} ${verb}.`}
-      {skipped > 0 &&
-        ` ${plural(skipped, 'was', 'were')} already ${storing ? 'in your vault' : 'scanned'}.`}
+        ? t('scan.progressBatch', { seen: batch.seen.size, total: batch.size, accounts })
+        : t('scan.progress', { accounts })}
+      {skipped > 0 && ` ${t(storing ? 'scan.skippedVault' : 'scan.skippedScanned', { count: skipped })}`}
     </Callout>
   );
 }

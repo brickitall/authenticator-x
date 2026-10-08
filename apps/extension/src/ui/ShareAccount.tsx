@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { buildOtpUri, itemTitle, type VaultItem } from '@authx/core';
+import { buildOtpUri, type VaultItem } from '@authx/core';
 import { CheckIcon, CopyIcon, ImageIcon } from './icons.js';
 import { Button, Callout } from './primitives.js';
 import { QrCode, qrPng } from './QrCode.js';
+import { useT } from '../i18n/react.js';
+import { titleOf } from '../i18n/titles.js';
 
 /** How long a shown code stays on screen before it hides itself. */
 const SHOWN_FOR_SECONDS = 60;
@@ -18,6 +20,7 @@ const SHOWN_FOR_SECONDS = 60;
  * showing it.
  */
 export function ShareAccount({ item, compact = false }: { item: VaultItem; compact?: boolean }) {
+  const t = useT();
   const [shownUntil, setShownUntil] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [copied, setCopied] = useState(false);
@@ -55,12 +58,10 @@ export function ShareAccount({ item, compact = false }: { item: VaultItem; compa
     return (
       <div className="flex flex-col gap-3">
         <p className="text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-300">
-          Scan it with Google Authenticator, Microsoft Authenticator, 1Password, Authy — any authenticator app —
-          and it makes the same codes as this one.
+          {t('share.intro')}
         </p>
         <Callout tone="warning">
-          Anyone who sees or photographs this code can make your codes for {itemTitle(item)}, for as long as the
-          account exists. Show it only to the app you are moving to.
+          {t('share.warning', { account: titleOf(item) })}
         </Callout>
         <Button
           variant="primary"
@@ -70,7 +71,7 @@ export function ShareAccount({ item, compact = false }: { item: VaultItem; compa
             setShownUntil(Date.now() + SHOWN_FOR_SECONDS * 1000);
           }}
         >
-          Show QR code
+          {t('share.show')}
         </Button>
       </div>
     );
@@ -81,28 +82,28 @@ export function ShareAccount({ item, compact = false }: { item: VaultItem; compa
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="rounded-2xl border border-zinc-200 bg-white p-2 dark:border-zinc-700">
-        <QrCode text={uri} size={compact ? 196 : 240} label={`Setup QR code for ${itemTitle(item)}`} />
+        <QrCode text={uri} size={compact ? 196 : 240} label={t('share.qrLabel', { account: titleOf(item) })} />
       </div>
       <p className="text-center text-[12px] text-zinc-500 dark:text-zinc-400">
-        Scan with the other app. Hides itself in {secondsLeft}s.
+        {t('share.hidesIn', { seconds: secondsLeft })}
       </p>
       <div className="grid w-full grid-cols-2 gap-2">
         <Button size="sm" onClick={() => void copyLink()}>
           {copied ? <CheckIcon /> : <CopyIcon />}
-          {copied ? 'Link copied' : 'Copy setup link'}
+          {copied ? t('share.linkCopied') : t('share.copyLink')}
         </Button>
         <Button size="sm" onClick={() => void saveImage()}>
           <ImageIcon />
-          Save as image
+          {t('share.saveImage')}
         </Button>
       </div>
       {copied && (
         <p className="text-center text-[11.5px] leading-relaxed text-amber-700 dark:text-amber-300">
-          The link holds the secret too. Paste it into the other app, then copy something else over it.
+          {t('share.linkWarning')}
         </p>
       )}
       <Button size="sm" variant="ghost" onClick={() => setShownUntil(null)}>
-        Hide now
+        {t('share.hideNow')}
       </Button>
     </div>
   );

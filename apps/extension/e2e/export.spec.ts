@@ -20,7 +20,8 @@ const link = (issuer: string) =>
   `otpauth://totp/${encodeURIComponent(issuer)}:me%40example.com?secret=${SECRET}&issuer=${encodeURIComponent(issuer)}`;
 
 async function importLinks(options: Page, links: string[]) {
-  await options.getByRole('button', { name: 'Backup & import', exact: true }).click();
+  await options.getByRole('button', { name: 'Backup', exact: true }).click();
+  await options.getByRole('button', { name: 'Import', exact: true }).click();
   await options.getByLabel(/paste otpauth/).fill(links.join('\n'));
   await options.getByRole('button', { name: 'Read links' }).click();
   await options.getByRole('button', { name: `Import ${links.length}` }).click();
@@ -47,6 +48,12 @@ async function readQr(svg: Locator): Promise<string> {
   const decoded = jsQR(pixels, size, size);
   if (!decoded) throw new Error('The QR code on the page does not read.');
   return decoded.data;
+}
+
+/** Backup → Move to another app: where every readable export is. */
+async function openMove(options: Page) {
+  await options.getByRole('button', { name: 'Backup', exact: true }).click();
+  await options.getByRole('button', { name: 'Move to another app', exact: true }).click();
 }
 
 async function addMasterPassword(options: Page) {
@@ -102,7 +109,7 @@ test('readable exports ask for the master password, and are what they say', asyn
   const options = await openOptions(context, extensionId);
   await importLinks(options, SERVICES.map(link));
   await addMasterPassword(options);
-  await options.getByRole('button', { name: 'Backup & import', exact: true }).click();
+  await openMove(options);
 
   // The gate: the box, then the password — an unlocked vault is not enough.
   const go = options.getByRole('button', { name: 'Continue' });
@@ -164,6 +171,7 @@ test('with no master password, the readable exports still need the box ticked', 
   const options = await openOptions(context, extensionId);
   await importLinks(options, [link('GitHub')]);
 
+  await openMove(options);
   await expect(options.getByLabel('Master password')).toHaveCount(0);
   const go = options.getByRole('button', { name: 'Continue' });
   await expect(go).toBeDisabled();
@@ -181,6 +189,7 @@ test('to an app with no import, the accounts come one after another, each one sc
   const options = await openOptions(context, extensionId);
   const three = SERVICES.slice(0, 3);
   await importLinks(options, three.map(link));
+  await openMove(options);
   await options.getByLabel('I understand these are not encrypted.').check();
   await options.getByRole('button', { name: 'Continue' }).click();
 
@@ -207,6 +216,7 @@ test('to Bitwarden, one file carries every account', async ({ context, extension
   await createDeviceVault(popup);
   const options = await openOptions(context, extensionId);
   await importLinks(options, SERVICES.map(link));
+  await openMove(options);
   await options.getByLabel('I understand these are not encrypted.').check();
   await options.getByRole('button', { name: 'Continue' }).click();
 

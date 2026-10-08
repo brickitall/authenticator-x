@@ -5,22 +5,34 @@
  * master password is ever passed to these functions — by the time a record
  * reaches `push`, its `box` is already sealed.
  */
+import type { SealedBox } from '../crypto/aead.js';
 import type { AccountKdfParams } from './account.js';
 import type { PullResult, PushResult, RemoteRecord, SyncAdapter } from './adapter.js';
 import type {
+  SignInProvider,
   ChangePasswordRequest,
   DeleteAccountRequest,
   DeviceSummary,
   DevicesResponse,
   LoginRequest,
   LoginResponse,
+  PairingCreated,
+  PairingRequest,
+  PairingsResponse,
+  PairingStatus,
+  PairingSummary,
   PreloginResponse,
+  ProviderLogin,
+  ProviderRegisterRequest,
+  ProviderSessionRequest,
+  ProviderSessionResponse,
   PullResponse,
   PushRequest,
   PushResponse,
   RecoverRequest,
   RecoverResetRequest,
   RecoverResponse,
+  RecoveryWrapRequest,
   RefreshResponse,
   RegisterRequest,
   RegisterStartRequest,
@@ -200,6 +212,60 @@ export async function logout(
   );
 }
 
+// --- Signing in with a provider --------------------------------------------
+
+/** How this server signs people in besides a password. */
+export interface SignInOptions {
+  /** The providers it offers, minus any this client does not know. Empty when none. */
+  providers: SignInProvider[];
+  /**
+   * It can hand a sign-in back by a page that messages the client, so the
+   * sign-in can happen where the person already is. A server that cannot
+   * only redirects, which a browser catches in a window of its own.
+   */
+  byMessage: boolean;
+}
+
+export async function signInOptions(baseUrl: string, fetcher: Fetcher = fetch): Promise<SignInOptions> {
+  const { providers, returnBy } = await request<{ providers: string[]; returnBy?: string[] }>(
+    baseUrl,
+    '/providers',
+    { method: 'GET' },
+    fetcher,
+  );
+  return {
+    providers: providers.filter((name): name is SignInProvider => name === 'google' || name === 'github'),
+    byMessage: Array.isArray(returnBy) && returnBy.includes('message'),
+  };
+}
+
+/** A ticket and its verifier: a session, or a token to create the account with. */
+export function providerSession(
+  baseUrl: string,
+  body: ProviderSessionRequest,
+  fetcher: Fetcher = fetch,
+): Promise<ProviderSessionResponse> {
+  return request<ProviderSessionResponse>(
+    baseUrl,
+    '/oauth/session',
+    { method: 'POST', body: JSON.stringify(body) },
+    fetcher,
+  );
+}
+
+export function providerRegister(
+  baseUrl: string,
+  body: ProviderRegisterRequest,
+  fetcher: Fetcher = fetch,
+): Promise<ProviderLogin> {
+  return request<ProviderLogin>(
+    baseUrl,
+    '/oauth/register',
+    { method: 'POST', body: JSON.stringify(body) },
+    fetcher,
+  );
+}
+
 // --- The adapter ------------------------------------------------------------
 
 export interface HttpSyncOptions {
@@ -325,6 +391,43 @@ export class HttpSyncAdapter implements SyncAdapter {
 
   async deleteAccount(body: DeleteAccountRequest): Promise<void> {
     await this.authed<void>('/account', { method: 'DELETE', body: JSON.stringify(body) });
+  }
+
+  /** The kit's wrap, for a signed-in browser holding the recovery key. */
+  async recoveryWrap(body: RecoveryWrapRequest): Promise<RecoverResponse> {
+    return this.authed<RecoverResponse>('/account/recovery/wrap', { method: 'POST', body: JSON.stringify(body) });
+  }
+
+  // --- Joining by approval ----------------------------------------------------
+
+  async requestPairing(body: PairingRequest): Promise<PairingCreated> {
+    return this.authed<PairingCreated>('/pairing', { method: 'POST', body: JSON.stringify(body) });
+  }
+
+  async pairingStatus(id: string): Promise<PairingStatus> {
+    return this.authed<PairingStatus>(`/pairing/${encodeURIComponent(id)}`, { method: 'GET' });
+  }
+
+  async openPairings(): Promise<PairingSummary[]> {
+    return (await this.authed<PairingsResponse>('/pairing', { method: 'GET' })).pairings;
+  }
+
+  async acceptPairing(id: string, publicKey: string): Promise<void> {
+    await this.authed<void>(`/pairing/${encodeURIComponent(id)}/accept`, {
+      method: 'POST',
+      body: JSON.stringify({ publicKey }),
+    });
+  }
+
+  async approvePairing(id: string, wrap: SealedBox): Promise<void> {
+    await this.authed<void>(`/pairing/${encodeURIComponent(id)}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ wrap }),
+    });
+  }
+
+  async denyPairing(id: string): Promise<void> {
+    await this.authed<void>(`/pairing/${encodeURIComponent(id)}/deny`, { method: 'POST', body: '{}' });
   }
 
   // --- Records ----------------------------------------------------------------

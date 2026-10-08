@@ -15,7 +15,8 @@ const SECRET = 'JBSWY3DPEHPK3PXP';
 const MASTER_PASSWORD = 'a real master password';
 
 async function importLinks(options: Page, links: string[]) {
-  await options.getByRole('button', { name: 'Backup & import', exact: true }).click();
+  await options.getByRole('button', { name: 'Backup', exact: true }).click();
+  await options.getByRole('button', { name: 'Import', exact: true }).click();
   await options.getByLabel(/paste otpauth/).fill(links.join('\n'));
   await options.getByRole('button', { name: 'Read links' }).click();
   await options.getByRole('button', { name: `Import ${links.length}` }).click();
@@ -81,7 +82,7 @@ test('Account & sync claims no account limit the vault does not enforce', async 
   );
   await expect(options.getByText('6 accounts', { exact: true })).toBeVisible();
 
-  await options.getByRole('button', { name: 'Account & sync', exact: true }).click();
+  await options.getByRole('button', { name: 'Sync', exact: true }).click();
   await expect(options.getByText('No limit', { exact: true })).toBeVisible();
   await expect(options.getByText(/Up to \d+ without signing in/)).toHaveCount(0);
   await expect(options.getByText(/No cap on how many accounts/)).toHaveCount(0);
@@ -233,4 +234,16 @@ test('a whole recovery key fits in the recovery field', async ({ context, extens
 
   const { scroll, client } = await field.evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }));
   expect(scroll).toBeLessThanOrEqual(client);
+});
+
+test('General lists both shortcuts as Chrome has them set, the fill one included', async ({ context, extensionId }) => {
+  const options = await openOptions(context, extensionId);
+  await createDeviceVault(options);
+  await options.getByRole('button', { name: 'General', exact: true }).click();
+  const fill = options.locator('div', { hasText: /^Fill the code for this page/ }).first();
+  await expect(fill).toBeVisible();
+  await expect(fill.getByText(/Fills only where exactly one account belongs to the site/)).toBeVisible();
+  // Whatever keys Chrome assigned on install, shown as keys rather than left blank.
+  const keys = await options.locator('kbd').allInnerTexts();
+  expect(keys.join('+')).toContain('F');
 });

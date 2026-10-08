@@ -3,6 +3,8 @@ import { group, isWellFormedRecoveryKey, scorePassword } from '@authx/core';
 import { send, type ProtectionChoice, type VaultStatus } from '../lib/messaging.js';
 import { ArrowLeftIcon, Logo } from '../ui/icons.js';
 import { Button, Callout, Field, Spinner, cx } from '../ui/primitives.js';
+import { errorText } from '../i18n/error-text.js';
+import { useT } from '../i18n/react.js';
 
 /**
  * Formats as the user types, the way a recovery key is printed. Confusable
@@ -26,6 +28,7 @@ export function RecoveryScreen({
   onRecovered: (status: VaultStatus) => void;
   onCancel: () => void;
 }) {
+  const t = useT();
   const [recoveryKey, setRecoveryKey] = useState('');
   const [mode, setMode] = useState<'passphrase' | 'device'>('passphrase');
   const [password, setPassword] = useState('');
@@ -49,7 +52,7 @@ export function RecoveryScreen({
         mode === 'device' ? { mode: 'device' } : { mode: 'passphrase', password };
       onRecovered(await send({ type: 'vault/recover', recoveryKey, next }));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorText(cause));
       setBusy(false);
     }
   }
@@ -60,22 +63,21 @@ export function RecoveryScreen({
         <button
           type="button"
           onClick={onCancel}
-          aria-label="Back"
+          aria-label={t('common.back')}
           className="rounded-lg p-1.5 text-base text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
         >
           <ArrowLeftIcon />
         </button>
         <Logo className="h-5 w-5" />
-        <h1 className="text-[15px] font-semibold">Use your recovery key</h1>
+        <h1 className="text-[15px] font-semibold">{t('recover.title')}</h1>
       </header>
 
       <Callout>
-        The 32-character key from the sheet you saved when you set this vault up.
-        Using it replaces how the vault is locked, so pick that below too.
+        {t('recover.intro')}
       </Callout>
 
       <Field
-        label="Recovery key"
+        label={t('recover.keyLabel')}
         value={recoveryKey}
         onChange={(event) => setRecoveryKey(formatAsTyped(event.target.value))}
         placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
@@ -90,21 +92,21 @@ export function RecoveryScreen({
         className="code-digits text-[12px] tracking-normal"
         hint={
           recoveryKey.length === 0
-            ? 'Letters and digits only — spacing does not matter.'
+            ? t('recover.hintEmpty')
             : keyLooksRight
-              ? 'That is the right shape.'
-              : `${recoveryKey.replace(/-/g, '').length} of 32 characters.`
+              ? t('recover.hintRight')
+              : t('recover.hintCount', { count: recoveryKey.replace(/-/g, '').length })
         }
       />
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-[13px] font-medium text-zinc-700 dark:text-zinc-300">
-          How should this vault lock from now on?
+          {t('recover.lockQuestion')}
         </legend>
         {(
           [
-            ['passphrase', 'Set a new master password'],
-            ['device', 'No password — let this device hold the key'],
+            ['passphrase', t('recover.lockPassword')],
+            ['device', t('recover.lockDevice')],
           ] as const
         ).map(([value, label]) => (
           <label
@@ -132,20 +134,24 @@ export function RecoveryScreen({
       {mode === 'passphrase' && (
         <div className="flex flex-col gap-3">
           <Field
-            label="New master password"
+            label={t('recover.newPassword')}
             type="password"
             autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            hint={password ? `Strength: ${strength.label}` : 'At least 8 characters.'}
+            hint={
+              password
+                ? t('strength.line', { label: t(`strength.${strength.score}` as 'strength.0') })
+                : t('recover.atLeast8')
+            }
           />
           <Field
-            label="Confirm password"
+            label={t('setup.passwordStep.confirm')}
             type="password"
             autoComplete="new-password"
             value={confirm}
             onChange={(event) => setConfirm(event.target.value)}
-            error={confirm && confirm !== password ? 'Passwords do not match.' : null}
+            error={confirm && confirm !== password ? t('common.passwordsDiffer') : null}
           />
         </div>
       )}
@@ -155,7 +161,7 @@ export function RecoveryScreen({
       <div className="mt-auto pt-2">
         <Button type="submit" variant="primary" disabled={!ready || busy} className="w-full">
           {busy ? <Spinner /> : null}
-          Unlock and re-lock this vault
+          {t('recover.submit')}
         </Button>
       </div>
     </form>

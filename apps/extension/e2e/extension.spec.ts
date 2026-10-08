@@ -47,6 +47,7 @@ test('the extension loads and its service worker starts', async ({ worker, exten
     'activeTab',
     'alarms',
     'clipboardWrite',
+    'identity',
     'scripting',
     'storage',
   ]);
@@ -60,7 +61,7 @@ test('first run creates a device-protected vault with a non-extractable key', as
   worker,
 }) => {
   const page = await openPopup(context, extensionId);
-  await expect(page.getByRole('heading', { name: 'Authenticator X' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Keyrook Authenticator' })).toBeVisible();
   await createDeviceVault(page);
 
   const stored = await worker.evaluate(async () => {
@@ -161,7 +162,7 @@ test('a master password can be added, then locks and unlocks the vault', async (
   await addAccount(popup, SETUP_URI);
 
   const options = await openOptions(context, extensionId);
-  await options.getByRole('button', { name: 'Security' }).click();
+  await options.getByRole('button', { name: 'Security', exact: true }).click();
   await expect(options.getByText('Device key (no password)')).toBeVisible();
 
   await options.getByRole('button', { name: 'Add a master password' }).click();
@@ -203,7 +204,7 @@ test('a Google Authenticator export brings every account across', async ({
 });
 
 async function issueRecoveryKey(options: Page): Promise<string> {
-  await options.getByRole('button', { name: 'Security' }).click();
+  await options.getByRole('button', { name: 'Security', exact: true }).click();
   await options.getByRole('button', { name: /Create a recovery key|Issue a new one/ }).click();
 
   const code = options.locator('code.code-digits');
@@ -224,7 +225,7 @@ test('a recovery key opens a vault whose password was forgotten', async ({
   await addAccount(popup, SETUP_URI);
 
   const options = await openOptions(context, extensionId);
-  await options.getByRole('button', { name: 'Security' }).click();
+  await options.getByRole('button', { name: 'Security', exact: true }).click();
   await options.getByRole('button', { name: 'Add a master password' }).click();
   await options.getByLabel('New password', { exact: true }).fill(MASTER_PASSWORD);
   await options.getByLabel('Confirm new password').fill(MASTER_PASSWORD);

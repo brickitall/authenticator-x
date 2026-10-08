@@ -2,17 +2,19 @@ import type { ReactNode } from 'react';
 import { SOURCE_URL } from '../lib/links.js';
 import { CodeIcon } from './icons.js';
 import { cx } from './primitives.js';
+import { useT } from '../i18n/react.js';
 
 /** "Open source", linking to the published code. Opens in a new tab. */
 export function SourceLink({
   href = SOURCE_URL,
   className,
-  children = 'Open source',
+  children,
 }: {
   href?: string;
   className?: string;
   children?: ReactNode;
 }) {
+  const t = useT();
   return (
     <a
       href={href}
@@ -24,7 +26,7 @@ export function SourceLink({
       )}
     >
       <CodeIcon className="shrink-0" />
-      {children}
+      {children ?? t('common.openSource')}
     </a>
   );
 }

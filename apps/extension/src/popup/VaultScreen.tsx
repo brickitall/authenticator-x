@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  itemForShortcutFill,
   itemMatchesHost,
-  itemTitle,
   liveItems,
   shouldWarnBeforeFilling,
   sectionItems,
@@ -18,23 +18,35 @@ import { AccountRow } from './AccountRow.js';
 import { AddSheet } from './AddSheet.js';
 import { RatePrompt } from './RatePrompt.js';
 import { ShareSheet } from './ShareSheet.js';
+import { SignInSheet } from './SignInSheet.js';
+import { SYNC_ENABLED } from '../lib/config.js';
+import { FILL_COMMAND } from '../lib/commands.js';
+import { Keys, useShortcuts } from '../ui/shortcuts.js';
 import { loadRating, recordUse, shouldAsk, updateRating } from '../lib/rating.js';
-import { SCAN_FRAGMENT } from '../lib/deep-link.js';
+import { ACCOUNT_FRAGMENT, SCAN_FRAGMENT } from '../lib/deep-link.js';
 import { SourceLink } from '../ui/SourceLink.js';
+import { errorText } from '../i18n/error-text.js';
+import { useT } from '../i18n/react.js';
+import { titleOf } from '../i18n/titles.js';
 
 export function VaultScreen({
   data,
   protection,
   mutate,
   refresh,
+  startWithSignIn = false,
 }: {
   data: VaultData;
   protection: ProtectionMode;
   mutate: Mutate;
   refresh: () => Promise<void>;
+  /** Made a moment ago by "Already use Keyrook Authenticator? Sign in". */
+  startWithSignIn?: boolean;
 }) {
+  const t = useT();
   const [query, setQuery] = useState('');
   const [adding, setAdding] = useState(false);
+  const [signingIn, setSigningIn] = useState(startWithSignIn);
   const [sharing, setSharing] = useState<VaultItem | null>(null);
   const [tab, setTab] = useState<TabContext | null>(null);
   const [fields, setFields] = useState<FieldDetection | null>(null);
@@ -50,6 +62,18 @@ export function VaultScreen({
   useEffect(() => {
     void send({ type: 'tab/context' }).then(setTab);
   }, []);
+
+  // A browser waiting on this one to let it into the account. Looked for
+  // only on a Google or GitHub account: a password account's browsers join
+  // with the password, and never ask.
+  const [joinRequests, setJoinRequests] = useState(0);
+  const approves = data.account.method === 'provider' && data.account.plan === 'synced';
+  useEffect(() => {
+    if (!approves) return;
+    void send({ type: 'pairing/list' })
+      .then((requests) => setJoinRequests(requests.filter((request) => request.approverKey === null).length))
+      .catch(() => undefined);
+  }, [approves]);
 
   // Decided once, as the popup opens: a prompt that appeared mid-copy would
   // move the list under the pointer.
@@ -90,10 +114,17 @@ export function VaultScreen({
     [data, rest, query],
   );
   const canFill = Boolean(fields?.found) && data.settings.autofillEnabled;
+  // Taught where it would have worked: this page, this account, one key.
+  const shortcuts = useShortcuts();
+  const fillKeys = shortcuts?.[FILL_COMMAND] ?? '';
+  const shortcutWouldFill = canFill && fillKeys !== '' && itemForShortcutFill(all, tab?.hostname ?? null) !== null;
   const sortedByName = data.settings.sortBy === 'name';
   // Shown where people look every day, not only in Settings: a vault signed in
   // to an account its owner does not recognise should be hard to miss.
   const syncedAs = data.account.plan === 'synced' ? data.account.email : null;
+  // Not signed in, in a build that can be: the way in is offered where the
+  // sync state would otherwise say who this vault syncs as.
+  const canSignIn = SYNC_ENABLED && !syncedAs;
 
   async function fill(item: VaultItem, confirmed = false) {
     const code = codes[item.id];
@@ -110,7 +141,7 @@ export function VaultScreen({
       await countUse();
       window.close();
     } catch (cause) {
-      setNotice(cause instanceof Error ? cause.message : String(cause));
+      setNotice(errorText(cause));
     }
   }
 
@@ -139,26 +170,26 @@ export function VaultScreen({
       <header className="flex items-center gap-2 border-b border-zinc-100 px-3 py-2.5 dark:border-zinc-900">
         <Logo className="h-6 w-6 shrink-0" />
         <div className="relative min-w-0 flex-1">
-          <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-[15px] text-zinc-400" />
+          <SearchIcon className="pointer-events-none absolute top-1/2 start-2.5 -translate-y-1/2 text-[15px] text-zinc-400" />
           <input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search accounts"
-            aria-label="Search accounts"
-            className="h-8 w-full rounded-lg border border-transparent bg-zinc-100 pr-2 pl-8 text-[13px] placeholder:text-zinc-400 focus:border-brand-400 focus:bg-white dark:bg-zinc-900 dark:focus:bg-zinc-900"
+            placeholder={t('vault.search')}
+            aria-label={t('vault.search')}
+            className="h-8 w-full rounded-lg border border-transparent bg-zinc-100 pe-2 ps-8 text-[13px] placeholder:text-zinc-400 focus:border-brand-400 focus:bg-white dark:bg-zinc-900 dark:focus:bg-zinc-900"
           />
         </div>
-        <IconButton label="Add account" onClick={() => setAdding(true)}>
+        <IconButton label={t('vault.add')} onClick={() => setAdding(true)}>
           <PlusIcon />
         </IconButton>
-        <IconButton label="Settings" onClick={() => void chrome.runtime.openOptionsPage()}>
+        <IconButton label={t('vault.settings')} onClick={() => void chrome.runtime.openOptionsPage()}>
           <SettingsIcon />
         </IconButton>
         {/* Nothing to lock when the key comes from the device itself. */}
         {protection === 'passphrase' && (
           <IconButton
-            label="Lock now"
+            label={t('vault.lock')}
             onClick={async () => {
               await send({ type: 'vault/lock' });
               await refresh();
@@ -169,15 +200,31 @@ export function VaultScreen({
         )}
       </header>
 
-      {(all.length > 1 || syncedAs) && (
+      {(all.length > 1 || syncedAs || (canSignIn && all.length > 0)) && (
         <div className="flex items-center justify-between gap-2 border-b border-zinc-100 px-3.5 py-1.5 text-[11px] dark:border-zinc-900">
-          <span className="min-w-0 truncate text-zinc-400 dark:text-zinc-500">
-            {all.length} {all.length === 1 ? 'account' : 'accounts'}
+          {/* Each part truncates on its own: one truncating line swallowed the
+              sign-in link whole wherever its words ran longer than English's,
+              leaving "3 accounts · …" and nothing to press. */}
+          <span className="flex min-w-0 items-baseline text-zinc-400 dark:text-zinc-500">
+            <span className="shrink-0">{t('vault.count', { count: all.length })}</span>
             {syncedAs && (
-              <span title={`Synced with ${syncedAs}`}>
-                {' · synced as '}
-                {syncedAs}
+              <span className="min-w-0 truncate" title={t('vault.syncedWith', { email: syncedAs })}>
+                <span className="whitespace-pre">{' · '}</span>
+                {t('vault.syncedAs', { email: syncedAs })}
               </span>
+            )}
+            {canSignIn && (
+              <>
+                <span className="shrink-0 whitespace-pre">{' · '}</span>
+                <button
+                  type="button"
+                  onClick={() => setSigningIn(true)}
+                  title={t('vault.signInToSync')}
+                  className="min-w-0 truncate font-medium text-brand-600 hover:underline dark:text-brand-400"
+                >
+                  {t('vault.signInToSync')}
+                </button>
+              </>
             )}
           </span>
           {all.length > 1 && (
@@ -189,11 +236,11 @@ export function VaultScreen({
                   patch: { sortBy: sortedByName ? 'added' : 'name' },
                 })
               }
-              title="Change the order"
+              title={t('vault.changeOrder')}
               // Never squeezed: a long "synced as" address is what gives way.
               className="shrink-0 whitespace-nowrap font-medium text-zinc-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400"
             >
-              {sortedByName ? 'By name' : 'Order added'}
+              {sortedByName ? t('vault.byName') : t('vault.orderAdded')}
             </button>
           )}
         </div>
@@ -206,21 +253,41 @@ export function VaultScreen({
           </div>
         )}
 
+        {joinRequests > 0 && (
+          <div className="mb-2 px-1">
+            <Callout tone="info">
+              <p className="font-medium">
+                {t('vault.joinRequests', { count: joinRequests })}
+              </p>
+              <p className="mt-0.5">{t('vault.joinRequestsHint')}</p>
+              <button
+                type="button"
+                onClick={() =>
+                  void chrome.tabs.create({ url: chrome.runtime.getURL(`options.html${ACCOUNT_FRAGMENT}`) })
+                }
+                className="mt-1.5 font-medium underline underline-offset-2"
+              >
+                {t('vault.reviewInSettings')}
+              </button>
+            </Callout>
+          </div>
+        )}
+
         {all.length === 0 ? (
-          <EmptyState onAdd={() => setAdding(true)} />
+          <EmptyState onAdd={() => setAdding(true)} onSignIn={canSignIn ? () => setSigningIn(true) : undefined} />
         ) : filtered.length === 0 ? (
           <p className="px-3 py-10 text-center text-[13px] text-zinc-400">
-            No accounts match “{query}”.
+            {t('vault.noMatch', { query })}
           </p>
         ) : (
           <>
             {!query && suggested.length > 0 && (
               <section className="mb-1">
                 <SectionLabel>
-                  For {tab?.hostname}
+                  {t('vault.forHost', { host: tab?.hostname ?? '' })}
                   {canFill && (
-                    <span className="ml-1.5 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
-                      code field detected
+                    <span className="ms-1.5 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
+                      {t('vault.fieldDetected')}
                     </span>
                   )}
                 </SectionLabel>
@@ -229,6 +296,11 @@ export function VaultScreen({
                     <AccountRow key={item.id} {...rowProps(item)} />
                   ))}
                 </ul>
+                {shortcutWouldFill && (
+                  <p className="px-3 pt-0.5 pb-1.5 text-[11.5px] text-zinc-400 dark:text-zinc-500">
+                    {t.rich('vault.shortcutHint', { keys: <Keys shortcut={fillKeys} /> })}
+                  </p>
+                )}
               </section>
             )}
 
@@ -242,7 +314,7 @@ export function VaultScreen({
                     <SectionLabel>
                       {section.color && (
                         <span
-                          className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full"
+                          className="me-1.5 inline-block h-1.5 w-1.5 rounded-full"
                           style={{ background: section.color }}
                         />
                       )}
@@ -260,13 +332,13 @@ export function VaultScreen({
         )}
       </div>
 
-      {askRating && !query && all.length > 0 && <RatePrompt onClose={() => setAskRating(false)} />}
+      {askRating && !query && all.length > 0 && joinRequests === 0 && <RatePrompt onClose={() => setAskRating(false)} />}
 
       {/* Always on screen: the claim and the way to check it, side by side. */}
       <footer className="flex items-center justify-between gap-3 border-t border-zinc-100 px-3.5 py-1.5 text-[11px] dark:border-zinc-900">
         <span className="inline-flex items-center gap-1 font-medium text-zinc-500 dark:text-zinc-400">
           <ShieldIcon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-          Encrypted on this device
+          {t('common.encryptedHere')}
         </span>
         <SourceLink />
       </footer>
@@ -274,23 +346,26 @@ export function VaultScreen({
       {confirmFill && (
         <div className="absolute inset-x-0 bottom-0 z-20 border-t border-amber-200 bg-amber-50 p-3.5 animate-slide-up dark:border-amber-500/30 dark:bg-amber-500/10">
           <p className="text-[13px] leading-relaxed text-amber-900 dark:text-amber-200">
-            <strong>{itemTitle(confirmFill)}</strong> is for{' '}
-            <strong>{confirmFill.domains[0]}</strong>, but this page is{' '}
-            <strong>{tab?.hostname}</strong>. If you did not expect that, the page may be
-            impersonating the site.
+            {t.rich('vault.fillWarning', {
+              account: titleOf(confirmFill),
+              domain: confirmFill.domains[0],
+              host: tab?.hostname,
+            })}
           </p>
           <div className="mt-2.5 flex gap-2">
             <Button size="sm" variant="secondary" onClick={() => setConfirmFill(null)}>
-              Don't fill
+              {t('vault.dontFill')}
             </Button>
             <Button size="sm" variant="danger" onClick={() => void fill(confirmFill, true)}>
-              Fill anyway
+              {t('vault.fillAnyway')}
             </Button>
           </div>
         </div>
       )}
 
       {sharing && <ShareSheet item={sharing} onClose={() => setSharing(null)} />}
+
+      {signingIn && <SignInSheet onClose={() => setSigningIn(false)} />}
 
       {adding && (
         <AddSheet
@@ -345,19 +420,37 @@ function IconButton({
   );
 }
 
-function EmptyState({ onAdd }: { onAdd: () => void }) {
+function EmptyState({ onAdd, onSignIn }: { onAdd: () => void; onSignIn?: (() => void) | undefined }) {
+  const t = useT();
   return (
     <div className="flex flex-col items-center gap-4 px-8 py-16 text-center">
       <Logo className="h-10 w-10 opacity-90" />
       <div>
-        <h2 className="text-[15px] font-semibold">No accounts yet</h2>
+        <h2 className="text-[15px] font-semibold">{t('vault.empty.title')}</h2>
         <p className="mt-1 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-          Open the two-factor setup page on any site, then scan its QR code straight from the tab.
+          {t('vault.empty.body')}
         </p>
       </div>
       <Button variant="primary" onClick={onAdd}>
-        <PlusIcon /> Add your first account
+        <PlusIcon /> {t('vault.empty.add')}
       </Button>
+      {/* A new browser is the likeliest place to find an empty vault — and its
+          owner, more often than not, has the codes somewhere already. */}
+      {onSignIn && (
+        <p className="text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+          {t.rich('vault.empty.signIn', {}, {
+            link: (chunk) => (
+              <button
+                type="button"
+                onClick={onSignIn}
+                className="font-medium text-brand-600 hover:underline dark:text-brand-400"
+              >
+                {chunk}
+              </button>
+            ),
+          })}
+        </p>
+      )}
     </div>
   );
 }

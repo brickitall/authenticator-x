@@ -1,74 +1,46 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { accountPasswordProblem, isWellFormedRecoveryKey } from '@authx/core';
-import { send, type SignInResult, type SyncSummary } from '../lib/messaging.js';
-import { AlertIcon, ArrowLeftIcon, CheckIcon, CloudLockIcon, KeyIcon } from '../ui/icons.js';
+import { accountPasswordProblem, isWellFormedRecoveryKey, type SignInProvider } from '@authx/core';
+import {
+  send,
+  type ProviderOffer,
+  type ProviderStartResult,
+  type SignInResult,
+  type SyncSummary,
+} from '../lib/messaging.js';
+import { AlertIcon, CheckIcon, CloudLockIcon, KeyIcon } from '../ui/icons.js';
 import { PasswordField } from '../ui/password.js';
-import { Button, Callout, Field, Spinner } from '../ui/primitives.js';
+import { Button, Callout, Field, Spinner, cx } from '../ui/primitives.js';
 import { PRIVACY_URL, SECURITY_MODEL_URL } from '../lib/links.js';
 import { SourceLink } from '../ui/SourceLink.js';
+import { AuthCard, Footnote, FormShell, Mark, TextLink, useSubmit } from './auth-ui.js';
+import { JoinAccount, OrDivider, ProviderButtons, ProviderNewAccount, providerLabel } from './ProviderSignIn.js';
+import { useT, type Translator } from '../i18n/react.js';
+import { localise } from '../i18n/error-text.js';
 
-type Step = 'intro' | 'create' | 'signIn' | 'recover';
+export { AuthCard } from './auth-ui.js';
+
+type Step = 'intro' | 'create' | 'signIn' | 'recover' | 'providerNew' | 'join';
+
+/** A Google or GitHub sign-in that has got as far as the provider. */
+interface ProviderFlow {
+  provider: SignInProvider;
+  email: string;
+  asked: boolean;
+}
 
 /**
  * What signing in adds, said plainly. Only what exists today: there is no
  * phone app yet, so this does not promise one. Nothing about limits either —
  * a local vault has none, so an account cannot be sold as lifting one.
  */
-const BENEFITS = [
-  'The same codes in every browser you sign in to.',
-  'A lost or broken laptop is not a lost vault.',
-  'Free, and optional — everything keeps working on this device without it.',
-];
+const BENEFITS = ['intro.benefit1', 'intro.benefit2', 'intro.benefit3'] as const;
 
-/** A narrow, centred card: one column, one decision at a time. */
-export function AuthCard({ children }: { children: ReactNode }) {
-  return (
-    <div className="animate-fade-in mx-auto w-full max-w-[400px] rounded-2xl border border-zinc-200 bg-white p-7 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-      {children}
-    </div>
-  );
-}
-
-const MARK_TONES = {
-  brand: 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-300',
-  success: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-  warning: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400',
-} as const;
-
-function Mark({ icon, tone = 'brand' }: { icon: ReactNode; tone?: keyof typeof MARK_TONES }) {
-  return (
-    <div className={`grid h-11 w-11 place-items-center rounded-2xl text-[22px] ${MARK_TONES[tone]}`}>
-      {icon}
-    </div>
-  );
-}
-
-function Heading({ title, subtitle }: { title: string; subtitle: ReactNode }) {
-  return (
-    <div>
-      <h2 className="text-[18px] font-semibold tracking-tight">{title}</h2>
-      <p className="mt-1 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">{subtitle}</p>
-    </div>
-  );
-}
-
-function TextLink({ children, onClick }: { children: ReactNode; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="font-medium text-brand-600 hover:text-brand-700 hover:underline dark:text-brand-400 dark:hover:text-brand-300"
-    >
-      {children}
-    </button>
-  );
-}
-
-function Footnote({ children }: { children: ReactNode }) {
-  return (
-    <p className="text-center text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">{children}</p>
-  );
-}
+/**
+ * What the card holds room for until the server's answer is known — what the
+ * official server offers. Drawing the email-only card first and swapping it
+ * for this one a moment later looked like two different screens.
+ */
+const EXPECTED_OFFER: ProviderOffer = { providers: ['google', 'github'], inTab: true };
 
 /**
  * Creating an account, signing in, and recovering one — for a vault that is
@@ -82,32 +54,115 @@ function Footnote({ children }: { children: ReactNode }) {
 export function SyncAuth({
   protectionMode,
   signedOutElsewhere,
+  signedOutProvider,
   onSignedUp,
   onSignedIn,
+  providerError,
+  initialStep,
   introFooter,
 }: {
   protectionMode: 'device' | 'passphrase';
   /** The account this device was signed out of by the server, if any. */
   signedOutElsewhere: string | null;
+  /** How that account signs in, when it is with Google or GitHub. */
+  signedOutProvider?: SignInProvider | undefined;
   onSignedUp: (recoveryKey: string | null) => void;
   /** Joined an account, by password or by recovery key. */
   onSignedIn: (result: SignInResult, how: 'signIn' | 'recover') => void;
+  /** Where to open, when the popup sent someone straight to a form. */
+  initialStep?: 'signIn' | 'create' | undefined;
+  /** Why a sign-in made in this tab did not work, said on coming back. */
+  providerError?: string | null | undefined;
   /** Shown under the card on the first step only. */
   introFooter?: ReactNode;
 }) {
   // Someone who was signed out by the server wants back in, not a sales pitch.
-  const [step, setStep] = useState<Step>(signedOutElsewhere ? 'signIn' : 'intro');
+  // A provider account has no form to go back to: its button is on the intro.
+  const [step, setStep] = useState<Step>(
+    signedOutElsewhere && !signedOutProvider ? 'signIn' : (initialStep ?? 'intro'),
+  );
   const [email, setEmail] = useState(signedOutElsewhere ?? '');
+  // Null until the service worker says, which is at once after the first
+  // time; an empty list hides the buttons.
+  const [offer, setOffer] = useState<ProviderOffer | null>(null);
+  const [flow, setFlow] = useState<ProviderFlow | null>(null);
+  // Hidden until it is known whether a sign-in is half done: the intro shown
+  // for an instant and then replaced reads as a glitch.
+  const [resumed, setResumed] = useState(false);
+
+  useEffect(() => {
+    void send({ type: 'provider/offered' })
+      .then(setOffer)
+      .catch(() => setOffer({ providers: [], inTab: false }));
+    // A sign-in this browser started and has not finished — the tab just came
+    // back from the provider, or was closed while waiting for approval —
+    // picks up where it was.
+    void send({ type: 'provider/pending' })
+      .then((pending) => {
+        if (!pending) return;
+        setFlow({ provider: pending.provider, email: pending.email, asked: pending.asked });
+        setStep(pending.kind === 'signup' ? 'providerNew' : 'join');
+      })
+      .catch(() => undefined)
+      .finally(() => setResumed(true));
+  }, []);
 
   const go = (next: Step) => setStep(next);
 
+  function started(provider: SignInProvider, result: ProviderStartResult) {
+    if (result.kind === 'signedIn') {
+      onSignedIn(result, 'signIn');
+      return;
+    }
+    setFlow({ provider, email: result.email, asked: false });
+    go(result.kind === 'new' ? 'providerNew' : 'join');
+  }
+
+  const restart = () => {
+    setFlow(null);
+    go('intro');
+  };
+
   return (
-    <div className="flex flex-col gap-8">
+    <div className={cx('flex flex-col gap-8', !resumed && 'invisible')}>
       <AuthCard>
-        {step === 'intro' && <Intro onCreate={() => go('create')} onSignIn={() => go('signIn')} />}
+        {step === 'intro' && (
+          <Intro
+            offer={offer}
+            error={providerError ?? null}
+            signedOutElsewhere={signedOutProvider ? signedOutElsewhere : null}
+            signedOutProvider={signedOutProvider}
+            onProvider={started}
+            onCreate={() => go('create')}
+            onSignIn={() => go('signIn')}
+          />
+        )}
+        {step === 'providerNew' && flow && (
+          <ProviderNewAccount
+            provider={flow.provider}
+            email={flow.email}
+            onCreated={(recoveryKey) => onSignedUp(recoveryKey)}
+            onCancel={() => {
+              void send({ type: 'provider/cancel' }).catch(() => undefined);
+              restart();
+            }}
+          />
+        )}
+        {step === 'join' && flow && (
+          <JoinAccount
+            provider={flow.provider}
+            email={flow.email}
+            protectionMode={protectionMode}
+            asked={flow.asked}
+            onJoined={(result) => onSignedIn(result, 'signIn')}
+            onCancel={restart}
+          />
+        )}
         {step === 'create' && (
           <CreateForm
             protectionMode={protectionMode}
+            offer={offer}
+            onProvider={started}
             email={email}
             onEmail={setEmail}
             onBack={() => go('intro')}
@@ -118,6 +173,8 @@ export function SyncAuth({
         {step === 'signIn' && (
           <SignInForm
             protectionMode={protectionMode}
+            offer={signedOutElsewhere && !signedOutProvider ? null : offer}
+            onProvider={started}
             email={email}
             onEmail={setEmail}
             signedOutElsewhere={signedOutElsewhere}
@@ -141,106 +198,112 @@ export function SyncAuth({
   );
 }
 
-function Intro({ onCreate, onSignIn }: { onCreate: () => void; onSignIn: () => void }) {
+function Intro({
+  offer,
+  error,
+  signedOutElsewhere,
+  signedOutProvider,
+  onProvider,
+  onCreate,
+  onSignIn,
+}: {
+  offer: ProviderOffer | null;
+  error: string | null;
+  signedOutElsewhere: string | null;
+  signedOutProvider: SignInProvider | undefined;
+  onProvider: (provider: SignInProvider, result: ProviderStartResult) => void;
+  onCreate: () => void;
+  onSignIn: () => void;
+}) {
+  const t = useT();
+  const shown = offer ?? EXPECTED_OFFER;
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-4 text-center">
         <Mark icon={<CloudLockIcon />} />
         <div>
-          <h2 className="text-[18px] font-semibold tracking-tight">Sync your vault</h2>
+          <h2 className="text-[18px] font-semibold tracking-tight">{t('intro.title')}</h2>
           <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-            Encrypted on this device before it leaves. The server stores what it cannot read — and
-            neither can we.
+            {t('intro.subtitle')}
           </p>
         </div>
       </div>
 
-      <ul className="flex flex-col gap-2.5">
-        {BENEFITS.map((benefit) => (
-          <li key={benefit} className="flex gap-2.5 text-[13px] leading-snug text-zinc-700 dark:text-zinc-300">
-            <CheckIcon className="mt-px shrink-0 text-[15px] text-brand-600 dark:text-brand-400" />
-            {benefit}
-          </li>
-        ))}
-      </ul>
+      {signedOutElsewhere && signedOutProvider ? (
+        <Callout tone="warning">
+          {t('intro.signedOutProvider', { email: signedOutElsewhere, provider: providerLabel(signedOutProvider) })}
+        </Callout>
+      ) : (
+        <ul className="flex flex-col gap-2.5">
+          {BENEFITS.map((benefit) => (
+            <li key={benefit} className="flex gap-2.5 text-[13px] leading-snug text-zinc-700 dark:text-zinc-300">
+              <CheckIcon className="mt-px shrink-0 text-[15px] text-brand-600 dark:text-brand-400" />
+              {t(benefit)}
+            </li>
+          ))}
+        </ul>
+      )}
 
-      <div className="flex flex-col gap-2">
-        <Button variant="primary" className="w-full" onClick={onCreate}>
-          Create an account
-        </Button>
-        <Button className="w-full" onClick={onSignIn}>
-          Sign in
-        </Button>
+      {error && <Callout tone="danger">{error}</Callout>}
+
+      {/* Google and GitHub first: no password to invent, and no email code to
+          wait for. The email forms stay for anyone who would rather. */}
+      <div className={offer ? undefined : 'invisible'} aria-hidden={offer ? undefined : true}>
+        {shown.providers.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            <ProviderButtons offer={shown} onStarted={onProvider} />
+            <OrDivider>{t('intro.orEmail')}</OrDivider>
+            <div className="grid grid-cols-2 gap-2">
+              <Button className="w-full" onClick={onCreate}>
+                {t('intro.create')}
+              </Button>
+              <Button className="w-full" onClick={onSignIn}>
+                {t('intro.signIn')}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <Button variant="primary" className="w-full" onClick={onCreate}>
+              {t('intro.create')}
+            </Button>
+            <Button className="w-full" onClick={onSignIn}>
+              {t('intro.signIn')}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* The moment someone decides whether to hand their codes to a server
           is the moment to show them exactly what leaves the device. */}
       <div className="flex justify-center text-[12px]">
-        <SourceLink href={SECURITY_MODEL_URL}>Open source — see how your codes are encrypted</SourceLink>
+        <SourceLink href={SECURITY_MODEL_URL}>{t('intro.source')}</SourceLink>
       </div>
     </div>
   );
 }
 
-function FormShell({
-  onBack,
-  title,
-  subtitle,
-  children,
-  onSubmit,
+
+/**
+ * Google and GitHub above an email form too: someone who chose "Create
+ * account" is looking for how to make one, and these are two of the ways.
+ */
+function ProvidersAbove({
+  offer,
+  onProvider,
 }: {
-  onBack: () => void;
-  title: string;
-  subtitle: ReactNode;
-  children: ReactNode;
-  onSubmit: () => void;
+  offer: ProviderOffer | null;
+  onProvider: (provider: SignInProvider, result: ProviderStartResult) => void;
 }) {
+  const t = useT();
+  if (!offer || offer.providers.length === 0) return null;
   return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSubmit();
-      }}
-      className="flex flex-col gap-5"
-    >
-      <div className="flex flex-col gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          aria-label="Back"
-          className="-ml-1.5 grid h-8 w-8 place-items-center rounded-lg text-[17px] text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
-        >
-          <ArrowLeftIcon />
-        </button>
-        <Heading title={title} subtitle={subtitle} />
-      </div>
-      {children}
-    </form>
+    <div className="flex flex-col gap-4">
+      <ProviderButtons offer={offer} onStarted={onProvider} />
+      <OrDivider>{t('intro.orEmail')}</OrDivider>
+    </div>
   );
 }
-
-/** Runs a submit with a busy flag and an error, the same way on every form. */
-function useSubmit() {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function run(action: () => Promise<void>) {
-    if (busy) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await action();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return { busy, error, run };
-}
-
-const WEAK_HINT = 'At least 12 characters with a mix, or four or five unrelated words.';
 
 function EmailField({
   email,
@@ -251,12 +314,13 @@ function EmailField({
   onEmail: (email: string) => void;
   autoFocus?: boolean;
 }) {
+  const t = useT();
   return (
     <Field
-      label="Email"
+      label={t('form.email')}
       type="email"
       autoComplete="username"
-      placeholder="you@example.com"
+      placeholder={t('form.emailPlaceholder')}
       autoFocus={autoFocus}
       value={email}
       onChange={(event) => onEmail(event.target.value)}
@@ -266,6 +330,8 @@ function EmailField({
 
 function CreateForm({
   protectionMode,
+  offer,
+  onProvider,
   email,
   onEmail,
   onBack,
@@ -273,12 +339,15 @@ function CreateForm({
   onSignedUp,
 }: {
   protectionMode: 'device' | 'passphrase';
+  offer: ProviderOffer | null;
+  onProvider: (provider: SignInProvider, result: ProviderStartResult) => void;
   email: string;
   onEmail: (email: string) => void;
   onBack: () => void;
   onSignIn: () => void;
   onSignedUp: (recoveryKey: string | null) => void;
 }) {
+  const t = useT();
   const [stage, setStage] = useState<'details' | 'code'>('details');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -315,13 +384,12 @@ function CreateForm({
     return (
       <FormShell
         onBack={() => setStage('details')}
-        title="Check your email"
-        subtitle={
-          <>
-            We sent a six-digit code to <span className="font-medium text-zinc-700 dark:text-zinc-200">{email}</span>.
-            It works once, for 15 minutes.
-          </>
-        }
+        title={t('create.checkEmail')}
+        subtitle={t.rich(
+          'create.codeSent',
+          { email },
+          { b: (chunk) => <span className="font-medium text-zinc-700 dark:text-zinc-200">{chunk}</span> },
+        )}
         onSubmit={() =>
           void run(async () => {
             if (!/^\d{6}$/.test(code)) return;
@@ -331,7 +399,7 @@ function CreateForm({
         }
       >
         <Field
-          label="Code"
+          label={t('create.code')}
           inputMode="numeric"
           autoComplete="one-time-code"
           autoFocus
@@ -347,70 +415,72 @@ function CreateForm({
             keeps people from stalling here, and each "Not spam" teaches the
             mail provider to deliver the next code properly. */}
         <Callout tone="info">
-          Not in your inbox? Look in <strong>Spam</strong> for a message from{' '}
-          <strong>Authenticator X</strong>, and mark it <strong>Not spam</strong>.
+          {t.rich('create.spam', {}, { b: (chunk) => <strong>{chunk}</strong> })}
         </Callout>
 
         {error && <Callout tone="danger">{error}</Callout>}
 
         <div className="flex flex-col gap-3">
           <Button type="submit" variant="primary" className="w-full" disabled={code.length !== 6 || busy}>
-            {busy ? <Spinner /> : null} Create account
+            {busy ? <Spinner /> : null} {t('create.submit')}
           </Button>
-          <Footnote>
-            If this address already has an account, the email says so instead — then sign in there.
-          </Footnote>
+          <Footnote>{t('create.existing')}</Footnote>
         </div>
 
         <Footnote>
-          Still nothing?{' '}
+          {t('create.stillNothing')}{' '}
           {resendIn > 0 ? (
-            <span>Send a new code in {resendIn}s</span>
+            <span>{t('create.resendIn', { seconds: resendIn })}</span>
           ) : (
-            <TextLink onClick={() => void askForCode()}>Send a new code</TextLink>
+            <TextLink onClick={() => void askForCode()}>{t('create.resend')}</TextLink>
           )}
-          . Wrong address? <TextLink onClick={() => setStage('details')}>Change it</TextLink>
+          {t('create.wrongAddress')} <TextLink onClick={() => setStage('details')}>{t('create.changeIt')}</TextLink>
         </Footnote>
       </FormShell>
     );
   }
 
+  const aboutPassword = choosing ? t('create.choosing') : t('create.sharing');
+  // It is about the password, so with Google and GitHub above the fields it
+  // sits with the fields, not over two buttons that need none.
+  const withProviders = offer !== null && offer.providers.length > 0;
+
   return (
     <FormShell
       onBack={onBack}
-      title="Create your account"
-      subtitle={
-        choosing
-          ? 'You will need this password on a new device. This one keeps opening without it.'
-          : 'Your master password becomes your account password too — still just one.'
-      }
+      title={t('create.title')}
+      subtitle={withProviders ? undefined : aboutPassword}
       onSubmit={() => {
         if (ready) void askForCode();
       }}
     >
+      <ProvidersAbove offer={offer} onProvider={onProvider} />
       <div className="flex flex-col gap-4">
+        {withProviders && (
+          <p className="-mt-1 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">{aboutPassword}</p>
+        )}
         <EmailField email={email} onEmail={onEmail} autoFocus />
         {choosing ? (
           <>
             <PasswordField
-              label="Password"
+              label={t('create.password')}
               value={password}
               onChange={setPassword}
               autoComplete="new-password"
               meter
-              hint={tooWeak ? WEAK_HINT : undefined}
+              hint={tooWeak ? t('protect.hint12') : undefined}
             />
             <PasswordField
-              label="Confirm password"
+              label={t('setup.passwordStep.confirm')}
               value={confirm}
               onChange={setConfirm}
               autoComplete="new-password"
-              error={confirm && confirm !== password ? 'Passwords do not match.' : null}
+              error={confirm && confirm !== password ? t('common.passwordsDiffer') : null}
             />
           </>
         ) : (
           <PasswordField
-            label="Master password"
+            label={t('create.master')}
             value={password}
             onChange={setPassword}
             autoComplete="current-password"
@@ -422,28 +492,27 @@ function CreateForm({
 
       <div className="flex flex-col gap-3">
         <Button type="submit" variant="primary" className="w-full" disabled={!ready || busy}>
-          {busy ? <Spinner /> : null} Continue
+          {busy ? <Spinner /> : null} {t('common.continue')}
         </Button>
+        <Footnote>{t('create.next')}</Footnote>
         <Footnote>
-          Next, we email you a code to confirm the address, then you save a recovery key — the only
-          way back if you forget the password.
-        </Footnote>
-        <Footnote>
-          Creating an account means agreeing to the{' '}
-          <a
-            href={PRIVACY_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium text-brand-600 hover:underline dark:text-brand-400"
-          >
-            privacy policy
-          </a>
-          .
+          {t.rich('create.agree', {}, {
+            link: (chunk) => (
+              <a
+                href={PRIVACY_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-brand-600 hover:underline dark:text-brand-400"
+              >
+                {chunk}
+              </a>
+            ),
+          })}
         </Footnote>
       </div>
 
       <Footnote>
-        Already have an account? <TextLink onClick={onSignIn}>Sign in</TextLink>
+        {t('create.haveAccount')} <TextLink onClick={onSignIn}>{t('intro.signIn')}</TextLink>
       </Footnote>
     </FormShell>
   );
@@ -451,6 +520,8 @@ function CreateForm({
 
 function SignInForm({
   protectionMode,
+  offer,
+  onProvider,
   email,
   onEmail,
   signedOutElsewhere,
@@ -460,6 +531,8 @@ function SignInForm({
   onSignedIn,
 }: {
   protectionMode: 'device' | 'passphrase';
+  offer: ProviderOffer | null;
+  onProvider: (provider: SignInProvider, result: ProviderStartResult) => void;
   email: string;
   onEmail: (email: string) => void;
   signedOutElsewhere: string | null;
@@ -468,6 +541,7 @@ function SignInForm({
   onForgot: () => void;
   onSignedIn: (result: SignInResult) => void;
 }) {
+  const t = useT();
   const [password, setPassword] = useState('');
   const { busy, error, run } = useSubmit();
   const ready = email.includes('@') && password.length > 0;
@@ -475,8 +549,8 @@ function SignInForm({
   return (
     <FormShell
       onBack={onBack}
-      title="Sign in"
-      subtitle="Codes already on this device are added to your account."
+      title={t('intro.signIn')}
+      subtitle={t('signin.subtitle')}
       onSubmit={() =>
         void run(async () => {
           if (!ready) return;
@@ -486,22 +560,22 @@ function SignInForm({
     >
       {signedOutElsewhere && (
         <Callout tone="warning">
-          This device was signed out of {signedOutElsewhere} — the password was changed or the device
-          was removed from another one. Sign in again to keep syncing.
+          {t('signin.signedOut', { email: signedOutElsewhere })}
         </Callout>
       )}
 
+      <ProvidersAbove offer={offer} onProvider={onProvider} />
       <div className="flex flex-col gap-4">
         <EmailField email={email} onEmail={onEmail} autoFocus={!email} />
         <PasswordField
-          label="Password"
+          label={t('create.password')}
           value={password}
           onChange={setPassword}
           autoComplete="current-password"
           autoFocus={Boolean(email)}
           labelAction={
             <span className="text-[12px]">
-              <TextLink onClick={onForgot}>Forgot password?</TextLink>
+              <TextLink onClick={onForgot}>{t('signin.forgot')}</TextLink>
             </span>
           }
         />
@@ -511,17 +585,15 @@ function SignInForm({
 
       <div className="flex flex-col gap-3">
         <Button type="submit" variant="primary" className="w-full" disabled={!ready || busy}>
-          {busy ? <Spinner /> : null} Sign in
+          {busy ? <Spinner /> : null} {t('intro.signIn')}
         </Button>
         <Footnote>
-          {protectionMode === 'passphrase'
-            ? 'This device will lock with your account password from then on.'
-            : 'This device keeps opening without a password.'}
+          {protectionMode === 'passphrase' ? t('signin.locksWithAccount') : t('signin.keepsOpening')}
         </Footnote>
       </div>
 
       <Footnote>
-        New here? <TextLink onClick={onCreate}>Create an account</TextLink>
+        {t('signin.newHere')} <TextLink onClick={onCreate}>{t('intro.create')}</TextLink>
       </Footnote>
     </FormShell>
   );
@@ -538,6 +610,7 @@ function RecoverForm({
   onBack: () => void;
   onSignedIn: (result: SignInResult) => void;
 }) {
+  const t = useT();
   const [recoveryKey, setRecoveryKey] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -554,8 +627,8 @@ function RecoverForm({
   return (
     <FormShell
       onBack={onBack}
-      title="Recover your account"
-      subtitle="Use the recovery key you saved when you created it, then choose a new password."
+      title={t('recoverAccount.title')}
+      subtitle={t('recoverAccount.subtitle')}
       onSubmit={() =>
         void run(async () => {
           if (!ready) return;
@@ -566,7 +639,7 @@ function RecoverForm({
       <div className="flex flex-col gap-4">
         <EmailField email={email} onEmail={onEmail} autoFocus={!email} />
         <Field
-          label="Recovery key"
+          label={t('recover.keyLabel')}
           autoComplete="off"
           spellCheck={false}
           autoFocus={Boolean(email)}
@@ -576,24 +649,24 @@ function RecoverForm({
           className="font-mono text-[13px] uppercase"
           hint={
             recoveryKey && !isWellFormedRecoveryKey(recoveryKey)
-              ? '32 characters from your printed sheet. Spaces and dashes do not matter.'
+              ? t('recoverAccount.keyHint')
               : undefined
           }
         />
         <PasswordField
-          label="New password"
+          label={t('protect.newPassword')}
           value={password}
           onChange={setPassword}
           autoComplete="new-password"
           meter
-          hint={tooWeak ? WEAK_HINT : undefined}
+          hint={tooWeak ? t('protect.hint12') : undefined}
         />
         <PasswordField
-          label="Confirm new password"
+          label={t('protect.confirmNew')}
           value={confirm}
           onChange={setConfirm}
           autoComplete="new-password"
-          error={confirm && confirm !== password ? 'Passwords do not match.' : null}
+          error={confirm && confirm !== password ? t('common.passwordsDiffer') : null}
         />
       </div>
 
@@ -601,12 +674,9 @@ function RecoverForm({
 
       <div className="flex flex-col gap-3">
         <Button type="submit" variant="primary" className="w-full" disabled={!ready || busy}>
-          {busy ? <Spinner /> : null} Recover and sign in
+          {busy ? <Spinner /> : null} {t('recoverAccount.submit')}
         </Button>
-        <Footnote>
-          Every device on the account is signed out and asked for the new password. Your recovery key
-          keeps working.
-        </Footnote>
+        <Footnote>{t('recoverAccount.note')}</Footnote>
       </div>
     </FormShell>
   );
@@ -618,28 +688,34 @@ export interface BackupCount {
   pending: number;
 }
 
-function backedUpLine({ total, pending }: BackupCount): string {
-  if (total === 0) return 'Your account is ready.';
-  if (pending === 0) {
-    return total === 1
-      ? 'Your account is ready, and the account on this device is backed up to it.'
-      : `Your account is ready, and all ${total} accounts on this device are backed up to it.`;
-  }
-  return `Your account is ready. ${total - pending} of ${total} accounts are backed up so far; the rest follow on the next sync.`;
+function backedUpLine({ total, pending }: BackupCount, t: Translator): string {
+  if (total === 0) return t('ready.empty');
+  if (pending === 0) return t('ready.all', { count: total });
+  return t('ready.some', { done: total - pending, total });
 }
 
 /** Shown once, straight after the account is made. */
-export function FreshRecoveryKey({ backup, children }: { backup: BackupCount; children: ReactNode }) {
+export function FreshRecoveryKey({
+  backup,
+  provider,
+  children,
+}: {
+  backup: BackupCount;
+  /** A Google or GitHub account, which has no password to forget. */
+  provider?: SignInProvider | undefined;
+  children: ReactNode;
+}) {
+  const t = useT();
   return (
     <AuthCard>
       <div className="flex flex-col gap-5">
         <div className="flex flex-col items-center gap-4 text-center">
           <Mark icon={<KeyIcon />} />
           <div>
-            <h2 className="text-[18px] font-semibold tracking-tight">Save your recovery key</h2>
+            <h2 className="text-[18px] font-semibold tracking-tight">{t('fresh.title')}</h2>
             <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-              {backedUpLine(backup)} If you forget your password, this key is the only way back in —
-              nobody can reset it for you, not us and not Google.
+              {backedUpLine(backup, t)}{' '}
+              {provider ? t('fresh.provider', { provider: providerLabel(provider) }) : t('fresh.password')}
             </p>
           </div>
         </div>
@@ -649,18 +725,14 @@ export function FreshRecoveryKey({ backup, children }: { backup: BackupCount; ch
   );
 }
 
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`;
-}
-
 /** Where the codes came from, in the words a person would use. */
-function breakdown(sync: SyncSummary, total: number): string {
+function breakdown(sync: SyncSummary, total: number, t: Translator): string {
   const parts = [
-    sync.pulled > 0 ? `${sync.pulled} from your account` : null,
-    sync.pushed > 0 ? `${sync.pushed} added from this device` : null,
+    sync.pulled > 0 ? t('welcome.fromAccount', { count: sync.pulled }) : null,
+    sync.pushed > 0 ? t('welcome.fromDevice', { count: sync.pushed }) : null,
   ].filter(Boolean);
   if (parts.length > 0) return parts.join(' · ');
-  return total > 0 ? 'Already in sync.' : 'Nothing here yet.';
+  return total > 0 ? t('welcome.inSync') : t('welcome.nothing');
 }
 
 /**
@@ -690,6 +762,7 @@ export function SignedInWelcome({
   onOpenAccounts: () => void;
   onDone: () => void;
 }) {
+  const t = useT();
   const [retrying, setRetrying] = useState(false);
   const failed = syncError !== null;
 
@@ -709,11 +782,7 @@ export function SignedInWelcome({
           <Mark icon={failed ? <AlertIcon /> : <CheckIcon />} tone={failed ? 'warning' : 'success'} />
           <div>
             <h2 className="text-[18px] font-semibold tracking-tight">
-              {failed
-                ? 'Signed in — the first sync did not finish'
-                : how === 'recover'
-                  ? 'You are back in'
-                  : 'You are signed in'}
+              {failed ? t('welcome.failed') : how === 'recover' ? t('welcome.back') : t('welcome.signedIn')}
             </h2>
             <p className="mt-1 text-[13px] text-zinc-500 dark:text-zinc-400">{email}</p>
           </div>
@@ -721,11 +790,8 @@ export function SignedInWelcome({
 
         {failed ? (
           <Callout tone="warning">
-            <p className="font-medium">{syncError}</p>
-            <p className="mt-1">
-              Nothing is lost: your codes arrive with the next sync. Try again now, or it happens by
-              itself within five minutes.
-            </p>
+            <p className="font-medium">{localise(syncError)}</p>
+            <p className="mt-1">{t('welcome.nothingLost')}</p>
           </Callout>
         ) : (
           <div className="rounded-2xl bg-zinc-50 px-5 py-4 text-center dark:bg-zinc-900">
@@ -733,39 +799,38 @@ export function SignedInWelcome({
               {backup.total}
             </p>
             <p className="mt-1.5 text-[13px] font-medium">
-              {backup.total === 1 ? 'account on this device' : 'accounts on this device'}
+              {t('welcome.onDevice', { count: backup.total })}
             </p>
             <p className="mt-1 text-[12px] text-zinc-500 dark:text-zinc-400">
-              {sync ? breakdown(sync, backup.total) : null}
-              {backup.pending > 0 &&
-                ` · ${plural(backup.pending, 'is', 'are')} still uploading and will follow on the next sync`}
+              {sync ? breakdown(sync, backup.total, t) : null}
+              {backup.pending > 0 && t('welcome.uploading', { count: backup.pending })}
             </p>
           </div>
         )}
 
         {how === 'recover' && !failed && (
           <p className="text-center text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-            Every other device was signed out, and will ask for the new password.
+            {t('welcome.othersSignedOut')}
           </p>
         )}
 
         <div className="flex flex-col gap-2">
           {failed ? (
             <Button variant="primary" className="w-full" disabled={retrying} onClick={() => void retry()}>
-              {retrying ? <Spinner /> : null} Try again
+              {retrying ? <Spinner /> : null} {t('welcome.tryAgain')}
             </Button>
           ) : (
             <Button variant="primary" className="w-full" onClick={onOpenAccounts}>
-              See your accounts
+              {t('welcome.seeAccounts')}
             </Button>
           )}
           <Button className="w-full" onClick={onDone}>
-            Done
+            {t('common.done')}
           </Button>
         </div>
 
         {!failed && backup.total > 0 && (
-          <Footnote>They are also one click away: the Authenticator X icon in your toolbar.</Footnote>
+          <Footnote>{t('welcome.toolbar')}</Footnote>
         )}
       </div>
     </AuthCard>

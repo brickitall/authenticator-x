@@ -8,6 +8,9 @@
  *
  * - No `host_permissions` and no declarative `content_scripts`. Ever. This is
  *   what keeps "read and change all your data on all websites" off the listing.
+ * - No permission beyond the ones the stores were given reasons for.
+ * - `externally_connectable` lets the official sync server's pages message
+ *   the extension, and no other site.
  * - `connect-src` names 'self' and the official sync server, nothing else —
  *   the origin in apps/extension/scripts/release.mjs, which the privacy policy
  *   and both stores' privacy answers describe. Not localhost because someone
@@ -30,12 +33,26 @@ if (manifest.key) {
 if (manifest.content_scripts) {
   failures.push('declarative content_scripts present; autofill must stay on activeTab');
 }
+// The permissions the listing and both stores' answers justify, and no more.
+// Anything new here is a decision to make on purpose — with its justification
+// written for the stores — not something that slips into a build.
+const ALLOWED = new Set(['storage', 'alarms', 'activeTab', 'scripting', 'clipboardWrite', 'identity']);
+const extra = (manifest.permissions ?? []).filter((permission) => !ALLOWED.has(permission));
+if (extra.length > 0) failures.push(`permissions not justified to the stores: ${extra.join(', ')}`);
 
 const csp = manifest.content_security_policy?.extension_pages ?? '';
 const connect = csp.match(/connect-src ([^;]+)/)?.[1]?.trim();
 const expected = `'self' ${new URL(PRODUCTION_SYNC_API_URL).origin}`;
 if (connect !== expected) {
   failures.push(`connect-src is "${connect ?? 'missing'}"; a release reaches itself and its sync server: "${expected}"`);
+}
+
+// Only the sync server's own pages may message the extension: a wider match
+// would let any site that matched hand it a sign-in answer.
+const reachable = JSON.stringify(manifest.externally_connectable ?? null);
+const expectedReach = JSON.stringify({ matches: [`${new URL(PRODUCTION_SYNC_API_URL).origin}/*`] });
+if (reachable !== expectedReach) {
+  failures.push(`externally_connectable is ${reachable}; only the sync server may message the extension: ${expectedReach}`);
 }
 
 if (failures.length > 0) {

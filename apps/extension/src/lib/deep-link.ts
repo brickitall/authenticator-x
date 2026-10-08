@@ -21,3 +21,28 @@ export function takeScanRequest(): boolean {
   history.replaceState(null, '', location.pathname + location.search);
   return true;
 }
+
+/**
+ * Settings, on Sync: from the popup's "a browser is asking to join" banner, and
+ * where a sign-in made in a tab comes back to. The other two land on the email
+ * form someone chose in the popup, rather than on a card with the same two
+ * buttons again. Consumed the same way.
+ */
+export const ACCOUNT_FRAGMENT = '#account';
+export const SIGN_IN_FRAGMENT = '#account/sign-in';
+export const CREATE_FRAGMENT = '#account/create';
+
+export type AccountRequest = 'account' | 'signIn' | 'create';
+
+const ACCOUNT_REQUESTS: Record<string, AccountRequest> = {
+  [ACCOUNT_FRAGMENT]: 'account',
+  [SIGN_IN_FRAGMENT]: 'signIn',
+  [CREATE_FRAGMENT]: 'create',
+};
+
+export function takeAccountRequest(): AccountRequest | null {
+  const request = ACCOUNT_REQUESTS[location.hash];
+  if (!request) return null;
+  history.replaceState(null, '', location.pathname + location.search);
+  return request;
+}

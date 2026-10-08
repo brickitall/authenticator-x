@@ -13,6 +13,8 @@ import { CountdownRing } from './CountdownRing.js';
 import { useCopy, useNow } from './hooks.js';
 import { CheckIcon, CopyIcon } from './icons.js';
 import { Button, cx } from './primitives.js';
+import { useT } from '../i18n/react.js';
+import { localise } from '../i18n/error-text.js';
 
 /**
  * A code from a pasted key, kept nowhere. The key lives in this component's
@@ -20,6 +22,7 @@ import { Button, cx } from './primitives.js';
  * — so closing it is the whole of forgetting it. Saving is a separate choice.
  */
 export function QuickCode({ onSave }: { onSave?: (params: ParsedOtpUri) => Promise<void> }) {
+  const t = useT();
   const [input, setInput] = useState('');
   const [settings, setSettings] = useState<QuickSettings>(QUICK_DEFAULTS);
   const [editing, setEditing] = useState(false);
@@ -58,7 +61,7 @@ export function QuickCode({ onSave }: { onSave?: (params: ParsedOtpUri) => Promi
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
         <label htmlFor="quick-key" className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300">
-          Setup key or otpauth:// link
+          {t('quick.label')}
         </label>
         <textarea
           id="quick-key"
@@ -72,7 +75,9 @@ export function QuickCode({ onSave }: { onSave?: (params: ParsedOtpUri) => Promi
           placeholder="JBSW Y3DP EHPK 3PXP"
           className="w-full resize-none rounded-xl border border-zinc-200 bg-white p-3 font-mono text-[13px] placeholder:text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900"
         />
-        {read.kind === 'error' && <p className="text-[12px] leading-snug text-red-600 dark:text-red-400">{read.message}</p>}
+        {read.kind === 'error' && (
+          <p className="text-[12px] leading-snug text-red-600 dark:text-red-400">{localise(read.message)}</p>
+        )}
       </div>
 
       {read.kind === 'ok' && read.fromLink ? (
@@ -90,19 +95,23 @@ export function QuickCode({ onSave }: { onSave?: (params: ParsedOtpUri) => Promi
           <button
             type="button"
             onClick={() => void copy('quick', codes.current)}
-            title="Click to copy"
-            className="min-w-0 flex-1 text-left"
+            title={t('quick.copyHint')}
+            className="min-w-0 flex-1 text-start"
           >
-            <span className="code-digits block text-[26px] font-semibold leading-tight" aria-label="Current code">
+            <span className="code-digits block text-[26px] font-semibold leading-tight" aria-label={t('quick.current')}>
               {formatCode(codes.current)}
             </span>
             {codes.next && (
               <span className="text-[11.5px] text-zinc-500 dark:text-zinc-400">
-                Next: <span className="code-digits">{formatCode(codes.next)}</span>
+                {t.rich(
+                  'quick.next',
+                  { code: formatCode(codes.next) },
+                  { code: (chunk) => <span className="code-digits">{chunk}</span> },
+                )}
               </span>
             )}
           </button>
-          <Button size="sm" onClick={() => void copy('quick', codes.current)} aria-label={copiedId ? 'Copied' : 'Copy code'}>
+          <Button size="sm" onClick={() => void copy('quick', codes.current)} aria-label={copiedId ? t('row.copied') : t('row.copy')}>
             {copiedId ? <CheckIcon /> : <CopyIcon />}
           </Button>
           {window_ && <CountdownRing remaining={window_.remaining} period={params.period} />}
@@ -110,7 +119,7 @@ export function QuickCode({ onSave }: { onSave?: (params: ParsedOtpUri) => Promi
       )}
 
       <p className="text-[11.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-        Not saved anywhere. Close this and the key is gone.
+        {t('quick.notSaved')}
       </p>
 
       {onSave && params && (
@@ -125,7 +134,7 @@ export function QuickCode({ onSave }: { onSave?: (params: ParsedOtpUri) => Promi
             }
           }}
         >
-          Save it as an account instead
+          {t('quick.save')}
         </Button>
       )}
     </div>
@@ -147,13 +156,18 @@ function Settings({
   onEdit: () => void;
   onChange: (settings: QuickSettings) => void;
 }) {
+  const t = useT();
   if (!editing) {
     return (
       <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
-        {settings.digits} digits · every {settings.period} s · {settings.algorithm.replace('SHA', 'SHA-')}
+        {t('quick.settings', {
+          digits: settings.digits,
+          period: settings.period,
+          algorithm: settings.algorithm.replace('SHA', 'SHA-'),
+        })}
         {' — '}
         <button type="button" onClick={onEdit} className="font-medium text-brand-600 hover:underline dark:text-brand-400">
-          change
+          {t('quick.change')}
         </button>
       </p>
     );
@@ -161,20 +175,20 @@ function Settings({
   return (
     <div className="flex flex-col gap-2">
       <Segments
-        label="Digits"
+        label={t('quick.digits')}
         value={settings.digits}
         options={[6, 7, 8]}
         onChange={(digits) => onChange({ ...settings, digits })}
       />
       <Segments
-        label="Every"
+        label={t('quick.every')}
         value={settings.period}
         options={[30, 60]}
-        format={(seconds) => `${seconds} s`}
+        format={(seconds) => t('quick.seconds', { seconds })}
         onChange={(period) => onChange({ ...settings, period })}
       />
       <Segments<OtpAlgorithm>
-        label="Hash"
+        label={t('quick.hash')}
         value={settings.algorithm}
         options={['SHA1', 'SHA256', 'SHA512']}
         format={(algorithm) => algorithm.replace('SHA', 'SHA-')}

@@ -12,7 +12,7 @@
      can inject scripts; here they do not run. -->
 <meta http-equiv="Content-Security-Policy" content="{{CSP}}">
 <meta name="referrer" content="no-referrer">
-<title>Get a 2FA code from a setup key — Authenticator X</title>
+<title>Get a 2FA code from a setup key — Keyrook Authenticator</title>
 <meta name="description" content="Paste a two-factor setup key or otpauth:// link and get the current code. Worked out in your browser: the key is never sent anywhere and never kept.">
 <link rel="canonical" href="https://pricingrank.org/authenticator-x/code/">
 <meta property="og:title" content="Get a 2FA code from a setup key">
@@ -49,11 +49,13 @@
   .wrap { max-width: 44rem; margin: 0 auto; padding: 0 16px; }
   @media (min-width: 640px) { .wrap { padding: 0 2rem; } }
 
-  header.top { display: flex; align-items: center; gap: .75rem; padding: 1.25rem 0; }
-  .brand { display: flex; align-items: center; gap: .6rem; font-weight: 650; color: var(--fg); text-decoration: none; }
+  header.top { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; padding: 1.25rem 0; }
+  .brand { display: flex; align-items: center; gap: .6rem; font-weight: 650; color: var(--fg); text-decoration: none; white-space: nowrap; }
   .brand svg { width: 30px; height: 30px; flex: none; }
   nav { margin-left: auto; display: flex; gap: 1.25rem; font-size: .95rem; }
-  nav a { color: var(--muted); text-decoration: none; }
+  nav a { color: var(--muted); text-decoration: none; white-space: nowrap; }
+  /* The name is two words: on a phone the links go under it rather than squeeze it. */
+  @media (max-width: 520px) { nav { margin-left: 0; } }
   nav a:hover { color: var(--fg); }
 
   h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); line-height: 1.1; letter-spacing: -0.03em; margin: 2.5rem 0 1rem; }
@@ -123,7 +125,7 @@
   <header class="top">
     <a class="brand" href="../">
       <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark"/></svg>
-      Authenticator X
+      Keyrook Authenticator
     </a>
     <nav>
       <a href="../">Home</a>
@@ -179,7 +181,7 @@
       for keeping keys. For the accounts you use, an authenticator app keeps them
       encrypted and ready.</p>
       <div class="apps">
-        <a class="button" href="https://chromewebstore.google.com/detail/occcfljfhlijenkofoceocnimkfpdndl">Add Authenticator X to Chrome</a>
+        <a class="button" href="https://chromewebstore.google.com/detail/occcfljfhlijenkofoceocnimkfpdndl">Add Keyrook Authenticator to Chrome</a>
         <a class="quiet" href="https://microsoftedge.microsoft.com/addons/detail/lnbabkbknabedpnmdihllnbhdmolianm">Add to Microsoft Edge</a>
       </div>
     </section>

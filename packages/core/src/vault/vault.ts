@@ -213,7 +213,7 @@ export async function verifyPassword(file: VaultFile, password: string): Promise
 export function migrateVaultData(raw: VaultData): VaultData {
   if (raw.schemaVersion > VAULT_SCHEMA_VERSION) {
     throw new Error(
-      'This vault was created by a newer version of Authenticator X. Please update before opening it.',
+      'This vault was created by a newer version of Keyrook Authenticator. Please update before opening it.',
     );
   }
   return {

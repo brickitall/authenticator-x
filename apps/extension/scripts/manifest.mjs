@@ -43,12 +43,13 @@ function contentSecurityPolicy(syncOrigin) {
   ].join('; ');
 }
 
-export function buildManifest({ version, name, description, syncOrigin }) {
+export function buildManifest({ version, name, description, defaultLocale, syncOrigin }) {
   return {
     manifest_version: 3,
     name,
     version,
     description,
+    ...(defaultLocale ? { default_locale: defaultLocale } : {}),
     minimum_chrome_version: '116',
 
     action: {
@@ -79,16 +80,33 @@ export function buildManifest({ version, name, description, syncOrigin }) {
       open_in_tab: true,
     },
 
-    permissions: ['storage', 'alarms', 'activeTab', 'scripting', 'clipboardWrite'],
+    // `identity` is for `launchWebAuthFlow` alone — the browser's own sign-in
+    // window, for Google and GitHub — and carries no install warning.
+    // `identity.email`, which would ("Know your email address"), is not asked for.
+    permissions: ['storage', 'alarms', 'activeTab', 'scripting', 'clipboardWrite', 'identity'],
 
     content_security_policy: {
       extension_pages: contentSecurityPolicy(syncOrigin),
     },
 
+    // A sign-in with Google or GitHub made in the options tab comes back as a
+    // message from the sync server's return page. That one origin may send
+    // one; no other web page can, and no other extension either — declaring
+    // this key at all shuts out the extensions that could message it before.
+    // It carries no install warning.
+    ...(syncOrigin ? { externally_connectable: { matches: [`${syncOrigin}/*`] } } : {}),
+
     commands: {
       _execute_action: {
         suggested_key: { default: 'Alt+Shift+A', mac: 'Alt+Shift+A' },
-        description: 'Open Authenticator X',
+        description: 'Open Keyrook Authenticator',
+      },
+      // Fills the code for the page, where exactly one account belongs to it;
+      // otherwise opens the popup. Grants activeTab like the icon does — no
+      // permission of its own.
+      'fill-code': {
+        suggested_key: { default: 'Alt+Shift+F', mac: 'Alt+Shift+F' },
+        description: defaultLocale ? '__MSG_commandFill__' : 'Fill the code for this page',
       },
     },
   };

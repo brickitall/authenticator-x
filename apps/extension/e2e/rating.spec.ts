@@ -43,7 +43,7 @@ test('a new user is not asked, however many codes they copy', async ({ context, 
 
   await popup.reload();
   await expect(popup.getByText('GitHub').first()).toBeVisible();
-  await expect(popup.getByRole('region', { name: 'Rate Authenticator X' })).toHaveCount(0);
+  await expect(popup.getByRole('region', { name: 'Rate Keyrook Authenticator' })).toHaveCount(0);
 });
 
 test('after real use the popup asks once, and "Not now" is believed', async ({ context, extensionId, worker }) => {
@@ -53,7 +53,7 @@ test('after real use the popup asks once, and "Not now" is believed', async ({ c
   await seedDue(worker);
 
   await popup.reload();
-  const prompt = popup.getByRole('region', { name: 'Rate Authenticator X' });
+  const prompt = popup.getByRole('region', { name: 'Rate Keyrook Authenticator' });
   await expect(prompt).toBeVisible();
   // The code comes first: the question sits under the list, not over it.
   await expect(popup.getByRole('button', { name: 'Copy code' })).toBeVisible();
@@ -84,7 +84,7 @@ test('"Rate it" opens the listing and the question never comes back', async ({ c
     }) as typeof chrome.tabs.create;
     window.close = () => {};
   });
-  await popup.getByRole('region', { name: 'Rate Authenticator X' }).getByRole('button', { name: 'Rate it' }).click();
+  await popup.getByRole('region', { name: 'Rate Keyrook Authenticator' }).getByRole('button', { name: 'Rate it' }).click();
 
   // An unpacked build in Chromium rates on the Chrome listing.
   await expect
@@ -94,14 +94,14 @@ test('"Rate it" opens the listing and the question never comes back', async ({ c
 
   const again = await openPopup(context, extensionId);
   await expect(again.getByText('GitHub').first()).toBeVisible();
-  await expect(again.getByRole('region', { name: 'Rate Authenticator X' })).toHaveCount(0);
+  await expect(again.getByRole('region', { name: 'Rate Keyrook Authenticator' })).toHaveCount(0);
 });
 
 test('About offers the rating and a public place for problems, with a warning', async ({ context, extensionId }) => {
   const popup = await openPopup(context, extensionId);
   await createDeviceVault(popup);
   const options = await openOptions(context, extensionId);
-  await options.getByRole('button', { name: 'About' }).click();
+  await options.getByRole('button', { name: 'General', exact: true }).click();
 
   await expect(options.getByRole('link', { name: 'Rate it' })).toHaveAttribute(
     'href',

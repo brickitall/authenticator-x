@@ -12,12 +12,16 @@ import {
 import { send } from '../lib/messaging.js';
 import { planScan, startSession, type ScanSession } from '../lib/scan-session.js';
 import { CameraScanner, cameraAlreadyGranted } from '../ui/CameraScanner.js';
-import { ScanProgress, plural } from '../ui/ScanProgress.js';
+import { ScanProgress } from '../ui/ScanProgress.js';
 import { decodeQrFromDataUrl, decodeQrFromFile } from '../ui/qr.js';
 import { ServiceField } from '../ui/ServiceField.js';
 import { ArrowLeftIcon, CameraIcon, ImageIcon, KeyIcon, KeyboardIcon, QrIcon } from '../ui/icons.js';
 import { QuickCode } from '../ui/QuickCode.js';
 import { Button, Callout, Field, Spinner } from '../ui/primitives.js';
+import { errorText } from '../i18n/error-text.js';
+import { useT } from '../i18n/react.js';
+import { localise } from '../i18n/error-text.js';
+import { AppError } from '../i18n/errors.js';
 
 type Mode = 'choose' | 'manual' | 'camera' | 'quick';
 
@@ -61,6 +65,7 @@ export function AddSheet({
    */
   pageScan?: boolean;
 }) {
+  const t = useT();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +98,7 @@ export function AddSheet({
    * every account added while sitting on one tab ends up suggested there.
    */
   async function commit(items: VaultItem[], source: 'qr' | 'manual') {
-    if (items.length === 0) throw new Error('No accounts found.');
+    if (items.length === 0) throw new AppError('add.noneFound');
 
     if (hostname) {
       for (const item of items) {
@@ -111,7 +116,9 @@ export function AddSheet({
   async function handleUri(uri: string) {
     const result = importFromText(uri);
     if (result.items.length === 0) {
-      throw new Error(result.errors[0]?.reason ?? 'That QR code is not a 2FA setup code.');
+      const reason = result.errors[0]?.reason;
+      if (reason) throw new Error(reason);
+      throw new AppError('error.notSetupQr');
     }
     await commit(result.items, 'qr');
   }
@@ -123,11 +130,11 @@ export function AddSheet({
       const { dataUrl } = await send({ type: 'tab/captureQr' });
       const decoded = await decodeQrFromDataUrl(dataUrl);
       if (!decoded) {
-        throw new Error('No QR code found on the visible part of the page. Scroll it into view and try again.');
+        throw new AppError('add.noQrOnPage');
       }
       await handleUri(decoded);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorText(cause));
     } finally {
       setBusy(null);
     }
@@ -138,10 +145,10 @@ export function AddSheet({
     setError(null);
     try {
       const decoded = await decodeQrFromFile(file);
-      if (!decoded) throw new Error('No QR code found in that image.');
+      if (!decoded) throw new AppError('add.noQrInImage');
       await handleUri(decoded);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorText(cause));
     } finally {
       setBusy(null);
     }
@@ -163,7 +170,7 @@ export function AddSheet({
     if (plan.kind === 'reject') {
       // The user is still holding something up, and the next thing may be right.
       session.current = plan.next;
-      setError(plan.reason);
+      setError(localise(plan.reason));
       return false;
     }
 
@@ -174,7 +181,7 @@ export function AddSheet({
         // Not adopting the plan leaves this payload unhandled, so the next
         // frame would try the same failing write again, several times a
         // second. Stop and say why instead.
-        setError(cause instanceof Error ? cause.message : String(cause));
+        setError(errorText(cause));
         return true;
       }
     }
@@ -206,19 +213,19 @@ export function AddSheet({
         <button
           type="button"
           onClick={() => (mode === 'choose' ? onClose() : setMode('choose'))}
-          aria-label="Back"
+          aria-label={t('common.back')}
           className="rounded-lg p-1.5 text-base text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
         >
           <ArrowLeftIcon />
         </button>
         <h2 className="text-[14px] font-semibold">
           {mode === 'manual'
-            ? 'Enter a setup key'
+            ? t('add.title.manual')
             : mode === 'camera'
-              ? 'Scan with your camera'
+              ? t('add.title.camera')
               : mode === 'quick'
-                ? 'Get a code, without saving'
-                : 'Add an account'}
+                ? t('add.title.quick')
+                : t('add.title.choose')}
         </h2>
       </header>
 
@@ -230,8 +237,8 @@ export function AddSheet({
             {pageScan && (
               <Choice
                 icon={<QrIcon />}
-                title="Scan the QR code on this page"
-                description="Takes a screenshot of the visible tab and reads the code from it."
+                title={t('add.page.title')}
+                description={t('add.page.description')}
                 busy={busy === 'scan'}
                 onClick={scanPage}
               />
@@ -239,32 +246,28 @@ export function AddSheet({
             {(camera || handsOff) && (
               <Choice
                 icon={<CameraIcon />}
-                title="Scan with your camera"
-                description={
-                  cameraHere
-                    ? 'For a code on your phone — including a Google Authenticator export.'
-                    : 'Opens Settings once so Chrome can ask to use the camera. After that it works right here.'
-                }
+                title={t('add.camera.title')}
+                description={cameraHere ? t('add.camera.description') : t('add.camera.elsewhere')}
                 onClick={cameraHere ? openCamera : () => onCameraElsewhere?.()}
               />
             )}
             <Choice
               icon={<ImageIcon />}
-              title="Upload a QR image"
-              description="A screenshot or photo you saved earlier."
+              title={t('add.upload.title')}
+              description={t('add.upload.description')}
               busy={busy === 'file'}
               onClick={() => fileInput.current?.click()}
             />
             <Choice
               icon={<KeyboardIcon />}
-              title="Enter a setup key manually"
-              description="For sites that show a code instead of a QR."
+              title={t('add.manual.title')}
+              description={t('add.manual.description')}
               onClick={() => setMode('manual')}
             />
             <Choice
               icon={<KeyIcon />}
-              title="Just get a code"
-              description="Paste a key and see its code now. Nothing is saved."
+              title={t('add.quick.title')}
+              description={t('add.quick.description')}
               onClick={() => setMode('quick')}
             />
 
@@ -281,8 +284,7 @@ export function AddSheet({
             />
 
             <p className="mt-2 text-center text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500">
-              Importing from Google Authenticator? Export your accounts there, then scan the code it
-              shows with your camera or upload a screenshot of it. If it shows several, do each one.
+              {t('add.fromGoogle')}
             </p>
           </>
         ) : mode === 'camera' && summary ? (
@@ -294,15 +296,15 @@ export function AddSheet({
               onDecode={scanCamera}
               // Anything already added stays added, so once there is some,
               // "Cancel" would promise an undo that does not happen.
-              cancelLabel={progress && progress.added > 0 ? 'Done' : 'Cancel'}
+              cancelLabel={progress && progress.added > 0 ? t('common.done') : t('common.cancel')}
               compact={progress !== null}
-              withoutNativeReader="Chrome on this computer has no built-in QR reader, so a large code — like a Google Authenticator export — often will not scan from a camera. If yours will not, screenshot it on your phone and use Upload a QR image instead."
+              withoutNativeReader={t('add.noNativeReader')}
               // Only reachable if the camera looked granted and still would
               // not open here. Settings is a tab, and can ask again.
               fallback={
                 handsOff && (
                   <Button variant="primary" onClick={() => onCameraElsewhere?.()}>
-                    Open the scanner in Settings
+                    {t('add.openScannerInSettings')}
                   </Button>
                 )
               }
@@ -337,7 +339,7 @@ function Choice({
       type="button"
       onClick={onClick}
       disabled={busy}
-      className="flex items-start gap-3 rounded-xl border border-zinc-200 p-3 text-left transition hover:border-brand-400 hover:bg-brand-50/50 disabled:opacity-60 dark:border-zinc-800 dark:hover:border-brand-500 dark:hover:bg-brand-500/5"
+      className="flex items-start gap-3 rounded-xl border border-zinc-200 p-3 text-start transition hover:border-brand-400 hover:bg-brand-50/50 disabled:opacity-60 dark:border-zinc-800 dark:hover:border-brand-500 dark:hover:bg-brand-500/5"
     >
       <span className="mt-0.5 shrink-0 text-lg text-brand-600 dark:text-brand-400">
         {busy ? <Spinner className="h-[1em] w-[1em]" /> : icon}
@@ -359,6 +361,7 @@ function ManualForm({
   hostname: string | null;
   onSubmit: (items: VaultItem[]) => Promise<void>;
 }) {
+  const t = useT();
   // Opened on the site being set up, the answer is usually already known.
   const suggested = hostname ? matchBrand('', [hostname]) : null;
 
@@ -385,14 +388,16 @@ function ManualForm({
       if (looksLikeUri) {
         const result = importFromText(secret.trim());
         if (result.items.length === 0) {
-          throw new Error(result.errors[0]?.reason ?? 'Could not read that URI.');
+          const reason = result.errors[0]?.reason;
+          if (reason) throw new Error(reason);
+          throw new AppError('add.cannotReadUri');
         }
         await onSubmit(result.items);
         return;
       }
 
       const cleaned = secret.replace(/\s+/g, '').toUpperCase();
-      if (!cleaned) throw new Error('Enter the setup key from the site.');
+      if (!cleaned) throw new AppError('add.enterKey');
       // Checked here rather than left to the URI parser below, whose complaint
       // — 'the "secret" parameter is not valid base32' — names two things
       // nobody copying a key off a website has heard of. Naming the alphabet
@@ -409,7 +414,7 @@ function ManualForm({
       );
       await onSubmit([itemFromUri(parsed, domains)]);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorText(cause));
       setBusy(false);
     }
   }
@@ -427,26 +432,26 @@ function ManualForm({
         autoFocus
         hint={
           domains.length > 0
-            ? `Codes for ${domains[0]} will be offered on that site.`
-            : 'Start typing — known services fill in their own details.'
+            ? t('add.offeredOn', { domain: domains[0]! })
+            : t('add.startTyping')
         }
       />
       <Field
-        label="Account"
-        placeholder="you@example.com"
+        label={t('add.account')}
+        placeholder={t('add.accountPlaceholder')}
         value={label}
         onChange={(event) => setLabel(event.target.value)}
       />
       <Field
-        label="Setup key"
+        label={t('add.setupKey')}
         placeholder="JBSWY3DPEHPK3PXP"
         value={secret}
         onChange={(event) => setSecret(event.target.value)}
         error={error}
         hint={
           looksLikeUri
-            ? 'Detected an otpauth:// link — the service and account fields will be filled from it.'
-            : 'Spaces and lower case are fine.'
+            ? t('add.linkDetected')
+            : t('add.spacesFine')
         }
         spellCheck={false}
         autoCapitalize="off"
@@ -454,23 +459,23 @@ function ManualForm({
       />
       <Button type="submit" variant="primary" disabled={busy || secret.trim().length === 0}>
         {busy ? <Spinner /> : null}
-        Add account
+        {t('add.submit')}
       </Button>
     </form>
   );
 }
 
 function ExportSummary({ session, onDone }: { session: ScanSession; onDone: () => void }) {
+  const t = useT();
   const { batch, added, skipped } = session;
   return (
     <div className="flex flex-col gap-3">
       <Callout tone="info">
-        {`All ${batch?.size ?? 1} codes scanned. ${plural(added, 'account', 'accounts')} added.`}
-        {skipped > 0 &&
-          ` ${plural(skipped, 'was', 'were')} already in your vault and ${skipped === 1 ? 'was' : 'were'} left as ${skipped === 1 ? 'it was' : 'they were'}.`}
+        {`${t('add.summary', { count: batch?.size ?? 1 })} ${t('add.summaryAdded', { count: added })}`}
+        {skipped > 0 && ` ${t('add.summarySkipped', { count: skipped })}`}
       </Callout>
       <Button variant="primary" onClick={onDone}>
-        Done
+        {t('common.done')}
       </Button>
     </div>
   );

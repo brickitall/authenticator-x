@@ -42,12 +42,38 @@ server were hostile, so every claim below is about code you can read.
   sheet cannot be brought back to life.
 - Changing the account password, deleting the account, and changing its
   recovery key all require the account password, not just a signed-in session.
+  On an account made with Google or GitHub they require signing in there again
+  instead, as the same person: a session token alone is never enough.
 - A server restored from a backup says so, and each device then sends back what
   the server lost. Saying so falsely gains a server nothing: a device still
   never replaces its copy with an older one, and sends only what it already had.
 
 `packages/core/test/hostile-server.test.ts` plays a server that tries each of
 these, and the tests next to it cover the rest.
+
+## Signing in with Google or GitHub
+
+- An account made this way has no password, and nothing Google, GitHub or our
+  server holds can open the vault. The provider proves who is signing in; the
+  data key reaches a new browser only from a browser already signed in, or from
+  the recovery key.
+- A browser already signed in approves a new one after the person checks both
+  show the same 15-character code. The code is a hash over both browsers'
+  one-time ECDH keys, so a server that swaps either key shows two different
+  codes; at 75 bits it cannot search for a pair of keys that collide. The data
+  key then travels wrapped under a key only those two browsers can derive, and
+  the new browser takes it only if it opens the account's sealed recovery-kit
+  state. `packages/core/test/pairing.test.ts` tries the swaps.
+- The provider's answer comes back to the extension as a two-minute, one-use
+  ticket that is worthless without a verifier the extension never sent, so a
+  ticket read from a URL or a log buys nothing.
+- Google is asked to sign the person in again (`prompt=login`, `max_age=0`)
+  before any change to the account, and the server checks that it did. GitHub
+  has no such request: in a browser already signed in to GitHub, confirming
+  can take one click. It still proves control of that GitHub account.
+- Someone who controls the Google or GitHub account can sign in and ask to
+  join, but gets nothing until a browser already in approves the request — and
+  the request shows on every one of them, saying it came from that sign-in.
 
 ## What a server operator can still see
 
@@ -61,6 +87,10 @@ notes or pictures.
 
 - The device-key mode does not protect against malware running as you on the
   same machine. The settings page says so.
+- Whoever controls the Google or GitHub account behind a provider account, and
+  persuades its owner to approve a browser, has the vault. The approval screen
+  says so; the code check is there for a swapped key, not for a person who
+  approves a stranger.
 - A device that has never seen any recovery-key state accepts the first
   authentic one it is given. A server cannot forge one, but could hand a newly
   joined device an older one it kept.

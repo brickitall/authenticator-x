@@ -1,6 +1,6 @@
 # Security policy
 
-Authenticator X holds people's two-factor secrets. If you have found a way to
+Keyrook Authenticator holds people's two-factor secrets. If you have found a way to
 weaken that, we want to hear about it before anyone else does.
 
 ## Reporting

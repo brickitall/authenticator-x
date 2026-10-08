@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-euS3W07cgPkLXHDN85O9vXB690sp628wB81UCGRh4Z4='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
-<title>Authenticator X — two-factor codes in your browser</title>
+<title>Keyrook Authenticator — two-factor codes in your browser</title>
 <meta name="description" content="A browser extension for your two-factor codes. Encrypted on your own computer, unable to read the websites you visit, and open source.">
 <link rel="canonical" href="https://pricingrank.org/authenticator-x/">
-<meta property="og:title" content="Authenticator X — two-factor codes in your browser">
+<meta property="og:title" content="Keyrook Authenticator — two-factor codes in your browser">
 <meta property="og:description" content="Encrypted on your own computer, unable to read the websites you visit, and open source.">
 <meta property="og:url" content="https://pricingrank.org/authenticator-x/">
 <meta property="og:image" content="https://pricingrank.org/authenticator-x/icon.png?v=2">
@@ -47,11 +47,13 @@
   .wrap { max-width: 68rem; margin: 0 auto; padding: 0 16px; }
   @media (min-width: 640px) { .wrap { padding: 0 2rem; } }
 
-  header.top { display: flex; align-items: center; gap: .75rem; padding: 1.25rem 0; }
-  .brand { display: flex; align-items: center; gap: .6rem; font-weight: 650; color: var(--fg); text-decoration: none; }
+  header.top { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; padding: 1.25rem 0; }
+  .brand { display: flex; align-items: center; gap: .6rem; font-weight: 650; color: var(--fg); text-decoration: none; white-space: nowrap; }
   .brand svg { width: 30px; height: 30px; flex: none; }
   nav { margin-left: auto; display: flex; gap: 1.25rem; font-size: .95rem; }
-  nav a { color: var(--muted); text-decoration: none; }
+  nav a { color: var(--muted); text-decoration: none; white-space: nowrap; }
+  /* The name is two words: on a phone the links go under it rather than squeeze it. */
+  @media (max-width: 520px) { nav { margin-left: 0; } }
   nav a:hover { color: var(--fg); }
   @media (max-width: 520px) { nav .optional { display: none; } }
 
@@ -129,7 +131,7 @@
   <header class="top">
     <a class="brand" href="./">
       <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark"/></svg>
-      Authenticator X
+      Keyrook Authenticator
     </a>
     <nav>
       <a class="optional" href="#features">Features</a>
@@ -145,7 +147,8 @@
         <h1>Your two-factor codes, one click away.</h1>
         <p class="lede">A browser extension for the six-digit codes that GitHub, Google,
         your bank and everything else ask for. They are encrypted on your own
-        computer, and the extension cannot read the websites you visit.</p>
+        computer, kept in step across your browsers if you want, and the
+        extension cannot read the websites you visit.</p>
         <div class="actions">
           <a class="button" href="https://chromewebstore.google.com/detail/occcfljfhlijenkofoceocnimkfpdndl">Add to Chrome — free</a>
           <a class="secondary" href="https://microsoftedge.microsoft.com/addons/detail/lnbabkbknabedpnmdihllnbhdmolianm">Add to Microsoft Edge</a>
@@ -223,23 +226,24 @@
       <ul class="features">
         <li>Scan the QR code straight from the page you are setting up</li>
         <li>Or point your camera at a code shown on your phone</li>
-        <li>Move everything over from Google Authenticator</li>
         <li>Fill a code into the page with one click</li>
-        <li>Groups and search, for when the list gets long</li>
-        <li>Locks itself after the time you choose</li>
-        <li>Encrypted backups you can restore anywhere</li>
-        <li>Standard otpauth:// export, so you can leave whenever you like</li>
+        <li>Sync your browsers — optional, free, end-to-end encrypted</li>
+        <li>Move everything over from Google Authenticator</li>
+        <li>Move to any other app, whenever you like, in a few scans</li>
+        <li>Groups, search, auto-lock and encrypted backups</li>
+        <li>Get one code from a key, without saving anything</li>
       </ul>
     </section>
 
     <section>
       <div class="next">
-        <span class="tag">Coming next</span>
-        <p><strong>Sync, if you want it.</strong> An optional account will keep your
-        codes in step across browsers, end-to-end encrypted: the server stores
-        only what it cannot read, and the code that encrypts it is the part that
-        is open source.</p>
-        <p>No account will ever be required. Without one, nothing changes.</p>
+        <span class="tag">New in 0.2.0</span>
+        <p><strong>Sync, if you want it.</strong> Create an account and your codes
+        stay in step across every browser you sign in to, end-to-end encrypted:
+        the server stores only what it cannot read, and the code that encrypts it
+        is open source. Sync is free, with no limit on accounts.</p>
+        <p>No account is required. Without one, nothing leaves your computer. On
+        Chrome now; Edge and Opera follow as their reviews finish.</p>
       </div>
     </section>
 

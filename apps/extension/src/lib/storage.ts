@@ -1,4 +1,5 @@
 import { isVaultFile, type VaultFile } from '@authx/core';
+import { fail } from '../i18n/errors.js';
 
 /**
  * Storage split, and why it matters:
@@ -18,7 +19,7 @@ export async function loadVaultFile(): Promise<VaultFile | null> {
   const value = stored[VAULT_KEY];
   if (!value) return null;
   if (!isVaultFile(value)) {
-    throw new Error('The stored vault is corrupted or was written by another app.');
+    fail('error.vaultCorrupt');
   }
   return value;
 }

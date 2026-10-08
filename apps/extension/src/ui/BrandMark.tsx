@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { isStoredIcon, matchBrand, monogramFor } from '@authx/core';
 import { BRAND_ICONS, type BrandIcon } from './brand-icons.js';
 import { cx } from './primitives.js';
+import { translate } from '../i18n/runtime.js';
 
 /**
  * Relative luminance, so a glyph is never white on a near-white brand colour.
@@ -63,7 +64,7 @@ export function BrandMark({
       >
         <img
           src={custom}
-          alt={issuer || label || 'Account'}
+          alt={issuer || label || translate('brand.account')}
           width={size}
           height={size}
           className="h-full w-full object-contain"
@@ -162,7 +163,7 @@ export function BrandMark({
         background: `hsl(${mark.monogram.hue} 52% 45%)`,
       }}
       role="img"
-      aria-label={issuer || label || 'Unknown service'}
+      aria-label={issuer || label || translate('brand.unknown')}
       title={issuer || label}
     >
       <span

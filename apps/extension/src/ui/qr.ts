@@ -1,4 +1,5 @@
 import jsQR from 'jsqr';
+import { AppError } from '../i18n/errors.js';
 
 /**
  * QR decoding runs in the page context because it needs a canvas — service
@@ -133,7 +134,7 @@ const QR_FORMATS = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image
 
 export async function decodeQrFromFile(file: File): Promise<string | null> {
   if (!QR_FORMATS.includes(file.type)) {
-    throw new Error('Use a PNG, JPEG, WebP, GIF or BMP screenshot.');
+    throw new AppError('image.wrongScreenshotType');
   }
   const url = URL.createObjectURL(file);
   try {

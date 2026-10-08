@@ -126,7 +126,7 @@ export { DecryptionError };
 /** The printable sheet. Plain text on purpose: it has to survive everything. */
 export function recoveryKitDocument(recoveryKey: string, createdAt = Date.now()): string {
   return [
-    'AUTHENTICATOR X — EMERGENCY RECOVERY KEY',
+    'KEYROOK AUTHENTICATOR — EMERGENCY RECOVERY KEY',
     '',
     `Issued: ${new Date(createdAt).toISOString().slice(0, 10)}`,
     '',
@@ -144,8 +144,8 @@ export function recoveryKitDocument(recoveryKey: string, createdAt = Date.now())
     '  onto a phone that syncs to a cloud you sign into with 2FA from this app.',
     '',
     'How to use it',
-    '  Open Authenticator X, choose "Use a recovery key" on the unlock screen,',
-    '  and type the key above. You will then set a new master password.',
+    '  Open Keyrook Authenticator, choose "Use a recovery key" on the unlock',
+    '  screen, and type the key above. You will then set a new master password.',
     '',
   ].join('\n');
 }

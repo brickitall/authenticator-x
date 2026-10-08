@@ -23,7 +23,8 @@ export async function launchExtension(
   {
     colorScheme = 'light',
     deviceScaleFactor,
-  }: { colorScheme?: 'light' | 'dark'; deviceScaleFactor?: number } = {},
+    locale,
+  }: { colorScheme?: 'light' | 'dark'; deviceScaleFactor?: number; locale?: string } = {},
 ) {
   mkdirSync(PROFILE_ROOT, { recursive: true });
   const profile = mkdtempSync(join(PROFILE_ROOT, 'chrome-'));
@@ -33,9 +34,13 @@ export async function launchExtension(
     // Store artwork is captured at 2x and laid out at 1x, so a popup set a
     // little smaller than life stays sharp.
     deviceScaleFactor,
+    // The browser's language, as a person in that country would have it:
+    // what `navigator.languages` reports, and what the pages follow.
+    ...(locale ? { locale } : {}),
     args: [
       `--disable-extensions-except=${EXTENSION_PATH}`,
       `--load-extension=${EXTENSION_PATH}`,
+      ...(locale ? [`--lang=${locale}`] : []),
       // Camera tests hand Chromium a synthetic capture device here.
       ...extraArgs,
     ],

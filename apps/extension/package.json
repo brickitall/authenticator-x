@@ -1,9 +1,9 @@
 {
   "name": "@authx/extension",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "Authenticator X — Chrome MV3 extension.",
+  "description": "Keyrook Authenticator — Chrome MV3 extension.",
   "license": "GPL-3.0-or-later",
   "scripts": {
     "build": "node scripts/build.mjs",

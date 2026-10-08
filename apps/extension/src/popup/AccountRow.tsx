@@ -1,8 +1,10 @@
-import { formatCode, itemSubtitle, itemTitle, totpWindow, type VaultItem } from '@authx/core';
+import { formatCode, itemSubtitle, totpWindow, type VaultItem } from '@authx/core';
 import { BrandMark } from '../ui/BrandMark.js';
 import { CheckIcon, CopyIcon, QrIcon, RefreshIcon, StarIcon } from '../ui/icons.js';
 import { Button, cx } from '../ui/primitives.js';
 import { CountdownRing } from '../ui/CountdownRing.js';
+import { useT } from '../i18n/react.js';
+import { titleOf } from '../i18n/titles.js';
 
 export interface AccountRowProps {
   item: VaultItem;
@@ -31,6 +33,7 @@ export function AccountRow({
   onAdvanceCounter,
   onShare,
 }: AccountRowProps) {
+  const t = useT();
   const subtitle = itemSubtitle(item);
   const window_ = totpWindow(item.period, now);
   const pending = code === undefined;
@@ -49,11 +52,14 @@ export function AccountRow({
           type="button"
           onClick={onCopy}
           disabled={pending}
-          className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left"
-          title="Click to copy"
+          className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-start"
+          title={t('row.copyHint')}
         >
-          <span className="w-full truncate text-[13px] font-medium text-zinc-800 dark:text-zinc-100">
-            {itemTitle(item)}
+          {/* A name keeps its own direction: "Amazon (production)" read right
+              to left lost its bracket and its beginning. It still lines up
+              with the page. */}
+          <span dir="auto" className="w-full truncate text-[13px] font-medium text-zinc-800 rtl:text-right dark:text-zinc-100">
+            {titleOf(item)}
           </span>
           <span
             className={cx(
@@ -65,7 +71,7 @@ export function AccountRow({
             {pending ? '••• •••' : formatCode(code)}
           </span>
           {subtitle && (
-            <span className="w-full truncate text-[11px] text-zinc-400 dark:text-zinc-500">
+            <span dir="auto" className="w-full truncate text-[11px] text-zinc-400 rtl:text-right dark:text-zinc-500">
               {subtitle}
             </span>
           )}
@@ -75,8 +81,8 @@ export function AccountRow({
           <button
             type="button"
             onClick={onShare}
-            aria-label="Move to another app"
-            title="Show its QR code, to move it to another app"
+            aria-label={t('row.share')}
+            title={t('row.shareHint')}
             className="rounded-lg p-1.5 text-base text-zinc-300 opacity-0 transition group-hover:opacity-100 hover:text-zinc-600 focus-visible:opacity-100 dark:text-zinc-700 dark:hover:text-zinc-400"
           >
             <QrIcon />
@@ -84,7 +90,7 @@ export function AccountRow({
           <button
             type="button"
             onClick={onToggleFavorite}
-            aria-label={item.favorite ? 'Remove from favourites' : 'Add to favourites'}
+            aria-label={item.favorite ? t('row.favouriteRemove') : t('row.favouriteAdd')}
             aria-pressed={item.favorite}
             className={cx(
               'rounded-lg p-1.5 text-base transition',
@@ -102,9 +108,9 @@ export function AccountRow({
               variant="secondary"
               onClick={onFill}
               disabled={pending}
-              title="Fill this code into the page"
+              title={t('row.fillHint')}
             >
-              Fill
+              {t('row.fill')}
             </Button>
           )}
 
@@ -112,7 +118,7 @@ export function AccountRow({
             type="button"
             onClick={onCopy}
             disabled={pending}
-            aria-label={copied ? 'Copied' : 'Copy code'}
+            aria-label={copied ? t('row.copied') : t('row.copy')}
             className={cx(
               'rounded-lg p-1.5 text-base transition',
               copied
@@ -127,8 +133,8 @@ export function AccountRow({
             <button
               type="button"
               onClick={onAdvanceCounter}
-              aria-label="Generate the next code"
-              title={`Counter: ${item.counter}`}
+              aria-label={t('row.next')}
+              title={t('row.counter', { counter: String(item.counter) })}
               className="rounded-lg p-1.5 text-base text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
             >
               <RefreshIcon />

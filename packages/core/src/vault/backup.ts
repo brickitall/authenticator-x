@@ -67,7 +67,7 @@ export async function exportEncryptedBackup(
   items: VaultItem[],
   groups: Group[],
   password: string,
-  appName = 'Authenticator X',
+  appName = 'Keyrook Authenticator',
 ): Promise<BackupFile> {
   if (password.length < 8) throw new Error('Backup password must be at least 8 characters.');
 
@@ -106,7 +106,7 @@ export function isBackupFile(value: unknown): value is BackupFile {
  * message rather than a hang or a crash deep in the crypto.
  */
 export function assertUsableBackup(file: BackupFile): void {
-  if (!isBackupFile(file)) throw new Error('This file is not an Authenticator X backup.');
+  if (!isBackupFile(file)) throw new Error('This file is not a Keyrook Authenticator backup.');
   if (file.version > BACKUP_VERSION) {
     throw new Error('This backup was made by a newer version of the app.');
   }

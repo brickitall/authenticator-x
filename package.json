@@ -2,7 +2,7 @@
   "name": "authenticator-x",
   "private": true,
   "version": "0.1.0",
-  "description": "Authenticator X — cross-platform 2FA/TOTP authenticator. Chrome extension first.",
+  "description": "Keyrook Authenticator — cross-platform 2FA/TOTP authenticator. Chrome extension first.",
   "workspaces": [
     "packages/*",
     "apps/*"

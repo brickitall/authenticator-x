@@ -598,7 +598,8 @@ test('Backup & import scans a full export and stores none of it until asked', as
     await requireNativeReader(options);
     await createDeviceVault(options);
 
-    await options.getByRole('button', { name: 'Backup & import', exact: true }).click();
+    await options.getByRole('button', { name: 'Backup', exact: true }).click();
+    await options.getByRole('button', { name: 'Import', exact: true }).click();
     await options.getByRole('button', { name: /Scan with your camera/ }).click();
 
     await expect(options.getByText('Found 30 new accounts.')).toBeVisible({ timeout: 45_000 });
@@ -629,7 +630,8 @@ test('a camera import that is cancelled stores nothing, and says what it would h
     await createDeviceVault(options);
 
     // Xray is in the vault before the scan.
-    await options.getByRole('button', { name: 'Backup & import', exact: true }).click();
+    await options.getByRole('button', { name: 'Backup', exact: true }).click();
+    await options.getByRole('button', { name: 'Import', exact: true }).click();
     await options
       .getByLabel(/paste otpauth/)
       .fill(`otpauth://totp/Xray:x@example.com?secret=${SECRET}&issuer=Xray`);
@@ -666,7 +668,8 @@ test('without a native reader, a full export chosen as screenshots comes across 
     expect(await options.evaluate(() => 'BarcodeDetector' in window)).toBe(false);
     await createDeviceVault(options);
 
-    await options.getByRole('button', { name: 'Backup & import', exact: true }).click();
+    await options.getByRole('button', { name: 'Backup', exact: true }).click();
+    await options.getByRole('button', { name: 'Import', exact: true }).click();
     // All three at once, the way someone picks them from a folder.
     await options.locator('input[type="file"]').setInputFiles(await screenshotsOf(codes));
 
@@ -692,7 +695,8 @@ test('screenshots holding only part of an export say that some of it is missing'
     const options = await openOptions(extension.context, extension.extensionId);
     await createDeviceVault(options);
 
-    await options.getByRole('button', { name: 'Backup & import', exact: true }).click();
+    await options.getByRole('button', { name: 'Backup', exact: true }).click();
+    await options.getByRole('button', { name: 'Import', exact: true }).click();
     await options.locator('input[type="file"]').setInputFiles(await screenshotsOf([codes[0]!, codes[2]!]));
 
     await expect(
@@ -731,7 +735,8 @@ test('without a native reader, the scanner says what to do instead', async () =>
     await sheet.getByRole('button', { name: 'Cancel' }).click();
     await sheet.getByRole('button', { name: 'Back' }).click();
 
-    await options.getByRole('button', { name: 'Backup & import', exact: true }).click();
+    await options.getByRole('button', { name: 'Backup', exact: true }).click();
+    await options.getByRole('button', { name: 'Import', exact: true }).click();
     await options.getByRole('button', { name: /Scan with your camera/ }).click();
     await expect(options.getByText(/no built-in QR reader/)).toBeVisible();
     await expect(options.getByText(/pick them all with Choose files/)).toBeVisible();

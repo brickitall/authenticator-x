@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { decodeQrFromVideo, hasNativeReader } from './qr.js';
 import { Button, Callout, Spinner } from './primitives.js';
+import { errorText } from '../i18n/error-text.js';
+import { useT } from '../i18n/react.js';
+import { translate } from '../i18n/runtime.js';
+import { AppError } from '../i18n/errors.js';
 
 /**
  * Scans a QR code from a camera, for the codes that are never on this screen.
@@ -51,7 +55,7 @@ type Phase = 'starting' | 'scanning' | 'failed';
 export function CameraScanner({
   onDecode,
   onCancel,
-  cancelLabel = 'Cancel',
+  cancelLabel,
   compact = false,
   fallback,
   withoutNativeReader,
@@ -90,6 +94,7 @@ export function CameraScanner({
   // the scanner has been told to stop, and must not schedule another round.
   const stopped = useRef(false);
 
+  const t = useT();
   const [phase, setPhase] = useState<Phase>('starting');
   const [error, setError] = useState<string | null>(null);
   // Unknown until checked; the generic advice shows meanwhile, since it is
@@ -141,7 +146,7 @@ export function CameraScanner({
     async function start() {
       try {
         if (!navigator.mediaDevices?.getUserMedia) {
-          throw new Error('This browser will not give the extension a camera.');
+          throw new AppError('camera.noCamera');
         }
 
         const opened = await navigator.mediaDevices.getUserMedia({
@@ -221,7 +226,7 @@ export function CameraScanner({
             playsInline
             muted
             autoPlay
-            aria-label="Camera preview"
+            aria-label={t('camera.preview')}
             className="h-full w-full object-cover"
           />
 
@@ -242,21 +247,20 @@ export function CameraScanner({
       {(phase === 'failed' || !compact) && (
         <p className="text-[12px] leading-snug text-zinc-500 dark:text-zinc-400">
           {phase === 'failed'
-            ? 'You can still add an account by uploading a photo of the QR code, or by typing the setup key.'
+            ? t('camera.failedHint')
             : native === false && withoutNativeReader
               ? withoutNativeReader
-              : 'Hold the QR code inside the frame. Importing from Google Authenticator? Open its export screen on your phone and point the camera at it — if it shows several codes, show them one after another.'}
+              : t('camera.hint')}
         </p>
       )}
 
       {phase === 'failed' && fallback}
 
       <p className="text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500">
-        The picture is read on this device and thrown away. Nothing is recorded
-        and nothing is uploaded.
+        {t('camera.privacy')}
       </p>
 
-      <Button onClick={onCancel}>{cancelLabel}</Button>
+      <Button onClick={onCancel}>{cancelLabel ?? t('common.cancel')}</Button>
     </div>
   );
 }
@@ -270,13 +274,13 @@ function explain(cause: unknown): string {
   const name = cause instanceof DOMException ? cause.name : '';
 
   if (name === 'NotAllowedError') {
-    return 'Chrome blocked access to the camera. Allow it for this page, or use one of the other ways to add an account.';
+    return translate('camera.blocked');
   }
   if (name === 'NotFoundError' || name === 'OverconstrainedError') {
-    return 'No camera found on this computer.';
+    return translate('camera.none');
   }
   if (name === 'NotReadableError') {
-    return 'The camera is in use by another program.';
+    return translate('camera.busy');
   }
-  return cause instanceof Error ? cause.message : String(cause);
+  return errorText(cause);
 }

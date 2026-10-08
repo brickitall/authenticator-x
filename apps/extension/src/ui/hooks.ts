@@ -6,6 +6,7 @@ import {
   type Mutation,
   type VaultStatus,
 } from '../lib/messaging.js';
+import { errorText } from '../i18n/error-text.js';
 
 /** Vault status plus the only sanctioned way to write to it. */
 export function useVault() {
@@ -17,7 +18,7 @@ export function useVault() {
       setStatus(await send({ type: 'vault/status' }));
       setError(null);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setError(errorText(cause));
     }
   }, []);
 

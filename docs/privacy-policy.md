@@ -1,17 +1,18 @@
-# Privacy Policy — Authenticator X
+# Privacy Policy — Keyrook Authenticator
 
-_Last updated: 5 October 2026_
+_Last updated: 8 October 2026_
 
 ## The short version
 
-Authenticator X works without an account, and then nothing leaves your
+Keyrook Authenticator works without an account, and then nothing leaves your
 computer. Sync between your browsers is optional. If you turn it on, your
 two-factor accounts are encrypted on your device before they are uploaded, with
 a key the server never receives: we store them, but we cannot read them. We
 keep your email address and what is needed to run the account, use it for
-nothing else, and sell nothing.
+nothing else, and sell nothing. You can sign in with a password, or with Google
+or GitHub, which tell us who you are and nothing more.
 
-Authenticator X is made by BRICK IT ALL LLC ("we"). Sync is available from
+Keyrook Authenticator is made by BRICK IT ALL LLC ("we"). Sync is available from
 version 0.2.0.
 
 ## Without an account
@@ -58,15 +59,26 @@ them is recorded, kept or uploaded, with or without an account.
 ### What we receive and keep
 
 - **Your email address**, to identify your account and to send you a code that
-  proves the address is yours.
+  proves the address is yours. If you sign in with Google or GitHub, the address
+  comes from them, already verified, and no code is sent.
+- **If you sign in with Google or GitHub: who you are there.** The identifier
+  that provider gives your account — a number, not your name — and the verified
+  email address it reports. We ask Google for `openid email` and GitHub for
+  `user:email`, nothing more; we use the answer once to sign you in and keep no
+  access token, so we cannot read your mail, your files or your repositories, or
+  act for you anywhere. An account made this way has no password, and we store
+  nothing that could stand in for one. Our use of information received from
+  Google APIs adheres to the
+  [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy),
+  including the Limited Use requirements.
 - **Your two-factor accounts, encrypted.** Each one is encrypted on your device
   with your account's data key before it is uploaded. We store the ciphertext
   and the little we need to keep your devices in step: a random identifier for
   each entry, a revision number, when it last changed, whether it was deleted,
   and which of your devices changed it. We cannot read the issuer, account name,
   secret, note or picture.
-- **What lets you sign in, none of it usable as your password.** Your account
-  password never leaves your device. It is stretched on your device into two
+- **What lets you sign in, none of it usable as your password.** If your
+  account has a password, it never leaves your device. It is stretched on your device into two
   unrelated keys: one stays there; the other proves your password to us, and we
   store only a salted, slow hash of that proof, mixed with a secret held apart
   from the database. We also store your data key in encrypted form, so a new
@@ -75,6 +87,11 @@ them is recorded, kept or uploaded, with or without an account.
 - **Your signed-in devices** — a name such as "Chrome on Mac", when each signed
   in and was last used, and a hash of its session tokens, so you can see the
   list and sign a device out.
+- **A new browser asking to join.** A browser signed in with Google or GitHub
+  gets your entries only when one already signed in approves it. Until then we
+  hold its name and a one-time public key; once you approve, your data key
+  encrypted for that browser alone, which we cannot open. The request is deleted
+  when it is used or declined, and stops working after ten minutes.
 
 ### What the service sees in passing
 
@@ -82,6 +99,10 @@ them is recorded, kept or uploaded, with or without an account.
   guessing passwords or requesting codes in bulk — the server counts recent
   requests per address. It keeps only a one-way digest of the address, for at
   most an hour.
+- **Signing in with Google or GitHub** happens on their site, under their
+  privacy policy, and they learn that you signed in to Keyrook. The
+  extension takes you to their sign-in page and back, or opens it in the
+  browser's own sign-in window to confirm a change to your account.
 - Requests reach the server through **Cloudflare**, which protects it and sees
   connection details such as your IP address. Our hosting provider's web server
   writes routine access logs (IP address, time, the address requested); we have
@@ -92,7 +113,8 @@ them is recorded, kept or uploaded, with or without an account.
 
 Only what the account needs: the code that confirms your address when you sign
 up, and a notice if someone tries to sign up with an address that already has an
-account. No newsletters, no marketing.
+account. An account made with Google or GitHub gets no email from us at all. No
+newsletters, no marketing.
 
 ### Who processes it for us
 
@@ -109,11 +131,14 @@ the United States, so your data may be processed outside your country.
 
 - **Your account and everything synced**: until you delete the account.
   Deleting it (Settings → Account & sync → Delete account, which asks for
-  your password) removes your email address, your encrypted entries, your devices and
+  your password, or for you to sign in with Google or GitHub again) removes your email address, your encrypted entries, your devices and
   your recovery data from our database at once.
 - **Backups**: encrypted daily copies of the database are kept for 14 days on
   the server, and the off-site copies are deleted within 60 days. Deleted
   accounts disappear from backups as they expire.
+- **Sign-ins in progress**: a Google or GitHub sign-in that has not finished,
+  and a request to join from a new browser, stop working after ten minutes and
+  are deleted within a day.
 - **Sign-up codes**: a code works for 15 minutes. The record of the request,
   with the address it went to, is deleted within a day once its hour has passed.
 - **Failed sign-in counts** are forgotten after an hour without failures, and
@@ -126,7 +151,7 @@ sell your data, use it for advertising, share it except with the processors
 above, or use it to decide anyone's creditworthiness. Nobody at BRICK IT ALL LLC
 reads your two-factor accounts, because nobody can.
 
-## What Authenticator X never does
+## What Keyrook Authenticator never does
 
 - No analytics, telemetry, crash reporting or usage statistics.
 - No advertising, and no advertising identifiers.
@@ -160,7 +185,7 @@ By creating an account you agree to this processing for the purposes above; you
 can withdraw by deleting the account. If you believe we handle your data
 wrongly, you may also complain to the data protection authority where you live.
 
-Authenticator X is not directed at children under 13, and we do not knowingly
+Keyrook Authenticator is not directed at children under 13, and we do not knowingly
 hold data about them.
 
 ## Changes

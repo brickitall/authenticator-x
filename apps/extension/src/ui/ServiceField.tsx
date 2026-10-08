@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'rea
 import { searchBrands, type BrandEntry } from '@authx/core';
 import { BrandMark } from './BrandMark.js';
 import { cx } from './primitives.js';
+import { useT } from '../i18n/react.js';
 
 export interface ServiceFieldProps {
   value: string;
@@ -27,11 +28,12 @@ export function ServiceField({
   value,
   onChange,
   onPick,
-  label = 'Service',
+  label,
   placeholder = 'GitHub',
   hint,
   autoFocus,
 }: ServiceFieldProps) {
+  const t = useT();
   const id = useId();
   const [open, setOpen] = useState(false);
   // Nothing is highlighted until the user arrows into the list. Pre-selecting
@@ -86,7 +88,7 @@ export function ServiceField({
   return (
     <div className="relative flex flex-col gap-1.5">
       <label htmlFor={id} className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300">
-        {label}
+        {label ?? t('service.label')}
       </label>
 
       <input
@@ -124,7 +126,7 @@ export function ServiceField({
           ref={listRef}
           id={`${id}-list`}
           role="listbox"
-          aria-label="Matching services"
+          aria-label={t('service.matches')}
           className="absolute top-full right-0 left-0 z-20 mt-1 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
         >
           {suggestions.map((brand, index) => (
