@@ -99,6 +99,17 @@
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.06em;
   }
+
+  /* A code, a key or a pairing code reads left to right in every language.
+     On a right-to-left page "078 842" otherwise shows as "842 078" — each
+     group is a run of its own, and the runs are laid out right to left — and
+     whoever types it by hand, or compares it with another screen, gets it
+     wrong. Everything set in the monospace face is one of these. */
+  .code-digits,
+  .font-mono {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
 }
 
 /* The QR sheet prints alone. It is a fixed, scrolling layer on screen, which

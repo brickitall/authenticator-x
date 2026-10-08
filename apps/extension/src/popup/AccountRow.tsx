@@ -52,18 +52,22 @@ export function AccountRow({
           type="button"
           onClick={onCopy}
           disabled={pending}
-          className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-start"
+          className="flex flex-1 flex-col items-start gap-0.5 text-start"
           title={t('row.copyHint')}
         >
+          {/* The code sets how narrow this column may get, and never wraps:
+              "Introdueix" on the Fill button once broke 841 298 over two lines.
+              Name and subtitle take no width of their own (w-0 min-w-full), so
+              a long name truncates instead of widening the column. */}
           {/* A name keeps its own direction: "Amazon (production)" read right
               to left lost its bracket and its beginning. It still lines up
               with the page. */}
-          <span dir="auto" className="w-full truncate text-[13px] font-medium text-zinc-800 rtl:text-right dark:text-zinc-100">
+          <span dir="auto" className="w-0 min-w-full truncate text-[13px] font-medium text-zinc-800 rtl:text-right dark:text-zinc-100">
             {titleOf(item)}
           </span>
           <span
             className={cx(
-              'code-digits text-[19px] leading-tight font-semibold text-zinc-900 dark:text-zinc-50',
+              'code-digits whitespace-nowrap text-[19px] leading-tight font-semibold text-zinc-900 dark:text-zinc-50',
               hideCodes && 'blur-[5px] transition group-hover:blur-none',
               pending && 'opacity-40',
             )}
@@ -71,22 +75,27 @@ export function AccountRow({
             {pending ? '••• •••' : formatCode(code)}
           </span>
           {subtitle && (
-            <span dir="auto" className="w-full truncate text-[11px] text-zinc-400 rtl:text-right dark:text-zinc-500">
+            <span dir="auto" className="w-0 min-w-full truncate text-[11px] text-zinc-400 rtl:text-right dark:text-zinc-500">
               {subtitle}
             </span>
           )}
         </button>
 
-        <div className="flex shrink-0 items-center gap-0.5">
-          <button
-            type="button"
-            onClick={onShare}
-            aria-label={t('row.share')}
-            title={t('row.shareHint')}
-            className="rounded-lg p-1.5 text-base text-zinc-300 opacity-0 transition group-hover:opacity-100 hover:text-zinc-600 focus-visible:opacity-100 dark:text-zinc-700 dark:hover:text-zinc-400"
-          >
-            <QrIcon />
-          </button>
+        <div className="flex min-w-0 items-center gap-0.5 [&>*:not([data-fill])]:shrink-0">
+          {/* Over a page with a code field, Fill takes the place of the QR
+              button, which only shows on hover: in a long language the row
+              has no room for both. Sharing is a click away everywhere else. */}
+          {!canFill && (
+            <button
+              type="button"
+              onClick={onShare}
+              aria-label={t('row.share')}
+              title={t('row.shareHint')}
+              className="rounded-lg p-1.5 text-base text-zinc-300 opacity-0 transition group-hover:opacity-100 hover:text-zinc-600 focus-visible:opacity-100 dark:text-zinc-700 dark:hover:text-zinc-400"
+            >
+              <QrIcon />
+            </button>
+          )}
           <button
             type="button"
             onClick={onToggleFavorite}
@@ -109,8 +118,12 @@ export function AccountRow({
               onClick={onFill}
               disabled={pending}
               title={t('row.fillHint')}
+              aria-label={t('row.fill')}
+              data-fill=""
+              className="min-w-0"
             >
-              {t('row.fill')}
+              {/* The last thing to give way when a row is tight. */}
+              <span className="truncate">{t('row.fill')}</span>
             </Button>
           )}
 

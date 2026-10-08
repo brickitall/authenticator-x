@@ -76,6 +76,64 @@ test('Arabic lays every page out right to left', async () => {
   }
 });
 
+test('a code reads left to right on a right-to-left page', async () => {
+  // Typed by hand from an Arabic popup, "078 842" shown as "842 078" is a
+  // wrong code: the two groups must keep their order whatever the page's.
+  const device = await launchExtension([], { locale: 'ar-EG' });
+  try {
+    const popup = await open(device, 'popup');
+    await popup.getByRole('button', { name: /ابدأ مباشرة/ }).click();
+    await expect(popup.getByText('لا حسابات بعد')).toBeVisible();
+    await popup.evaluate(() =>
+      chrome.runtime.sendMessage({
+        type: 'vault/mutate',
+        mutation: {
+          op: 'items/add',
+          items: [
+            {
+              id: 'rtl',
+              type: 'totp',
+              issuer: 'GitHub',
+              label: 'octocat',
+              secret: 'JBSWY3DPEHPK3PXP',
+              algorithm: 'SHA1',
+              digits: 6,
+              period: 30,
+              counter: 0,
+              note: '',
+              icon: null,
+              groupId: null,
+              favorite: false,
+              domains: [],
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+              deletedAt: null,
+              rev: 1,
+              syncedRev: 0,
+            },
+          ],
+        },
+      }),
+    );
+    await popup.reload();
+    const code = popup.locator('.code-digits').first();
+    await expect(code).toHaveText(/^\d{3} \d{3}$/);
+    const [first, second] = await code.evaluate((element) => {
+      const text = element.firstChild!;
+      const range = document.createRange();
+      range.setStart(text, 0);
+      range.setEnd(text, 3);
+      const left = range.getBoundingClientRect().x;
+      range.setStart(text, 4);
+      range.setEnd(text, 7);
+      return [left, range.getBoundingClientRect().x];
+    });
+    expect(first).toBeLessThan(second);
+  } finally {
+    await device.close();
+  }
+});
+
 test('Taiwan gets Traditional Chinese', async () => {
   const device = await launchExtension([], { locale: 'zh-TW' });
   try {
