@@ -21,6 +21,8 @@ export const vi: Dictionary = {
   'error.alreadySignedIn': 'Đã đăng nhập rồi.',
   'error.signedOutElsewhere':
     'Thiết bị này đã bị đăng xuất khỏi đồng bộ — mật khẩu đã được đổi, hoặc thiết bị đã bị gỡ từ một máy khác. Hãy đăng nhập lại.',
+  'error.signOutUnsynced':
+    'Một số thay đổi trên trình duyệt này chưa lên tới tài khoản của bạn, đăng xuất bây giờ sẽ làm mất chúng. Hãy kết nối mạng rồi thử lại.',
   'error.enterAccountPassword': 'Nhập mật khẩu tài khoản của bạn.',
   'error.accountPasswordWrong': 'Đó không phải mật khẩu tài khoản của bạn.',
   'error.accountPasswordWeak':
@@ -713,7 +715,7 @@ export const vi: Dictionary = {
     other: ' {count} bản ghi không giải mã được nên đã bị bỏ qua. Nếu cứ lặp lại, bản sao đang lưu có vấn đề.',
   },
   'account.signOutNote':
-    'Đăng xuất để nguyên kho này — vẫn ở đây, vẫn được mã hoá, vẫn mở theo cách cũ.',
+    'Đăng xuất sẽ xoá các mã khỏi trình duyệt này. Mã vẫn còn trong tài khoản Keyrook của bạn — đăng nhập lại là có lại.',
   'password.changedBoth':
     'Đã đổi mật khẩu, cho cả tài khoản và kho này. Các thiết bị khác sẽ yêu cầu bạn đăng nhập lại bằng mật khẩu mới.',
   'password.changedAccount':

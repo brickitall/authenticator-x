@@ -20,6 +20,8 @@ export const hu: Dictionary = {
   'error.alreadySignedIn': 'Már be vagy jelentkezve.',
   'error.signedOutElsewhere':
     'Ezt az eszközt kijelentkeztettük a szinkronizálásból — megváltozott a jelszó, vagy egy másik eszközről eltávolították. Jelentkezz be újra.',
+  'error.signOutUnsynced':
+    'Néhány módosítás ebben a böngészőben még nem jutott el a fiókodba, és ha most kijelentkezel, elvesznek. Csatlakozz az internethez, és próbáld újra.',
   'error.enterAccountPassword': 'Add meg a fiókod jelszavát.',
   'error.accountPasswordWrong': 'Ez nem a fiókod jelszava.',
   'error.accountPasswordWeak':
@@ -646,7 +648,7 @@ export const hu: Dictionary = {
     one: ' {count} rekordot nem sikerült visszafejteni, ezért kimaradt. Ha ez ismétlődik, valami nincs rendben a tárolt másolattal.',
     other: ' {count} rekordot nem sikerült visszafejteni, ezért kimaradtak. Ha ez ismétlődik, valami nincs rendben a tárolt másolattal.',
   },
-  'account.signOutNote': 'A kijelentkezés pontosan úgy hagyja a széfet, ahogy van — itt marad, titkosítva, ugyanúgy nyílik.',
+  'account.signOutNote': 'A kijelentkezés eltávolítja a kódjaidat ebből a böngészőből. A Keyrook-fiókodban megmaradnak — jelentkezz be újra, és visszakerülnek.',
   'password.changedBoth': 'Jelszó módosítva a fiókodhoz és ehhez a széfhez is. A többi eszközöd kérni fogja, hogy jelentkezz be vele újra.',
   'password.changedAccount': 'A fiók jelszava módosítva. A többi eszközöd kérni fogja, hogy jelentkezz be vele újra.',
   'password.title': 'Jelszó',

@@ -28,15 +28,15 @@ export function RatePrompt({ onClose }: { onClose: () => void }) {
     <div
       role="region"
       aria-label={t('rate.region')}
-      className="mx-2 mb-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3 animate-fade-in dark:border-zinc-800 dark:bg-zinc-900"
+      className="mx-2 mb-2 rounded-xl border border-neutral-200 bg-neutral-50 p-3 animate-fade-in dark:border-neutral-800 dark:bg-neutral-900"
     >
       <div className="flex gap-2.5">
-        <StarIcon filled className="mt-px h-4 w-4 shrink-0 text-amber-500" />
-        <p className="text-[12.5px] leading-snug text-zinc-600 dark:text-zinc-300">
+        <StarIcon filled className="mt-px h-4 w-4 shrink-0 text-yellow-500" />
+        <p className="text-[12.5px] leading-snug text-neutral-600 dark:text-neutral-300">
           {t.rich(
             'rate.body',
             { store: store === 'Edge Add-ons' ? t('rate.store.edge') : t('rate.store.chrome') },
-            { b: (chunk) => <span className="font-medium text-zinc-900 dark:text-zinc-100">{chunk}</span> },
+            { b: (chunk) => <span className="font-medium text-neutral-900 dark:text-neutral-100">{chunk}</span> },
           )}
         </p>
       </div>

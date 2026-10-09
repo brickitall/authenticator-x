@@ -6,42 +6,192 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
 <title>Privacy Policy — Keyrook Authenticator</title>
 <meta name="description" content="What Keyrook Authenticator stores, what its sync server keeps and cannot read, who processes it, and how to delete it.">
-<link rel="canonical" href="https://pricingrank.org/authenticator-x/privacy/">
+<link rel="canonical" href="https://keyrook.com/authenticator/privacy/">
 <meta name="color-scheme" content="light dark">
 <!-- Generated from docs/privacy-policy.md by scripts/render-policy.mjs. Edit
      that file, not this one. Nothing here is fetched from anywhere else; the
-     mark is drawn inline, so no cached image can show an old one. The policy
-     above runs no script at all — Cloudflare, in front of pricingrank.org,
+     mark is drawn inline, so no cached image can show an old one, and it and
+     the colours come from packages/brand (scripts/site-brand.mjs). The policy
+     above runs no script at all — Cloudflare, in front of keyrook.com,
      injects an analytics beacon into every page, and here it is refused. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' aria-hidden='true'%3E%3Cpath d='M50.35 33.1 C49.4 25.09 49.11 17.06 49.48 9' fill='none' stroke='%233A6FDB' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M61.01 38.39 C67.64 33.37 73.73 27.78 79.3 21.61' fill='none' stroke='%23F2B21B' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M66.8 49.77 C74.55 50.68 82.31 50.87 90.1 50.34' fill='none' stroke='%23E0493A' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M61.47 62.13 C67.9 67.17 73.93 72.65 79.54 78.57' fill='none' stroke='%232FA05A' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M50.28 66.2 C49.42 74.21 49.18 82.25 49.58 90.3' fill='none' stroke='%233A6FDB' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M37.75 61.79 C32.85 68.12 27.41 73.94 21.41 79.25' fill='none' stroke='%23F2B21B' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M33.7 49.74 C25.55 50.65 17.39 50.86 9.2 50.38' fill='none' stroke='%23E0493A' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M37.78 38.32 C33.04 32.21 27.81 26.55 22.1 21.33' fill='none' stroke='%232FA05A' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
-  :root {
-    --bg: #f7f8fa; --surface: #ffffff; --fg: #17181c; --muted: #5f6368;
-    --rule: #e3e5e8; --brand: #1a73e8;
+  /* @keyrook/brand — copied from packages/brand/brand.css by scripts/site-brand.mjs. Change packages/brand/src. */
+:root {
+  --kr-ink: #22201C;
+  --kr-paper: #FBF8F2;
+  --kr-neutral-0: #FFFFFF;
+  --kr-neutral-50: #FBF8F2;
+  --kr-neutral-100: #F3EEE4;
+  --kr-neutral-200: #E6DFD1;
+  --kr-neutral-300: #CFC7B7;
+  --kr-neutral-400: #A69F92;
+  --kr-neutral-500: #7E786D;
+  --kr-neutral-600: #5C574F;
+  --kr-neutral-700: #403C36;
+  --kr-neutral-800: #2C2925;
+  --kr-neutral-900: #22201C;
+  --kr-neutral-950: #1A1916;
+  --kr-blue-50: #EFF3FC;
+  --kr-blue-100: #DFE8F9;
+  --kr-blue-200: #BCCEF3;
+  --kr-blue-300: #95B1EC;
+  --kr-blue-400: #6992E4;
+  --kr-blue-500: #3A6FDB;
+  --kr-blue-600: #3561BB;
+  --kr-blue-700: #30539C;
+  --kr-blue-800: #2B467C;
+  --kr-blue-900: #263A61;
+  --kr-red-50: #FDF0EF;
+  --kr-red-100: #FAE2DF;
+  --kr-red-200: #F4C1BC;
+  --kr-red-300: #EE9D95;
+  --kr-red-400: #E77569;
+  --kr-red-500: #E0493A;
+  --kr-red-600: #C04134;
+  --kr-red-700: #A13A2E;
+  --kr-red-800: #813229;
+  --kr-red-900: #652B24;
+  --kr-yellow-50: #FEF9ED;
+  --kr-yellow-100: #FDF3DB;
+  --kr-yellow-200: #FBE5B1;
+  --kr-yellow-300: #F8D584;
+  --kr-yellow-400: #F5C452;
+  --kr-yellow-500: #F2B21B;
+  --kr-yellow-600: #CF9A1A;
+  --kr-yellow-700: #AD8119;
+  --kr-yellow-800: #8A6919;
+  --kr-yellow-900: #6C5318;
+  --kr-green-50: #EEF7F2;
+  --kr-green-100: #DEF0E5;
+  --kr-green-200: #B8DFC7;
+  --kr-green-300: #8FCCA6;
+  --kr-green-400: #61B782;
+  --kr-green-500: #2FA05A;
+  --kr-green-600: #2C8A4F;
+  --kr-green-700: #287544;
+  --kr-green-800: #255F39;
+  --kr-green-900: #224C30;
+  --kr-font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --kr-font-mono: 'SF Mono', ui-monospace, 'JetBrains Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  --kr-line-hair: 1.5px;
+  --kr-line-pen: 2px;
+  --kr-line-marker: 3px;
+  --kr-radius-sketch: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --kr-radius-sketch-small: 14px 4px 12px 4px / 4px 12px 4px 14px;
+  --kr-radius-sketch-alt: 15px 225px 15px 255px / 255px 15px 225px 15px;
+  --kr-radius-sketch-small-alt: 4px 14px 4px 12px / 12px 4px 14px 4px;
+  --kr-space-1: 4px;
+  --kr-space-2: 8px;
+  --kr-space-3: 12px;
+  --kr-space-4: 16px;
+  --kr-space-5: 20px;
+  --kr-space-6: 24px;
+  --kr-space-8: 32px;
+  --kr-space-10: 40px;
+  --kr-space-12: 48px;
+  --kr-space-16: 64px;
+  --kr-space-24: 96px;
+  --kr-motion-fast: 120ms;
+  --kr-motion-base: 200ms;
+  --kr-motion-slow: 400ms;
+  --kr-motion-draw: 700ms;
+  --kr-motion-stagger: 40ms;
+  --kr-motion-wait: 300ms;
+  --kr-motion-hold: 1500ms;
+  --kr-motion-toast: 4000ms;
+  --kr-boil-step: 150ms;
+  --kr-boil-rounds: 4;
+  --kr-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --kr-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --kr-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --kr-ease-settle: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  /* What a page reads. Light by default; dark below. */
+  --kr-page: var(--kr-paper);
+  --kr-surface: var(--kr-neutral-0);
+  --kr-surface-sunken: var(--kr-neutral-100);
+  --kr-text: var(--kr-ink);
+  --kr-text-muted: var(--kr-neutral-600);
+  --kr-line: var(--kr-neutral-200);
+  --kr-line-strong: var(--kr-neutral-500);
+  --kr-crow-ink: var(--kr-ink);
+  --kr-focus: var(--kr-blue-500);
+  --kr-highlight: var(--kr-yellow-200);
+  --kr-shadow-raised: 3px 4px 0 rgba(34, 32, 28, 0.14);
+  --kr-shadow-floating: 5px 7px 0 rgba(34, 32, 28, 0.16);
+  --kr-action: var(--kr-blue-600);
+  --kr-danger: var(--kr-red-600);
+  --kr-warning: var(--kr-yellow-800);
+  --kr-success: var(--kr-green-700);
+}
+
+[data-theme='dark'] {
+  --kr-page: var(--kr-neutral-950);
+  --kr-surface: var(--kr-neutral-900);
+  --kr-surface-sunken: var(--kr-neutral-800);
+  --kr-text: var(--kr-paper);
+  --kr-text-muted: var(--kr-neutral-400);
+  --kr-line: var(--kr-neutral-700);
+  --kr-line-strong: var(--kr-neutral-400);
+  --kr-crow-ink: var(--kr-paper);
+  --kr-focus: var(--kr-blue-300);
+  --kr-highlight: var(--kr-yellow-900);
+  --kr-shadow-raised: 3px 4px 0 rgba(0, 0, 0, 0.4);
+  --kr-shadow-floating: 5px 7px 0 rgba(0, 0, 0, 0.45);
+  --kr-action: var(--kr-blue-300);
+  --kr-danger: var(--kr-red-300);
+  --kr-warning: var(--kr-yellow-300);
+  --kr-success: var(--kr-green-300);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --kr-page: var(--kr-neutral-950);
+    --kr-surface: var(--kr-neutral-900);
+    --kr-surface-sunken: var(--kr-neutral-800);
+    --kr-text: var(--kr-paper);
+    --kr-text-muted: var(--kr-neutral-400);
+    --kr-line: var(--kr-neutral-700);
+    --kr-line-strong: var(--kr-neutral-400);
+    --kr-crow-ink: var(--kr-paper);
+    --kr-focus: var(--kr-blue-300);
+    --kr-highlight: var(--kr-yellow-900);
+    --kr-shadow-raised: 3px 4px 0 rgba(0, 0, 0, 0.4);
+    --kr-shadow-floating: 5px 7px 0 rgba(0, 0, 0, 0.45);
+    --kr-action: var(--kr-blue-300);
+    --kr-danger: var(--kr-red-300);
+    --kr-warning: var(--kr-yellow-300);
+    --kr-success: var(--kr-green-300);
   }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #0f1115; --surface: #181a1f; --fg: #eceef1; --muted: #a1a5ab; --rule: #2a2d33; --brand: #8ab4f8; }
+}
+/* end of @keyrook/brand */
+
+  /* The page's names for the brand's roles: ink on paper, paper on night, blue acts. */
+  :root {
+    --bg: var(--kr-page); --surface: var(--kr-surface); --fg: var(--kr-text); --muted: var(--kr-text-muted);
+    --rule: var(--kr-line); --brand: var(--kr-action);
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0; background: var(--bg); color: var(--fg);
-    font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font: 17px/1.65 var(--kr-font-sans);
     -webkit-font-smoothing: antialiased;
   }
   a { color: var(--brand); text-underline-offset: .18em; }
   .wrap { max-width: 46rem; margin: 0 auto; padding: 0 16px; }
   header { display: flex; align-items: center; gap: .6rem; padding: 1.25rem 0; }
-  header a.brand { display: flex; align-items: center; gap: .6rem; color: var(--fg); font-weight: 650; text-decoration: none; white-space: nowrap; }
+  header a.brand { display: flex; align-items: center; gap: .6rem; color: var(--fg); font-weight: 600; text-decoration: none; white-space: nowrap; }
   main { padding: 1.5rem 0 4rem; }
-  h1 { font-size: clamp(1.9rem, 5vw, 2.5rem); letter-spacing: -0.03em; line-height: 1.15; margin: 0 0 .5rem; }
-  h3 { font-size: 1.25rem; letter-spacing: -0.015em; margin: 2.75rem 0 .75rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
-  h4 { font-size: 1rem; margin: 1.75rem 0 .5rem; }
+  h1 { font-size: clamp(1.9rem, 5vw, 2.5rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 .5rem; }
+  h3 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; margin: 2.75rem 0 .75rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; }
   .updated { color: var(--muted); font-size: .9rem; margin: 0 0 1.75rem; }
-  .lede { font-size: 1.08rem; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 1.1rem 1.25rem; }
+  .lede { font-size: 1.08rem; background: var(--surface); border: 1.5px solid var(--fg); border-radius: var(--kr-radius-sketch-small); box-shadow: var(--kr-shadow-raised); padding: 1.1rem 1.25rem; }
   ul { padding-left: 1.2rem; }
   li { margin: .55rem 0; }
-  code { font: .875em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--rule); padding: .1em .35em; border-radius: 4px; }
+  code { font: .875em var(--kr-font-mono); background: var(--rule); padding: .1em .35em; border-radius: 4px; }
   footer { border-top: 1px solid var(--rule); padding: 1.75rem 0 3rem; color: var(--muted); font-size: .9rem; }
   footer a { color: var(--muted); }
 </style>
@@ -49,7 +199,7 @@
 <body>
 <div class="wrap">
   <header>
-    <a class="brand" href="../"><svg viewBox="0 0 100 100" width="28" height="28" aria-hidden="true"><path d="M50.32 34.6 C48.58 26.45 48.31 18.25 49.5 10" fill="none" stroke="#3A6FDB" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M59.98 39.48 C67.36 35.03 73.56 29.3 78.58 22.3" fill="none" stroke="#F2B21B" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M65.3 49.79 C73.2 51.57 81.13 51.75 89.1 50.33" fill="none" stroke="#E0493A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M60.44 61.04 C67.47 65.67 73.6 71.28 78.83 77.88" fill="none" stroke="#2FA05A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M50.26 64.7 C48.63 72.86 48.41 81.06 49.59 89.3" fill="none" stroke="#3A6FDB" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.83 60.75 C34.47 67.82 28.9 73.75 22.11 78.54" fill="none" stroke="#F2B21B" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M35.2 49.77 C26.91 51.5 18.57 51.71 10.2 50.38" fill="none" stroke="#E0493A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.87 39.36 C34.59 32.59 29.23 26.82 22.8 22.05" fill="none" stroke="#2FA05A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/></svg>Keyrook Authenticator</a>
+    <a class="brand" href="../"><svg viewBox="0 0 100 100" width="28" height="28" aria-hidden="true"><use href="#mark"/></svg>Keyrook Authenticator</a>
   </header>
   <main>
     <h1>Privacy Policy</h1>
@@ -131,7 +281,14 @@
     <h3>Contact</h3>
     <p>BRICK IT ALL LLC — <!--email_off--><a href="mailto:brickitall.hi@gmail.com">brickitall.hi@gmail.com</a><!--/email_off--></p>
   </main>
-  <footer>© BRICK IT ALL LLC · <a href="../">Keyrook Authenticator</a> · <a href="https://github.com/brickitall/authenticator-x">Source code</a></footer>
+  <footer>© BRICK IT ALL LLC · <a href="../">Keyrook Authenticator</a> · <a href="https://github.com/keyrook/keyrook-authenticator">Source code</a></footer>
 </div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+<!-- @keyrook/brand icons: mark -->
+<symbol id="mark" viewBox="0 0 100 100"><path d="M50.32 34.6 C48.58 26.45 48.31 18.25 49.5 10" fill="none" stroke="#3A6FDB" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M59.98 39.48 C67.36 35.03 73.56 29.3 78.58 22.3" fill="none" stroke="#F2B21B" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M65.3 49.79 C73.2 51.57 81.13 51.75 89.1 50.33" fill="none" stroke="#E0493A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M60.44 61.04 C67.47 65.67 73.6 71.28 78.83 77.88" fill="none" stroke="#2FA05A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M50.26 64.7 C48.63 72.86 48.41 81.06 49.59 89.3" fill="none" stroke="#3A6FDB" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.83 60.75 C34.47 67.82 28.9 73.75 22.11 78.54" fill="none" stroke="#F2B21B" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M35.2 49.77 C26.91 51.5 18.57 51.71 10.2 50.38" fill="none" stroke="#E0493A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.87 39.36 C34.59 32.59 29.23 26.82 22.8 22.05" fill="none" stroke="#2FA05A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<!-- end of @keyrook/brand icons -->
+  </defs>
+</svg>
 </body>
 </html>

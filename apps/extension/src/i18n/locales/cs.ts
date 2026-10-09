@@ -20,6 +20,8 @@ export const cs: Dictionary = {
   'error.alreadySignedIn': 'Už jste přihlášeni.',
   'error.signedOutElsewhere':
     'Toto zařízení bylo odhlášeno ze synchronizace — heslo se změnilo nebo bylo zařízení odebráno na jiném. Přihlaste se znovu.',
+  'error.signOutUnsynced':
+    'Některé změny v tomto prohlížeči se ještě nedostaly do vašeho účtu a odhlášení by je teď ztratilo. Připojte se k internetu a zkuste to znovu.',
   'error.enterAccountPassword': 'Zadejte heslo k účtu.',
   'error.accountPasswordWrong': 'To není heslo k vašemu účtu.',
   'error.accountPasswordWeak':
@@ -666,7 +668,7 @@ export const cs: Dictionary = {
     few: ' {count} záznamy nešly dešifrovat a byly přeskočeny. Pokud se to opakuje, s uloženou kopií je něco v nepořádku.',
     other: ' {count} záznamů nešlo dešifrovat a byly přeskočeny. Pokud se to opakuje, s uloženou kopií je něco v nepořádku.',
   },
-  'account.signOutNote': 'Odhlášení nechá trezor přesně tak, jak je — stále tady, stále šifrovaný, otevíraný stejně.',
+  'account.signOutNote': 'Odhlášení odstraní vaše kódy z tohoto prohlížeče. Zůstanou ve vašem účtu Keyrook — přihlaste se znovu a vrátí se.',
   'password.changedBoth': 'Heslo změněno pro váš účet i tento trezor. Ostatní zařízení vás požádají o nové přihlášení s ním.',
   'password.changedAccount': 'Heslo k účtu změněno. Ostatní zařízení vás požádají o nové přihlášení s ním.',
   'password.title': 'Heslo',

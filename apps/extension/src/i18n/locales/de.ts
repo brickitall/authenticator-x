@@ -21,6 +21,8 @@ export const de: Dictionary = {
   'error.alreadySignedIn': 'Bereits angemeldet.',
   'error.signedOutElsewhere':
     'Dieses Gerät wurde von der Synchronisierung abgemeldet – das Passwort wurde geändert oder das Gerät auf einem anderen entfernt. Melden Sie sich erneut an.',
+  'error.signOutUnsynced':
+    'Einige Änderungen in diesem Browser sind noch nicht in Ihrem Konto angekommen, und eine Abmeldung jetzt würde sie verlieren. Verbinden Sie sich mit dem Internet und versuchen Sie es erneut.',
   'error.enterAccountPassword': 'Geben Sie Ihr Kontopasswort ein.',
   'error.accountPasswordWrong': 'Das ist nicht Ihr Kontopasswort.',
   'error.accountPasswordWeak':
@@ -58,7 +60,7 @@ export const de: Dictionary = {
   'error.pairingEnded': 'Diese Anfrage ist beendet.',
   'error.approveAgain': 'Beginnen Sie die Freigabe dieser Anfrage erneut.',
   'error.backupPasswordShort': 'Das Backup-Passwort muss mindestens 8 Zeichen lang sein.',
-  'error.backupNotOurs': 'Diese Datei ist kein Authenticator-X-Backup.',
+  'error.backupNotOurs': 'Diese Datei ist kein Keyrook-Authenticator-Backup.',
   'error.backupNewer': 'Dieses Backup wurde mit einer neueren Version der App erstellt.',
   'error.backupUnknownCipher': 'Dieses Backup verwendet ein Verschlüsselungsverfahren, das diese Version nicht kennt.',
   'error.backupTooCostly': 'Das Öffnen dieses Backups verlangt unvernünftig viel Rechenaufwand. Es wird ignoriert.',
@@ -107,7 +109,7 @@ export const de: Dictionary = {
     one: 'Zu viele Versuche. Versuchen Sie es in {count} Sekunde erneut.',
     other: 'Zu viele Versuche. Versuchen Sie es in {count} Sekunden erneut.',
   },
-  'error.server.emailTaken': '{email} hat bereits ein Authenticator-X-Konto.',
+  'error.server.emailTaken': '{email} hat bereits ein Keyrook-Konto.',
   'error.server.recordTooLarge': 'Eines Ihrer Konten ist zu groß für die Synchronisierung ({id}).',
 
   // --- Entsperren ---------------------------------------------------------------
@@ -744,7 +746,7 @@ export const de: Dictionary = {
     other: ' {count} Einträge ließen sich nicht entschlüsseln und wurden ignoriert. Passiert das öfter, stimmt mit der gespeicherten Kopie etwas nicht.',
   },
   'account.signOutNote':
-    'Die Abmeldung lässt diesen Tresor genau so, wie er ist – weiterhin hier, weiterhin verschlüsselt, weiterhin genauso zu öffnen.',
+    'Die Abmeldung entfernt Ihre Codes aus diesem Browser. Sie bleiben in Ihrem Keyrook-Konto – melden Sie sich wieder an, um sie zurückzuholen.',
   'password.changedBoth':
     'Passwort geändert, für Ihr Konto und diesen Tresor. Ihre anderen Geräte bitten Sie, sich damit neu anzumelden.',
   'password.changedAccount':
@@ -853,7 +855,7 @@ export const de: Dictionary = {
   'welcome.othersSignedOut': 'Alle anderen Geräte wurden abgemeldet und fragen nach dem neuen Passwort.',
   'welcome.tryAgain': 'Erneut versuchen',
   'welcome.seeAccounts': 'Ihre Konten ansehen',
-  'welcome.toolbar': 'Sie sind auch nur einen Klick entfernt: das Authenticator-X-Symbol in Ihrer Symbolleiste.',
+  'welcome.toolbar': 'Sie sind auch nur einen Klick entfernt: das Keyrook-Authenticator-Symbol in Ihrer Symbolleiste.',
 
   // --- Anmelden mit Google oder GitHub ------------------------------------------
   'provider.continue': 'Weiter mit {provider}',

@@ -20,6 +20,8 @@ export const lt: Dictionary = {
   'error.alreadySignedIn': 'Jau prisijungta.',
   'error.signedOutElsewhere':
     'Šis įrenginys atjungtas nuo sinchronizavimo – slaptažodis pakeistas arba įrenginys pašalintas iš kito. Prisijunkite iš naujo.',
+  'error.signOutUnsynced':
+    'Kai kurie šios naršyklės pakeitimai dar nepasiekė jūsų paskyros, o atsijungus dabar jie būtų prarasti. Prisijunkite prie interneto ir bandykite dar kartą.',
   'error.enterAccountPassword': 'Įveskite paskyros slaptažodį.',
   'error.accountPasswordWrong': 'Tai ne jūsų paskyros slaptažodis.',
   'error.accountPasswordWeak':
@@ -675,7 +677,7 @@ export const lt: Dictionary = {
     few: ' {count} įrašų nepavyko iššifruoti, jie praleisti. Jei tai kartosis, su išsaugota kopija kažkas negerai.',
     other: ' {count} įrašų nepavyko iššifruoti, jie praleisti. Jei tai kartosis, su išsaugota kopija kažkas negerai.',
   },
-  'account.signOutNote': 'Atsijungus saugykla lieka lygiai tokia, kokia yra – vis dar čia, vis dar šifruota, atsidaro taip pat.',
+  'account.signOutNote': 'Atsijungus jūsų kodai pašalinami iš šios naršyklės. Jie lieka jūsų Keyrook paskyroje – prisijunkite iš naujo, kad juos susigrąžintumėte.',
   'password.changedBoth': 'Slaptažodis pakeistas jūsų paskyrai ir šiai saugyklai. Kiti jūsų įrenginiai paprašys juo prisijungti iš naujo.',
   'password.changedAccount': 'Paskyros slaptažodis pakeistas. Kiti jūsų įrenginiai paprašys juo prisijungti iš naujo.',
   'password.title': 'Slaptažodis',

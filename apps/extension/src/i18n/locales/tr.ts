@@ -20,6 +20,8 @@ export const tr: Dictionary = {
   'error.alreadySignedIn': 'Zaten oturum açıldı.',
   'error.signedOutElsewhere':
     'Bu cihazın eşitleme oturumu kapatıldı — parola değiştirildi ya da cihaz başka bir cihazdan kaldırıldı. Yeniden oturum açın.',
+  'error.signOutUnsynced':
+    'Bu tarayıcıdaki bazı değişiklikler henüz hesabınıza ulaşmadı ve şimdi oturumu kapatmak bunları kaybettirir. İnternete bağlanın ve yeniden deneyin.',
   'error.enterAccountPassword': 'Hesap parolanızı girin.',
   'error.accountPasswordWrong': 'Bu, hesap parolanız değil.',
   'error.accountPasswordWeak':
@@ -671,7 +673,7 @@ export const tr: Dictionary = {
     one: ' {count} kaydın şifresi çözülemedi ve yok sayıldı. Bu tekrarlanırsa, saklanan kopyada bir sorun var.',
     other: ' {count} kaydın şifresi çözülemedi ve yok sayıldı. Bu tekrarlanırsa, saklanan kopyada bir sorun var.',
   },
-  'account.signOutNote': 'Oturumu kapatmak bu kasayı olduğu gibi bırakır — hâlâ burada, hâlâ şifreli, hâlâ aynı şekilde açılır.',
+  'account.signOutNote': 'Oturumu kapatmak kodlarınızı bu tarayıcıdan kaldırır. Kodlar Keyrook hesabınızda kalır — geri getirmek için yeniden oturum açın.',
   'password.changedBoth':
     'Parola hesabınız ve bu kasa için değiştirildi. Diğer cihazlarınız onunla yeniden oturum açmanızı isteyecek.',
   'password.changedAccount': 'Hesap parolası değiştirildi. Diğer cihazlarınız onunla yeniden oturum açmanızı isteyecek.',

@@ -220,7 +220,7 @@ export function CameraScanner({
       {error && <Callout tone="danger">{error}</Callout>}
 
       {phase !== 'failed' && (
-        <div className="relative overflow-hidden rounded-xl bg-zinc-900 aspect-[4/3]">
+        <div className="relative overflow-hidden rounded-xl bg-neutral-900 aspect-[4/3]">
           <video
             ref={video}
             playsInline
@@ -245,7 +245,7 @@ export function CameraScanner({
       )}
 
       {(phase === 'failed' || !compact) && (
-        <p className="text-[12px] leading-snug text-zinc-500 dark:text-zinc-400">
+        <p className="text-[12px] leading-snug text-neutral-600 dark:text-neutral-400">
           {phase === 'failed'
             ? t('camera.failedHint')
             : native === false && withoutNativeReader
@@ -256,7 +256,7 @@ export function CameraScanner({
 
       {phase === 'failed' && fallback}
 
-      <p className="text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500">
+      <p className="text-[11px] leading-relaxed text-neutral-400 dark:text-neutral-500">
         {t('camera.privacy')}
       </p>
 

@@ -25,6 +25,7 @@ import {
   keyringForFile,
   moveGroup,
   passphraseKeyring,
+  pendingItems,
   hasRecoveryKit,
   readPayload,
   removeRecoveryKit,
@@ -49,6 +50,7 @@ import {
 import { SYNC_API_URL, SYNC_ENABLED } from '../lib/config.js';
 import { FILL_COMMAND } from '../lib/commands.js';
 import { APP_NAME } from '../lib/name.js';
+import { CRAYON, MOTION, ROLES } from '@keyrook/brand';
 import { AppError, fail } from '../i18n/errors.js';
 import { createSerialiser } from '../lib/serial.js';
 import {
@@ -835,9 +837,25 @@ async function handle(request: Request): Promise<unknown> {
       });
 
     case 'account/signOut':
-      return mutateVault(async (unlocked) => {
+      // Signing out takes the codes off this browser, so whatever it changed
+      // must reach the account first: one cycle to send it, and no sign-out
+      // while anything is still waiting — offline, or past the account's
+      // ceiling — or the only copy of that change goes with the rest.
+      return serial(async () => {
+        let unlocked = await requireUnlocked();
+        if (isSignedIn(unlocked.data) && pendingItems(unlocked.data).length > 0) {
+          try {
+            unlocked = (await syncInTurn(unlocked)).unlocked;
+          } catch (error) {
+            // Signed out elsewhere already: the vault keeps everything, and
+            // that is what the page should say.
+            if (error instanceof AppError && error.key === 'error.signedOutElsewhere') throw error;
+            fail('error.signOutUnsynced');
+          }
+        }
+        if (pendingItems(unlocked.data).length > 0) fail('error.signOutUnsynced');
         await chrome.alarms.clear(SYNC_ALARM);
-        return { data: await signOut(unlocked.data), result: undefined };
+        await persist(await signOut(unlocked.data));
       });
 
     case 'account/devices':
@@ -1082,11 +1100,12 @@ async function fillFromShortcut(tab: chrome.tabs.Tab | undefined): Promise<void>
     return choose();
   }
 
-  // Said where the eyes are not: a tick on the toolbar icon, for a moment.
+  // Said where the eyes are not: a tick on the toolbar icon, for a moment —
+  // the success crayon at the stop that holds white text, for "Copied"'s hold.
   const tabId = tab.id;
-  await chrome.action.setBadgeBackgroundColor({ tabId, color: '#16a34a' });
+  await chrome.action.setBadgeBackgroundColor({ tabId, color: CRAYON.green[ROLES.success.light] });
   await chrome.action.setBadgeText({ tabId, text: '✓' });
-  setTimeout(() => void chrome.action.setBadgeText({ tabId, text: '' }).catch(() => undefined), 1500);
+  setTimeout(() => void chrome.action.setBadgeText({ tabId, text: '' }).catch(() => undefined), MOTION.hold);
 }
 
 chrome.commands.onCommand.addListener((command, tab) => {

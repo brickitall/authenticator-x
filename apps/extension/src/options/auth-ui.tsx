@@ -11,7 +11,7 @@ import { translate } from '../i18n/runtime.js';
 /** A narrow, centred card: one column, one decision at a time. */
 export function AuthCard({ children }: { children: ReactNode }) {
   return (
-    <div className="animate-fade-in mx-auto w-full max-w-[400px] rounded-2xl border border-zinc-200 bg-white p-7 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="animate-fade-in mx-auto w-full max-w-[400px] rounded-2xl border border-neutral-200 bg-white p-7 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
       {children}
     </div>
   );
@@ -19,8 +19,8 @@ export function AuthCard({ children }: { children: ReactNode }) {
 
 export const MARK_TONES = {
   brand: 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-300',
-  success: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-  warning: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400',
+  success: 'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-300',
+  warning: 'bg-yellow-50 text-yellow-800 dark:bg-yellow-500/10 dark:text-yellow-300',
 } as const;
 
 export function Mark({ icon, tone = 'brand' }: { icon: ReactNode; tone?: keyof typeof MARK_TONES }) {
@@ -35,7 +35,7 @@ export function Heading({ title, subtitle }: { title: string; subtitle?: ReactNo
   return (
     <div>
       <h2 className="text-[18px] font-semibold tracking-tight">{title}</h2>
-      {subtitle && <p className="mt-1 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">{subtitle}</p>}
+      {subtitle && <p className="mt-1 text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">{subtitle}</p>}
     </div>
   );
 }
@@ -54,7 +54,7 @@ export function TextLink({ children, onClick }: { children: ReactNode; onClick: 
 
 export function Footnote({ children }: { children: ReactNode }) {
   return (
-    <p className="text-center text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">{children}</p>
+    <p className="text-center text-[12px] leading-relaxed text-neutral-600 dark:text-neutral-400">{children}</p>
   );
 }
 
@@ -85,7 +85,7 @@ export function FormShell({
           type="button"
           onClick={onBack}
           aria-label={translate('common.back')}
-          className="-ms-1.5 grid h-8 w-8 place-items-center rounded-lg text-[17px] text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+          className="-ms-1.5 grid h-8 w-8 place-items-center rounded-lg text-[17px] text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-neutral-100"
         >
           <ArrowLeftIcon />
         </button>

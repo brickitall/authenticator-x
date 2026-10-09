@@ -12,8 +12,8 @@
 <p align="center">
   <a href="https://chromewebstore.google.com/detail/occcfljfhlijenkofoceocnimkfpdndl">Chrome Web Store</a> ·
   <a href="https://microsoftedge.microsoft.com/addons/detail/lnbabkbknabedpnmdihllnbhdmolianm">Edge Add-ons</a> ·
-  <a href="https://pricingrank.org/authenticator-x/">Website</a> ·
-  <a href="https://pricingrank.org/authenticator-x/privacy/">Privacy policy</a> ·
+  <a href="https://keyrook.com/authenticator/">Website</a> ·
+  <a href="https://keyrook.com/authenticator/privacy/">Privacy policy</a> ·
   GPL-3.0-or-later
 </p>
 
@@ -66,7 +66,7 @@ release. Each store release is tagged here (`vX.Y.Z`).
 - **Autofill** into the one-time-code field of the page you opened the popup on,
   or with Alt+Shift+F where exactly one account belongs to the site.
 - **A code without saving** — paste a key, see its code, keep nothing. The same
-  is on [the website](https://pricingrank.org/authenticator-x/code/), where the
+  is on [the website](https://keyrook.com/authenticator/code/), where the
   page's own security policy stops the key from leaving it.
 - **Two ways to protect the vault** — a key the browser holds (nothing to type)
   or a master password — switchable without re-encrypting anything.
@@ -125,7 +125,7 @@ npm run test:e2e -w @authx/extension
 ```
 
 A build from this tree is the store's build: it talks to the official sync
-server, `https://2fa.pricingrank.org`, and nothing else. That server answers
+server, `https://api.keyrook.com`, and nothing else. That server answers
 only the store listings' extension ids, so a copy you load unpacked cannot sign
 in; build with `VITE_SYNC_API_URL=` (empty) for one with the account features
 switched off.

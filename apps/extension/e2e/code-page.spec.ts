@@ -4,13 +4,13 @@ import { expect, test, type Page } from '@playwright/test';
 import { formatCode, generateTotp } from '@authx/core';
 
 /**
- * The website's code page — pricingrank.org/authenticator-x/code/ — in a real
+ * The website's code page — keyrook.com/authenticator/code/ — in a real
  * browser, served over HTTPS as it is in production. Its claims are tested by
  * trying to break them: a key typed in must not leave the page, and a script
  * slipped into it must not run.
  */
-const PAGE = readFileSync(resolve(import.meta.dirname, '../../../site/authenticator-x/code/index.html'), 'utf8');
-const URL_ = 'https://pricingrank.test/authenticator-x/code/';
+const PAGE = readFileSync(resolve(import.meta.dirname, '../../../site/keyrook.com/authenticator/code/index.html'), 'utf8');
+const URL_ = 'https://keyrook.test/authenticator/code/';
 // RFC 6238's test key: at T = 59 s it makes 94287082, or 287082 in six digits.
 const RFC_KEY = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
 
@@ -72,14 +72,14 @@ test('the key cannot leave the page, and no other script can run in it', async (
   const attempts = await page.evaluate(async (key) => {
     const tried = async (attempt: () => Promise<unknown>) => attempt().then(() => 'sent', () => 'blocked');
     return {
-      fetch: await tried(() => fetch(`https://pricingrank.test/?k=${key}`)),
+      fetch: await tried(() => fetch(`https://keyrook.test/?k=${key}`)),
       image: await tried(
         () =>
           new Promise((resolve, reject) => {
             const image = new Image();
             image.onload = resolve;
             image.onerror = reject;
-            image.src = `https://pricingrank.test/pixel?k=${key}`;
+            image.src = `https://keyrook.test/pixel?k=${key}`;
           }),
       ),
     };
@@ -98,16 +98,16 @@ test('the key cannot leave the page, and no other script can run in it', async (
   // The page itself was the only thing that ever reached the network; the
   // image was stopped by the policy, not by the routing.
   expect(reached).toEqual([URL_]);
-  expect(refused).toEqual([`https://pricingrank.test/pixel?k=${RFC_KEY}`]);
+  expect(refused).toEqual([`https://keyrook.test/pixel?k=${RFC_KEY}`]);
 });
 
 /**
  * The other pages hold to the same rule: their own script, if any, and no
  * other. Cloudflare injects an analytics beacon into every page it serves for
- * pricingrank.org; these are what keep it from running.
+ * keyrook.com; these are what keep it from running.
  */
 async function serve(page: Page, file: string, url: string) {
-  const html = readFileSync(resolve(import.meta.dirname, '../../../site/authenticator-x', file), 'utf8');
+  const html = readFileSync(resolve(import.meta.dirname, '../../../site/keyrook.com/authenticator', file), 'utf8');
   await page.context().route('**/*', (route) =>
     route.request().url() === url ? route.fulfill({ contentType: 'text/html', body: html }) : route.abort(),
   );
@@ -124,7 +124,7 @@ const injected = (page: Page) =>
   });
 
 test('the intro page runs its own script and no other', async ({ page }) => {
-  await serve(page, 'index.html', 'https://pricingrank.test/authenticator-x/');
+  await serve(page, 'index.html', 'https://keyrook.test/authenticator/');
   // Its sample codes are live, so its script ran under the policy's hash.
   const expected = formatCode(await generateTotp('JBSWY3DPEHPK3PXP', {}, 59_000));
   await expect(page.locator('[data-secret="JBSWY3DPEHPK3PXP"] .code')).toHaveText(expected);
@@ -132,7 +132,7 @@ test('the intro page runs its own script and no other', async ({ page }) => {
 });
 
 test('the privacy page runs no script at all', async ({ page }) => {
-  await serve(page, 'privacy/index.html', 'https://pricingrank.test/authenticator-x/privacy/');
+  await serve(page, 'privacy/index.html', 'https://keyrook.test/authenticator/privacy/');
   await expect(page.getByRole('heading', { name: /Privacy Policy/ })).toBeVisible();
   expect(await injected(page)).toBe(false);
 });

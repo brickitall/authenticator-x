@@ -21,6 +21,8 @@ export const fr: Dictionary = {
   'error.alreadySignedIn': 'Déjà connecté.',
   'error.signedOutElsewhere':
     'Cet appareil a été déconnecté de la synchronisation — le mot de passe a été changé ou l’appareil a été retiré depuis un autre. Reconnectez-vous.',
+  'error.signOutUnsynced':
+    'Certaines modifications faites dans ce navigateur ne sont pas encore arrivées dans votre compte, et se déconnecter maintenant les perdrait. Connectez-vous à Internet et réessayez.',
   'error.enterAccountPassword': 'Saisissez le mot de passe de votre compte.',
   'error.accountPasswordWrong': 'Ce n’est pas le mot de passe de votre compte.',
   'error.accountPasswordWeak':
@@ -742,7 +744,7 @@ export const fr: Dictionary = {
     other: ' {count} enregistrements n’ont pas pu être déchiffrés et ont été ignorés. Si cela se reproduit, la copie stockée a un problème.',
   },
   'account.signOutNote':
-    'Se déconnecter laisse ce coffre exactement tel quel — toujours ici, toujours chiffré, toujours ouvert de la même façon.',
+    'Se déconnecter retire vos codes de ce navigateur. Ils restent dans votre compte Keyrook — reconnectez-vous pour les récupérer.',
   'password.changedBoth':
     'Mot de passe changé, pour votre compte et ce coffre. Vos autres appareils vous demanderont de vous reconnecter avec.',
   'password.changedAccount':

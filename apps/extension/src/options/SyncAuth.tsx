@@ -223,7 +223,7 @@ function Intro({
         <Mark icon={<CloudLockIcon />} />
         <div>
           <h2 className="text-[18px] font-semibold tracking-tight">{t('intro.title')}</h2>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">
             {t('intro.subtitle')}
           </p>
         </div>
@@ -236,7 +236,7 @@ function Intro({
       ) : (
         <ul className="flex flex-col gap-2.5">
           {BENEFITS.map((benefit) => (
-            <li key={benefit} className="flex gap-2.5 text-[13px] leading-snug text-zinc-700 dark:text-zinc-300">
+            <li key={benefit} className="flex gap-2.5 text-[13px] leading-snug text-neutral-700 dark:text-neutral-300">
               <CheckIcon className="mt-px shrink-0 text-[15px] text-brand-600 dark:text-brand-400" />
               {t(benefit)}
             </li>
@@ -388,7 +388,7 @@ function CreateForm({
         subtitle={t.rich(
           'create.codeSent',
           { email },
-          { b: (chunk) => <span className="font-medium text-zinc-700 dark:text-zinc-200">{chunk}</span> },
+          { b: (chunk) => <span className="font-medium text-neutral-700 dark:text-neutral-200">{chunk}</span> },
         )}
         onSubmit={() =>
           void run(async () => {
@@ -457,7 +457,7 @@ function CreateForm({
       <ProvidersAbove offer={offer} onProvider={onProvider} />
       <div className="flex flex-col gap-4">
         {withProviders && (
-          <p className="-mt-1 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">{aboutPassword}</p>
+          <p className="-mt-1 text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">{aboutPassword}</p>
         )}
         <EmailField email={email} onEmail={onEmail} autoFocus />
         {choosing ? (
@@ -713,7 +713,7 @@ export function FreshRecoveryKey({
           <Mark icon={<KeyIcon />} />
           <div>
             <h2 className="text-[18px] font-semibold tracking-tight">{t('fresh.title')}</h2>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">
               {backedUpLine(backup, t)}{' '}
               {provider ? t('fresh.provider', { provider: providerLabel(provider) }) : t('fresh.password')}
             </p>
@@ -784,7 +784,7 @@ export function SignedInWelcome({
             <h2 className="text-[18px] font-semibold tracking-tight">
               {failed ? t('welcome.failed') : how === 'recover' ? t('welcome.back') : t('welcome.signedIn')}
             </h2>
-            <p className="mt-1 text-[13px] text-zinc-500 dark:text-zinc-400">{email}</p>
+            <p className="mt-1 text-[13px] text-neutral-600 dark:text-neutral-400">{email}</p>
           </div>
         </div>
 
@@ -794,14 +794,14 @@ export function SignedInWelcome({
             <p className="mt-1">{t('welcome.nothingLost')}</p>
           </Callout>
         ) : (
-          <div className="rounded-2xl bg-zinc-50 px-5 py-4 text-center dark:bg-zinc-900">
+          <div className="rounded-2xl bg-neutral-50 px-5 py-4 text-center dark:bg-neutral-900">
             <p className="text-[30px] leading-none font-semibold tracking-tight tabular-nums">
               {backup.total}
             </p>
             <p className="mt-1.5 text-[13px] font-medium">
               {t('welcome.onDevice', { count: backup.total })}
             </p>
-            <p className="mt-1 text-[12px] text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 text-[12px] text-neutral-600 dark:text-neutral-400">
               {sync ? breakdown(sync, backup.total, t) : null}
               {backup.pending > 0 && t('welcome.uploading', { count: backup.pending })}
             </p>
@@ -809,7 +809,7 @@ export function SignedInWelcome({
         )}
 
         {how === 'recover' && !failed && (
-          <p className="text-center text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+          <p className="text-center text-[12px] leading-relaxed text-neutral-600 dark:text-neutral-400">
             {t('welcome.othersSignedOut')}
           </p>
         )}

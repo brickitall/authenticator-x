@@ -128,8 +128,8 @@ export function ProviderButtons({
           onClick={() => void start(provider)}
           className={cx(
             'relative inline-flex h-10 w-full items-center justify-center gap-2.5 rounded-xl border text-sm font-medium transition-colors select-none',
-            'border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-50 active:bg-zinc-100',
-            'dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800',
+            'border-neutral-300 bg-white text-neutral-900 hover:bg-neutral-50 active:bg-neutral-100',
+            'dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800',
             'disabled:cursor-not-allowed disabled:opacity-60',
           )}
         >
@@ -138,7 +138,7 @@ export function ProviderButtons({
         </button>
       ))}
       {busy && !offer.inTab && !inNewTab && (
-        <p className="text-center text-[12px] text-zinc-500 dark:text-zinc-400">
+        <p className="text-center text-[12px] text-neutral-600 dark:text-neutral-400">
           {t('provider.finishInWindow', { provider: providerLabel(busy) })}
         </p>
       )}
@@ -150,10 +150,10 @@ export function ProviderButtons({
 /** A line between the providers and the email forms. */
 export function OrDivider({ children }: { children: string }) {
   return (
-    <div className="flex items-center gap-3 text-[12px] text-zinc-400 dark:text-zinc-500">
-      <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+    <div className="flex items-center gap-3 text-[12px] text-neutral-400 dark:text-neutral-500">
+      <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
       {children}
-      <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+      <span className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
     </div>
   );
 }
@@ -184,7 +184,7 @@ export function ProviderNewAccount({
       subtitle={t.rich(
         'provider.confirmed',
         { provider: name, email },
-        { b: (chunk) => <span className="font-medium text-zinc-700 dark:text-zinc-200">{chunk}</span> },
+        { b: (chunk) => <span className="font-medium text-neutral-700 dark:text-neutral-200">{chunk}</span> },
       )}
       onSubmit={() =>
         void run(async () => {
@@ -193,7 +193,7 @@ export function ProviderNewAccount({
         })
       }
     >
-      <ul className="flex flex-col gap-3 text-[13px] leading-snug text-zinc-700 dark:text-zinc-300">
+      <ul className="flex flex-col gap-3 text-[13px] leading-snug text-neutral-700 dark:text-neutral-300">
         <li className="flex gap-2.5">
           <span className="mt-[5px] h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
           <span>
@@ -251,7 +251,7 @@ export function PairingCode({ code }: { code: string }) {
   return (
     <p
       aria-label={t('pairing.codeLabel', { code: groups.join(' ') })}
-      className="rounded-2xl bg-zinc-50 px-4 py-4 text-center font-mono text-[22px] font-semibold tracking-[0.12em] text-zinc-900 tabular-nums dark:bg-zinc-900 dark:text-zinc-50"
+      className="rounded-2xl bg-neutral-50 px-4 py-4 text-center font-mono text-[22px] font-semibold tracking-[0.12em] text-neutral-900 tabular-nums dark:bg-neutral-900 dark:text-neutral-50"
       data-pairing-code={code}
     >
       {groups.join(' ')}
@@ -365,7 +365,7 @@ export function JoinAccount({
       subtitle={t.rich(
         'join.subtitle',
         { email },
-        { b: (chunk) => <span className="font-medium text-zinc-700 dark:text-zinc-200">{chunk}</span> },
+        { b: (chunk) => <span className="font-medium text-neutral-700 dark:text-neutral-200">{chunk}</span> },
       )}
       onSubmit={() => {
         if (!asked && password) void ask();
@@ -388,7 +388,7 @@ export function JoinAccount({
         </>
       ) : (
         <>
-          <ol className="flex flex-col gap-2.5 text-[13px] leading-snug text-zinc-700 dark:text-zinc-300">
+          <ol className="flex flex-col gap-2.5 text-[13px] leading-snug text-neutral-700 dark:text-neutral-300">
             <li className="flex gap-2.5">
               <Step n={1} />
               <span>{t('join.step1')}</span>
@@ -409,12 +409,12 @@ export function JoinAccount({
           ) : progress.state === 'compare' ? (
             <div className="flex flex-col gap-2.5">
               <PairingCode code={progress.code} />
-              <p className="text-center text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+              <p className="text-center text-[12px] leading-relaxed text-neutral-600 dark:text-neutral-400">
                 {t('join.compare')}
               </p>
             </div>
           ) : (
-            <div className="flex items-center justify-center gap-2 rounded-2xl bg-zinc-50 px-4 py-4 text-[13px] text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
+            <div className="flex items-center justify-center gap-2 rounded-2xl bg-neutral-50 px-4 py-4 text-[13px] text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
               <Spinner className="h-4 w-4" /> {t('join.waiting')}
             </div>
           )}
@@ -577,7 +577,7 @@ export function PairingRequests({ provider }: { provider: SignInProvider }) {
       title={t('approve.title')}
       description={t('approve.description', { provider: providerLabel(provider) })}
     >
-      <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900">
+      <div className="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-900">
         {notice && (
           <div className="p-4">
             <Callout tone={notice.tone}>{notice.text}</Callout>
@@ -588,7 +588,7 @@ export function PairingRequests({ provider }: { provider: SignInProvider }) {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-[13px] font-medium">{request.deviceName}</p>
-                <p className="mt-0.5 text-[12px] text-zinc-500 dark:text-zinc-400">
+                <p className="mt-0.5 text-[12px] text-neutral-600 dark:text-neutral-400">
                   {t('approve.askedAt', { time: new Date(request.createdAt).toLocaleTimeString(t.locale) })}
                 </p>
               </div>
@@ -606,7 +606,7 @@ export function PairingRequests({ provider }: { provider: SignInProvider }) {
             {reviewing?.id === request.id && (
               <div className="flex max-w-md flex-col gap-3">
                 <PairingCode code={reviewing.code} />
-                <p className="text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                <p className="text-[12px] leading-relaxed text-neutral-600 dark:text-neutral-400">
                   {t('approve.question')}
                 </p>
                 <div className="flex gap-2">

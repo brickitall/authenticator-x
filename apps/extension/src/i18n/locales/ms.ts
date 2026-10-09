@@ -20,6 +20,8 @@ export const ms: Dictionary = {
   'error.alreadySignedIn': 'Anda sudah log masuk.',
   'error.signedOutElsewhere':
     'Peranti ini telah dilog keluar daripada penyegerakan — kata laluan ditukar atau peranti ini dialih keluar dari peranti lain. Log masuk semula.',
+  'error.signOutUnsynced':
+    'Beberapa perubahan dalam pelayar ini belum sampai ke akaun anda, dan log keluar sekarang akan menghilangkannya. Sambung ke internet dan cuba lagi.',
   'error.enterAccountPassword': 'Masukkan kata laluan akaun anda.',
   'error.accountPasswordWrong': 'Itu bukan kata laluan akaun anda.',
   'error.accountPasswordWeak':
@@ -617,7 +619,7 @@ export const ms: Dictionary = {
   'summary.end': '.',
   'summary.deleted': { other: ' {count} akaun dibuang pada peranti lain — anda boleh memulihkannya di bahagian Akaun.' },
   'summary.rejected': { other: ' {count} rekod tidak dapat dinyahsulit dan dilangkau. Jika ini berterusan, ada yang tidak kena dengan salinan yang disimpan.' },
-  'account.signOutNote': 'Log keluar membiarkan peti besi tepat seperti sedia ada — masih di sini, masih disulitkan, dibuka dengan cara yang sama.',
+  'account.signOutNote': 'Log keluar membuang kod anda daripada pelayar ini. Kod kekal dalam akaun Keyrook anda — log masuk semula untuk mendapatkannya kembali.',
   'password.changedBoth': 'Kata laluan ditukar untuk akaun anda dan peti besi ini. Peranti lain anda akan meminta anda log masuk semula dengannya.',
   'password.changedAccount': 'Kata laluan akaun ditukar. Peranti lain anda akan meminta anda log masuk semula dengannya.',
   'password.title': 'Kata laluan',

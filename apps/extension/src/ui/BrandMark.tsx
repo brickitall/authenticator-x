@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { isStoredIcon, matchBrand, monogramFor } from '@authx/core';
 import { BRAND_ICONS, type BrandIcon } from './brand-icons.js';
+import { INK, NEUTRAL } from '@keyrook/brand';
 import { cx } from './primitives.js';
 import { translate } from '../i18n/runtime.js';
 
@@ -59,7 +60,7 @@ export function BrandMark({
   if (custom && isStoredIcon(custom)) {
     return (
       <span
-        className={cx(shared, 'overflow-hidden ring-1 ring-zinc-200 ring-inset dark:ring-zinc-700')}
+        className={cx(shared, 'overflow-hidden ring-1 ring-neutral-200 ring-inset dark:ring-neutral-700')}
         style={{ width: size, height: size, background: '#FFFFFF' }}
       >
         <img
@@ -83,7 +84,7 @@ export function BrandMark({
     if (icon.kind === 'color') {
       return (
         <span
-          className={cx(shared, 'ring-1 ring-zinc-200 ring-inset dark:ring-zinc-700')}
+          className={cx(shared, 'ring-1 ring-neutral-200 ring-inset dark:ring-neutral-700')}
           style={{ width: size, height: size, background: '#FFFFFF' }}
           role="img"
           aria-label={mark.name}
@@ -93,7 +94,7 @@ export function BrandMark({
             viewBox={icon.viewBox}
             width={glyph}
             height={glyph}
-            color="#18181B"
+            color={INK}
             aria-hidden="true"
             // Compile-time constant from the bundled icon sets — never user
             // input, and never anything fetched at runtime.
@@ -103,16 +104,16 @@ export function BrandMark({
       );
     }
 
-    const hex = icon.hex ?? '52525B';
+    const hex = icon.hex ?? NEUTRAL[600].slice(1);
     const light = isLight(hex);
-    const foreground = light ? '#18181B' : '#FFFFFF';
+    const foreground = light ? INK : NEUTRAL[0];
 
     // Markup drawn in `currentColor` — tinted like a single-path mark, but it
     // has to inherit rather than be filled, or nested shapes all collapse.
     if (icon.kind === 'flat') {
       return (
         <span
-          className={cx(shared, light && 'ring-1 ring-zinc-200 ring-inset dark:ring-zinc-700')}
+          className={cx(shared, light && 'ring-1 ring-neutral-200 ring-inset dark:ring-neutral-700')}
           style={{ width: size, height: size, background: `#${hex}` }}
           role="img"
           aria-label={mark.name}
@@ -133,7 +134,7 @@ export function BrandMark({
 
     return (
       <span
-        className={cx(shared, light && 'ring-1 ring-zinc-200 ring-inset dark:ring-zinc-700')}
+        className={cx(shared, light && 'ring-1 ring-neutral-200 ring-inset dark:ring-neutral-700')}
         style={{ width: size, height: size, background: `#${hex}` }}
         role="img"
         aria-label={mark.name}
@@ -153,21 +154,21 @@ export function BrandMark({
   }
 
   return (
+    // A service with no mark gets its first letter on a neutral tile. A
+    // coloured one would be a logo the service never drew, and four crayons
+    // already have jobs in this interface.
     <span
-      className={shared}
-      style={{
-        width: size,
-        height: size,
-        // Fixed saturation and lightness so every tile carries the same visual
-        // weight; only the hue distinguishes them.
-        background: `hsl(${mark.monogram.hue} 52% 45%)`,
-      }}
+      className={cx(
+        shared,
+        'bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200 ring-inset dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700',
+      )}
+      style={{ width: size, height: size }}
       role="img"
       aria-label={issuer || label || translate('brand.unknown')}
       title={issuer || label}
     >
       <span
-        className="font-semibold text-white"
+        className="font-semibold"
         style={{ fontSize: Math.round(size * 0.44), lineHeight: 1 }}
       >
         {mark.monogram.letter}

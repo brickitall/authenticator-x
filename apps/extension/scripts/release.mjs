@@ -8,7 +8,7 @@
  * to: the one origin a release may talk to besides itself. Changing it is a
  * change to the privacy policy and to both stores' privacy answers.
  */
-export const PRODUCTION_SYNC_API_URL = 'https://2fa.pricingrank.org';
+export const PRODUCTION_SYNC_API_URL = 'https://api.keyrook.com';
 
 /**
  * The Edge Add-ons listing's public key (Partner Center → the extension →

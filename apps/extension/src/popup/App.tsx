@@ -28,7 +28,7 @@ export function App() {
   if (error) {
     return (
       <Centered>
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        <p className="text-sm text-red-600 dark:text-red-300">{error}</p>
       </Centered>
     );
   }
@@ -36,7 +36,7 @@ export function App() {
   if (!status) {
     return (
       <Centered>
-        <Spinner className="h-5 w-5 text-zinc-400" />
+        <Spinner className="h-5 w-5 text-neutral-400" />
       </Centered>
     );
   }

@@ -20,6 +20,8 @@ export const id: Dictionary = {
   'error.alreadySignedIn': 'Sudah masuk.',
   'error.signedOutElsewhere':
     'Perangkat ini dikeluarkan dari sinkronisasi — kata sandinya diubah atau perangkat ini dihapus dari perangkat lain. Masuk lagi.',
+  'error.signOutUnsynced':
+    'Beberapa perubahan di browser ini belum sampai ke akun Anda, dan keluar sekarang akan menghilangkannya. Sambungkan ke internet lalu coba lagi.',
   'error.enterAccountPassword': 'Masukkan kata sandi akun Anda.',
   'error.accountPasswordWrong': 'Itu bukan kata sandi akun Anda.',
   'error.accountPasswordWeak':
@@ -642,7 +644,7 @@ export const id: Dictionary = {
   'summary.rejected': {
     other: ' {count} catatan tidak dapat didekripsi dan diabaikan. Jika ini terus terjadi, ada yang salah dengan salinan yang tersimpan.',
   },
-  'account.signOutNote': 'Keluar membiarkan brankas ini persis seperti adanya — tetap di sini, tetap terenkripsi, tetap dibuka dengan cara yang sama.',
+  'account.signOutNote': 'Keluar menghapus kode Anda dari browser ini. Kode tetap ada di akun Keyrook Anda — masuk lagi untuk mengembalikannya.',
   'password.changedBoth':
     'Kata sandi diubah, untuk akun Anda dan brankas ini. Perangkat Anda yang lain akan meminta Anda masuk lagi dengannya.',
   'password.changedAccount': 'Kata sandi akun diubah. Perangkat Anda yang lain akan meminta Anda masuk lagi dengannya.',

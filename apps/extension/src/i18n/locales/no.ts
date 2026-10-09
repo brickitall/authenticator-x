@@ -20,6 +20,8 @@ export const no: Dictionary = {
   'error.alreadySignedIn': 'Allerede logget på.',
   'error.signedOutElsewhere':
     'Denne enheten ble logget ut av synkroniseringen — passordet ble endret, eller enheten ble fjernet fra en annen. Logg på igjen.',
+  'error.signOutUnsynced':
+    'Noen endringer i denne nettleseren har ikke nådd kontoen din ennå, og hvis du logger ut nå, går de tapt. Koble til internett og prøv igjen.',
   'error.enterAccountPassword': 'Skriv inn kontopassordet ditt.',
   'error.accountPasswordWrong': 'Det er ikke kontopassordet ditt.',
   'error.accountPasswordWeak':
@@ -641,7 +643,7 @@ export const no: Dictionary = {
     one: ' {count} oppføring kunne ikke dekrypteres og ble hoppet over. Skjer det igjen, er det noe galt med den lagrede kopien.',
     other: ' {count} oppføringer kunne ikke dekrypteres og ble hoppet over. Skjer det igjen, er det noe galt med den lagrede kopien.',
   },
-  'account.signOutNote': 'Å logge ut lar hvelvet være akkurat som det er — fortsatt her, fortsatt kryptert, åpnet på samme måte.',
+  'account.signOutNote': 'Når du logger ut, fjernes kodene dine fra denne nettleseren. De blir værende i Keyrook-kontoen din — logg på igjen for å få dem tilbake.',
   'password.changedBoth': 'Passordet er endret, for kontoen din og hvelvet. De andre enhetene dine ber deg logge på igjen med det.',
   'password.changedAccount': 'Kontopassordet er endret. De andre enhetene dine ber deg logge på igjen med det.',
   'password.title': 'Passord',

@@ -20,6 +20,8 @@ export const ca: Dictionary = {
   'error.alreadySignedIn': 'Ja heu iniciat la sessió.',
   'error.signedOutElsewhere':
     'S’ha tancat la sessió de sincronització d’aquest dispositiu: s’ha canviat la contrasenya o s’ha eliminat des d’un altre. Torneu a iniciar la sessió.',
+  'error.signOutUnsynced':
+    'Alguns canvis d’aquest navegador encara no han arribat al vostre compte, i tancar la sessió ara els perdria. Connecteu-vos a internet i torneu-ho a provar.',
   'error.enterAccountPassword': 'Introduïu la contrasenya del compte.',
   'error.accountPasswordWrong': 'Aquesta no és la contrasenya del vostre compte.',
   'error.accountPasswordWeak':
@@ -642,7 +644,7 @@ export const ca: Dictionary = {
     one: ' {count} registre no s’ha pogut desxifrar i s’ha omès. Si torna a passar, hi ha algun problema amb la còpia desada.',
     other: ' {count} registres no s’han pogut desxifrar i s’han omès. Si torna a passar, hi ha algun problema amb la còpia desada.',
   },
-  'account.signOutNote': 'Tancar la sessió deixa la caixa forta exactament com és: encara aquí, encara xifrada i s’obre de la mateixa manera.',
+  'account.signOutNote': 'Tancar la sessió elimina els vostres codis d’aquest navegador. Es queden al vostre compte de Keyrook: torneu a iniciar la sessió per recuperar-los.',
   'password.changedBoth': 'S’ha canviat la contrasenya del vostre compte i d’aquesta caixa forta. Els altres dispositius us demanaran que torneu a iniciar la sessió amb ella.',
   'password.changedAccount': 'S’ha canviat la contrasenya del compte. Els altres dispositius us demanaran que torneu a iniciar la sessió amb ella.',
   'password.title': 'Contrasenya',

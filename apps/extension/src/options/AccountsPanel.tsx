@@ -75,31 +75,31 @@ export function AccountsPanel({
           accounts is clutter. */}
       {items.length > 5 && (
         <div className="relative mb-3">
-          <SearchIcon className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-[16px] text-zinc-400" />
+          <SearchIcon className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-[16px] text-neutral-400" />
           <input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t('vault.search')}
             aria-label={t('vault.search')}
-            className="h-10 w-full rounded-xl border border-zinc-200 bg-white ps-9 pe-3 text-[13.5px] placeholder:text-zinc-400 focus:border-brand-500 dark:border-zinc-800 dark:bg-zinc-900"
+            className="h-10 w-full rounded-xl border border-neutral-200 bg-white ps-9 pe-3 text-[13.5px] placeholder:text-neutral-400 focus:border-brand-500 dark:border-neutral-800 dark:bg-neutral-900"
           />
         </div>
       )}
 
       <Section>
         {items.length === 0 ? (
-          <p className="px-4 py-10 text-center text-[13px] text-zinc-400">
+          <p className="px-4 py-10 text-center text-[13px] text-neutral-400">
             {t('accounts.empty')}
           </p>
         ) : shown.length === 0 ? (
-          <p className="px-4 py-10 text-center text-[13px] text-zinc-400">{t('vault.noMatch', { query })}</p>
+          <p className="px-4 py-10 text-center text-[13px] text-neutral-400">{t('vault.noMatch', { query })}</p>
         ) : (
           <ul>
             {shown.map((item) => (
               <li
                 key={item.id}
-                className="flex items-center gap-3.5 border-b border-zinc-100 px-4 py-3 last:border-b-0 dark:border-zinc-900"
+                className="flex items-center gap-3.5 border-b border-neutral-100 px-4 py-3 last:border-b-0 dark:border-neutral-900"
               >
                 <BrandMark
                   issuer={item.issuer}
@@ -112,13 +112,13 @@ export function AccountsPanel({
                   <p dir="auto" className="truncate text-[13px] font-medium rtl:text-right">
                     {titleOf(item)}
                   </p>
-                  <p className="truncate text-[12px] text-zinc-500 dark:text-zinc-400">
+                  <p className="truncate text-[12px] text-neutral-600 dark:text-neutral-400">
                     {/* With no issuer the title already is the label; saying
                         it again underneath is noise, as the popup knows. */}
                     {titleOf(item) !== item.label && (
                       <>
                         {item.label || '—'}
-                        <span className="mx-1.5 text-zinc-300 dark:text-zinc-700">·</span>
+                        <span className="mx-1.5 text-neutral-300 dark:text-neutral-700">·</span>
                       </>
                     )}
                     {t('accounts.digits', { type: item.type.toUpperCase(), digits: item.digits })}
@@ -130,7 +130,7 @@ export function AccountsPanel({
                 </div>
 
                 {item.domains.length > 0 && (
-                  <span className="hidden shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-500 sm:inline dark:bg-zinc-900 dark:text-zinc-400">
+                  <span className="hidden shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-600 sm:inline dark:bg-neutral-900 dark:text-neutral-400">
                     {item.domains[0]}
                     {item.domains.length > 1 && ` +${item.domains.length - 1}`}
                   </span>
@@ -191,13 +191,13 @@ export function AccountsPanel({
             {deleted.map((item) => (
               <li
                 key={item.id}
-                className="flex items-center gap-4 border-b border-zinc-100 px-4 py-3 last:border-b-0 dark:border-zinc-900"
+                className="flex items-center gap-4 border-b border-neutral-100 px-4 py-3 last:border-b-0 dark:border-neutral-900"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium text-zinc-500 line-through dark:text-zinc-400">
+                  <p className="truncate text-[13px] font-medium text-neutral-600 line-through dark:text-neutral-400">
                     {titleOf(item)}
                   </p>
-                  <p className="text-[12px] text-zinc-400 dark:text-zinc-500">
+                  <p className="text-[12px] text-neutral-400 dark:text-neutral-500">
                     {t('accounts.deleted.on', { date: new Date(item.deletedAt!).toLocaleDateString(t.locale) })}
                   </p>
                 </div>
@@ -233,7 +233,7 @@ export function AccountsPanel({
           <div className="p-6">
             <h2 className="text-[16px] font-semibold">{t('accounts.moveNamed', { name: titleOf(sharing) })}</h2>
             {sharing.issuer && sharing.label && (
-              <p className="mt-0.5 mb-4 text-[12.5px] text-zinc-500 dark:text-zinc-400">{sharing.label}</p>
+              <p className="mt-0.5 mb-4 text-[12.5px] text-neutral-600 dark:text-neutral-400">{sharing.label}</p>
             )}
             <div className={sharing.issuer && sharing.label ? '' : 'mt-4'}>
               <ShareAccount item={sharing} />
@@ -289,9 +289,9 @@ function Modal({
   size?: keyof typeof MODAL_HEIGHT;
 }) {
   return (
-    // In dark mode the dialog and the page behind it are nearly the same black,
-    // so a light scrim and a shadow — which is what separates them in light
-    // mode — separate nothing. A heavier scrim and a hairline ring do.
+    // A dialog is cut paper laid on the page: an ink line round it and a hard
+    // shadow down and to the right. In dark mode the shadow is black on night
+    // and separates nothing, so a heavier scrim and a lighter line do.
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-6 animate-fade-in dark:bg-black/70"
       onClick={onClose}
@@ -299,7 +299,7 @@ function Modal({
     >
       <div
         className={cx(
-          'relative w-[420px] overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-950 dark:ring-1 dark:ring-zinc-800',
+          'relative w-[420px] overflow-hidden rounded-2xl bg-white shadow-floating ring-1 ring-neutral-900 dark:bg-neutral-900 dark:ring-neutral-600',
           MODAL_HEIGHT[size],
         )}
         onClick={(event) => event.stopPropagation()}
@@ -352,7 +352,7 @@ function ItemEditor({
         });
       }}
     >
-      <header className="border-b border-zinc-100 px-5 py-4 dark:border-zinc-900">
+      <header className="border-b border-neutral-100 px-5 py-4 dark:border-neutral-900">
         <h2 className="text-[15px] font-semibold">{t('editor.title')}</h2>
       </header>
 
@@ -367,7 +367,7 @@ function ItemEditor({
           />
           <div className="min-w-0 flex-1">
             <p className="text-[13px] font-medium">{t('editor.picture')}</p>
-            <p className="mt-0.5 text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <p className="mt-0.5 text-[12px] leading-relaxed text-neutral-600 dark:text-neutral-400">
               {icon ? t('editor.pictureOwn') : t('editor.pictureNone')}
             </p>
           </div>
@@ -430,7 +430,7 @@ function ItemEditor({
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor="item-group"
-            className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300"
+            className="text-[13px] font-medium text-neutral-700 dark:text-neutral-300"
           >
             {t('editor.group')}
           </label>
@@ -438,7 +438,7 @@ function ItemEditor({
             id="item-group"
             value={groupId ?? ''}
             onChange={(event) => setGroupId(event.target.value || null)}
-            className="h-10 rounded-xl border border-zinc-200 bg-white px-2.5 text-sm dark:border-zinc-800 dark:bg-zinc-900"
+            className="h-10 rounded-xl border border-neutral-200 bg-white px-2.5 text-sm dark:border-neutral-800 dark:bg-neutral-900"
           >
             <option value="">{t('editor.ungrouped')}</option>
             {groups.map((group) => (
@@ -448,7 +448,7 @@ function ItemEditor({
             ))}
           </select>
           {groups.length === 0 && (
-            <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
+            <p className="text-[12px] text-neutral-600 dark:text-neutral-400">
               {t('editor.noGroups')}
             </p>
           )}
@@ -459,11 +459,11 @@ function ItemEditor({
             key that opens the whole vault. Two of the app's most sensitive
             things shared one name, and someone looking for the vault's could
             reveal this instead. */}
-        <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+        <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-[13px] font-medium">{t('editor.setupKey')}</p>
-              <p className="mt-0.5 text-[12px] text-zinc-500 dark:text-zinc-400">
+              <p className="mt-0.5 text-[12px] text-neutral-600 dark:text-neutral-400">
                 {t('editor.setupKeyHint')}
               </p>
             </div>
@@ -473,10 +473,10 @@ function ItemEditor({
           </div>
           {revealed && (
             <div className="mt-3 flex flex-col gap-2">
-              <code className="block break-all rounded-lg bg-zinc-100 px-3 py-2 text-[12px] dark:bg-zinc-900">
+              <code className="block break-all rounded-lg bg-neutral-100 px-3 py-2 text-[12px] dark:bg-neutral-900">
                 {item.secret}
               </code>
-              <code className="block break-all rounded-lg bg-zinc-100 px-3 py-2 text-[11px] text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
+              <code className="block break-all rounded-lg bg-neutral-100 px-3 py-2 text-[11px] text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
                 {buildOtpUri(item)}
               </code>
               <Callout tone="warning">
@@ -489,11 +489,12 @@ function ItemEditor({
 
       {/* The shadow casts upward over the fields: on a screen too short for
           the whole form, it is the only sign — macOS hides scrollbars until
-          they move — that there is more above the buttons. */}
+          they move — that there is more above the buttons. Hard, like every
+          shadow in the brand. */}
       <footer
         className={cx(
-          'relative flex justify-end gap-2 border-t border-zinc-100 px-5 py-4',
-          'shadow-[0_-10px_16px_-12px_rgba(0,0,0,0.18)] dark:border-zinc-900',
+          'relative flex justify-end gap-2 border-t border-neutral-200 px-5 py-4',
+          'shadow-[0_-3px_0_var(--kr-neutral-100)] dark:border-neutral-700 dark:shadow-[0_-3px_0_var(--kr-neutral-800)]',
         )}
       >
         <Button onClick={onCancel}>{t('common.cancel')}</Button>

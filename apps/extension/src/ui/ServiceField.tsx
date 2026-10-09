@@ -87,7 +87,7 @@ export function ServiceField({
 
   return (
     <div className="relative flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300">
+      <label htmlFor={id} className="text-[13px] font-medium text-neutral-700 dark:text-neutral-300">
         {label ?? t('service.label')}
       </label>
 
@@ -116,10 +116,10 @@ export function ServiceField({
         // options prevent mousedown instead; this only handles leaving by tab.
         onBlur={() => window.setTimeout(() => setOpen(false), 0)}
         onKeyDown={onKeyDown}
-        className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm placeholder:text-zinc-400 focus:border-brand-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+        className="h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm placeholder:text-neutral-400 focus:border-brand-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-50"
       />
 
-      {hint && <p className="text-[12px] text-zinc-500 dark:text-zinc-400">{hint}</p>}
+      {hint && <p className="text-[12px] text-neutral-600 dark:text-neutral-400">{hint}</p>}
 
       {open && suggestions.length > 0 && (
         <ul
@@ -127,7 +127,7 @@ export function ServiceField({
           id={`${id}-list`}
           role="listbox"
           aria-label={t('service.matches')}
-          className="absolute top-full right-0 left-0 z-20 mt-1 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+          className="absolute top-full right-0 left-0 z-20 mt-1 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-raised dark:border-neutral-700 dark:bg-neutral-900"
         >
           {suggestions.map((brand, index) => (
             <li
@@ -146,16 +146,16 @@ export function ServiceField({
               onMouseMove={() => setHighlight(index)}
               className={cx(
                 'flex cursor-pointer items-center gap-2.5 px-2.5 py-2',
-                index === highlight && 'bg-zinc-100 dark:bg-zinc-800',
+                index === highlight && 'bg-neutral-100 dark:bg-neutral-800',
               )}
             >
               <BrandMark issuer={brand.name} domains={brand.domains} size={24} />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-medium text-zinc-800 dark:text-zinc-100">
+                <span className="block truncate text-[13px] font-medium text-neutral-800 dark:text-neutral-100">
                   {brand.name}
                 </span>
                 {brand.domains[0] && (
-                  <span className="block truncate text-[11px] text-zinc-400 dark:text-zinc-500">
+                  <span className="block truncate text-[11px] text-neutral-400 dark:text-neutral-500">
                     {brand.domains[0]}
                   </span>
                 )}

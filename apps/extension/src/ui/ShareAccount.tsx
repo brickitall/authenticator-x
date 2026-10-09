@@ -57,7 +57,7 @@ export function ShareAccount({ item, compact = false }: { item: VaultItem; compa
   if (!shown) {
     return (
       <div className="flex flex-col gap-3">
-        <p className="text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-300">
+        <p className="text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-300">
           {t('share.intro')}
         </p>
         <Callout tone="warning">
@@ -81,10 +81,10 @@ export function ShareAccount({ item, compact = false }: { item: VaultItem; compa
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-2 dark:border-zinc-700">
+      <div className="rounded-2xl border border-neutral-200 bg-white p-2 dark:border-neutral-700">
         <QrCode text={uri} size={compact ? 196 : 240} label={t('share.qrLabel', { account: titleOf(item) })} />
       </div>
-      <p className="text-center text-[12px] text-zinc-500 dark:text-zinc-400">
+      <p className="text-center text-[12px] text-neutral-600 dark:text-neutral-400">
         {t('share.hidesIn', { seconds: secondsLeft })}
       </p>
       <div className="grid w-full grid-cols-2 gap-2">
@@ -98,7 +98,7 @@ export function ShareAccount({ item, compact = false }: { item: VaultItem; compa
         </Button>
       </div>
       {copied && (
-        <p className="text-center text-[11.5px] leading-relaxed text-amber-700 dark:text-amber-300">
+        <p className="text-center text-[11.5px] leading-relaxed text-yellow-800 dark:text-yellow-300">
           {t('share.linkWarning')}
         </p>
       )}

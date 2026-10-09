@@ -20,6 +20,8 @@ export const sl: Dictionary = {
   'error.alreadySignedIn': 'Že ste prijavljeni.',
   'error.signedOutElsewhere':
     'Ta naprava je bila odjavljena od sinhronizacije — geslo je bilo spremenjeno ali pa je bila naprava odstranjena z druge. Znova se prijavite.',
+  'error.signOutUnsynced':
+    'Nekatere spremembe v tem brskalniku še niso prišle do vašega računa in odjava bi jih zdaj izgubila. Povežite se z internetom in poskusite znova.',
   'error.enterAccountPassword': 'Vnesite geslo računa.',
   'error.accountPasswordWrong': 'To ni geslo vašega računa.',
   'error.accountPasswordWeak':
@@ -690,7 +692,7 @@ export const sl: Dictionary = {
     few: ' {count} zapisov ni bilo mogoče dešifrirati in so bili preskočeni. Če se to ponavlja, je s shranjeno kopijo nekaj narobe.',
     other: ' {count} zapisov ni bilo mogoče dešifrirati in so bili preskočeni. Če se to ponavlja, je s shranjeno kopijo nekaj narobe.',
   },
-  'account.signOutNote': 'Odjava pusti trezor natanko takšen, kot je — še vedno tukaj, še vedno šifriran, odpira se na enak način.',
+  'account.signOutNote': 'Odjava odstrani vaše kode iz tega brskalnika. Ostanejo v vašem računu Keyrook — znova se prijavite, da jih vrnete.',
   'password.changedBoth': 'Geslo je spremenjeno za vaš račun in ta trezor. Vaše druge naprave vas bodo prosile, da se z njim znova prijavite.',
   'password.changedAccount': 'Geslo računa je spremenjeno. Vaše druge naprave vas bodo prosile, da se z njim znova prijavite.',
   'password.title': 'Geslo',

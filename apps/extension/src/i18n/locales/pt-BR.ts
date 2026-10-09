@@ -21,6 +21,8 @@ export const ptBR: Dictionary = {
   'error.alreadySignedIn': 'Você já está conectado.',
   'error.signedOutElsewhere':
     'Este dispositivo foi desconectado da sincronização — a senha foi alterada ou o dispositivo foi removido em outro. Entre de novo.',
+  'error.signOutUnsynced':
+    'Algumas alterações deste navegador ainda não chegaram à sua conta, e sair agora faria você perdê-las. Conecte-se à internet e tente de novo.',
   'error.enterAccountPassword': 'Digite a senha da sua conta.',
   'error.accountPasswordWrong': 'Essa não é a senha da sua conta.',
   'error.accountPasswordWeak':
@@ -736,7 +738,7 @@ export const ptBR: Dictionary = {
     other: ' {count} registros não puderam ser descriptografados e foram ignorados. Se isso continuar, há algo errado com a cópia guardada.',
   },
   'account.signOutNote':
-    'Sair deixa este cofre exatamente como está — aqui, criptografado e aberto do mesmo jeito.',
+    'Sair remove seus códigos deste navegador. Eles continuam na sua conta no Keyrook — entre de novo para trazê-los de volta.',
   'password.changedBoth':
     'Senha alterada, para sua conta e este cofre. Seus outros dispositivos vão pedir que você entre de novo com ela.',
   'password.changedAccount':

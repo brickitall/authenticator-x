@@ -58,7 +58,7 @@ export function App() {
   if (error) {
     return (
       <Shell>
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        <p className="text-sm text-red-600 dark:text-red-300">{error}</p>
       </Shell>
     );
   }
@@ -66,7 +66,7 @@ export function App() {
   if (!status) {
     return (
       <Shell>
-        <Spinner className="h-5 w-5 text-zinc-400" />
+        <Spinner className="h-5 w-5 text-neutral-400" />
       </Shell>
     );
   }
@@ -80,7 +80,7 @@ export function App() {
 
     return (
       <div className="mx-auto flex min-h-screen w-full max-w-md items-center px-6">
-        <div className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-800">
+        <div className="w-full rounded-2xl border border-neutral-200 dark:border-neutral-800">
           {recovering ? (
             <RecoveryScreen onRecovered={authenticated} onCancel={() => setRecovering(false)} />
           ) : status.state === 'uninitialized' ? (
@@ -108,14 +108,14 @@ export function App() {
   const recoveryReady = status.hasRecovery && (!signedIn || status.accountRecovery);
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
     <div className="mx-auto flex w-full max-w-5xl gap-12 px-6 py-10">
       <aside className="sticky top-10 flex h-[calc(100vh-5rem)] w-56 shrink-0 flex-col">
         <div className="mb-8 flex items-center gap-3 px-3">
           <Logo className="h-8 w-8" />
           <div className="leading-tight">
             <p className="text-[14.5px] font-semibold tracking-[-0.01em]">{APP_NAME}</p>
-            <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
+            <p className="text-[12px] text-neutral-600 dark:text-neutral-400">
               {t('options.count', { count })}
             </p>
           </div>
@@ -134,18 +134,18 @@ export function App() {
                 'flex items-center gap-3 rounded-xl px-3 py-2.5 text-start text-[14px] font-medium transition-colors',
                 tab === id
                   ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300'
-                  : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-200',
+                  : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-neutral-200',
               )}
             >
               <Icon
                 className={cx(
                   'h-[18px] w-[18px] shrink-0',
-                  tab === id ? 'text-brand-600 dark:text-brand-400' : 'text-zinc-400 dark:text-zinc-500',
+                  tab === id ? 'text-brand-600 dark:text-brand-400' : 'text-neutral-400 dark:text-neutral-500',
                 )}
               />
               {t(label)}
               {id === 'security' && !recoveryReady && (
-                <span className="ms-auto h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
+                <span className="ms-auto h-2 w-2 rounded-full bg-yellow-500" aria-hidden="true" />
               )}
             </button>
           ))}
@@ -153,9 +153,9 @@ export function App() {
 
         {/* What someone deciding whether to trust this with their codes wants
             to know, where they can always see it — one line, not a card. */}
-        <div className="mt-auto flex flex-col gap-1.5 px-3 text-[12px] text-zinc-500 dark:text-zinc-400">
-          <p className="flex items-center gap-1.5 font-medium text-zinc-600 dark:text-zinc-300">
-            <ShieldIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+        <div className="mt-auto flex flex-col gap-1.5 px-3 text-[12px] text-neutral-600 dark:text-neutral-400">
+          <p className="flex items-center gap-1.5 font-medium text-neutral-600 dark:text-neutral-300">
+            <ShieldIcon className="h-4 w-4 text-green-700 dark:text-green-300" />
             {t('common.encryptedHere')}
           </p>
           <SourceLink>{t('options.sourceOnGithub')}</SourceLink>

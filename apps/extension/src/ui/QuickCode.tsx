@@ -60,7 +60,7 @@ export function QuickCode({ onSave }: { onSave?: (params: ParsedOtpUri) => Promi
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="quick-key" className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300">
+        <label htmlFor="quick-key" className="text-[13px] font-medium text-neutral-700 dark:text-neutral-300">
           {t('quick.label')}
         </label>
         <textarea
@@ -73,16 +73,16 @@ export function QuickCode({ onSave }: { onSave?: (params: ParsedOtpUri) => Promi
           value={input}
           onChange={(event) => setInput(event.target.value)}
           placeholder="JBSW Y3DP EHPK 3PXP"
-          className="w-full resize-none rounded-xl border border-zinc-200 bg-white p-3 font-mono text-[13px] placeholder:text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900"
+          className="w-full resize-none rounded-xl border border-neutral-200 bg-white p-3 font-mono text-[13px] placeholder:text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900"
         />
         {read.kind === 'error' && (
-          <p className="text-[12px] leading-snug text-red-600 dark:text-red-400">{localise(read.message)}</p>
+          <p className="text-[12px] leading-snug text-red-600 dark:text-red-300">{localise(read.message)}</p>
         )}
       </div>
 
       {read.kind === 'ok' && read.fromLink ? (
         (params!.issuer || params!.label) && (
-          <p className="truncate text-[12px] text-zinc-500 dark:text-zinc-400">
+          <p className="truncate text-[12px] text-neutral-600 dark:text-neutral-400">
             {[params!.issuer, params!.label].filter(Boolean).join(' · ')}
           </p>
         )
@@ -91,7 +91,7 @@ export function QuickCode({ onSave }: { onSave?: (params: ParsedOtpUri) => Promi
       )}
 
       {params && codes && (
-        <div className="flex items-center gap-3 rounded-xl border border-zinc-200 p-3 animate-fade-in dark:border-zinc-800">
+        <div className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 animate-fade-in dark:border-neutral-800">
           <button
             type="button"
             onClick={() => void copy('quick', codes.current)}
@@ -102,7 +102,7 @@ export function QuickCode({ onSave }: { onSave?: (params: ParsedOtpUri) => Promi
               {formatCode(codes.current)}
             </span>
             {codes.next && (
-              <span className="text-[11.5px] text-zinc-500 dark:text-zinc-400">
+              <span className="text-[11.5px] text-neutral-600 dark:text-neutral-400">
                 {t.rich(
                   'quick.next',
                   { code: formatCode(codes.next) },
@@ -118,7 +118,7 @@ export function QuickCode({ onSave }: { onSave?: (params: ParsedOtpUri) => Promi
         </div>
       )}
 
-      <p className="text-[11.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+      <p className="text-[11.5px] leading-relaxed text-neutral-600 dark:text-neutral-400">
         {t('quick.notSaved')}
       </p>
 
@@ -159,7 +159,7 @@ function Settings({
   const t = useT();
   if (!editing) {
     return (
-      <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
+      <p className="text-[12px] text-neutral-600 dark:text-neutral-400">
         {t('quick.settings', {
           digits: settings.digits,
           period: settings.period,
@@ -213,8 +213,8 @@ function Segments<T extends string | number>({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="w-12 text-[12px] text-zinc-500 dark:text-zinc-400">{label}</span>
-      <div role="radiogroup" aria-label={label} className="inline-flex rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800">
+      <span className="w-12 text-[12px] text-neutral-600 dark:text-neutral-400">{label}</span>
+      <div role="radiogroup" aria-label={label} className="inline-flex rounded-lg bg-neutral-100 p-0.5 dark:bg-neutral-800">
         {options.map((option) => (
           <button
             key={String(option)}
@@ -225,8 +225,8 @@ function Segments<T extends string | number>({
             className={cx(
               'h-7 rounded-md px-2.5 text-[12px] font-medium',
               option === value
-                ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white'
-                : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200',
+                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white'
+                : 'text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200',
             )}
           >
             {format(option)}

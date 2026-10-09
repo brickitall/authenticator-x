@@ -167,17 +167,17 @@ export function VaultScreen({
 
   return (
     <div className="relative flex h-[520px] flex-col">
-      <header className="flex items-center gap-2 border-b border-zinc-100 px-3 py-2.5 dark:border-zinc-900">
+      <header className="flex items-center gap-2 border-b border-neutral-100 px-3 py-2.5 dark:border-neutral-900">
         <Logo className="h-6 w-6 shrink-0" compact />
         <div className="relative min-w-0 flex-1">
-          <SearchIcon className="pointer-events-none absolute top-1/2 start-2.5 -translate-y-1/2 text-[15px] text-zinc-400" />
+          <SearchIcon className="pointer-events-none absolute top-1/2 start-2.5 -translate-y-1/2 text-[15px] text-neutral-400" />
           <input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t('vault.search')}
             aria-label={t('vault.search')}
-            className="h-8 w-full rounded-lg border border-transparent bg-zinc-100 pe-2 ps-8 text-[13px] placeholder:text-zinc-400 focus:border-brand-400 focus:bg-white dark:bg-zinc-900 dark:focus:bg-zinc-900"
+            className="h-8 w-full rounded-lg border border-transparent bg-neutral-100 pe-2 ps-8 text-[13px] placeholder:text-neutral-400 focus:border-brand-400 focus:bg-white dark:bg-neutral-900 dark:focus:bg-neutral-900"
           />
         </div>
         <IconButton label={t('vault.add')} onClick={() => setAdding(true)}>
@@ -201,11 +201,11 @@ export function VaultScreen({
       </header>
 
       {(all.length > 1 || syncedAs || (canSignIn && all.length > 0)) && (
-        <div className="flex items-center justify-between gap-2 border-b border-zinc-100 px-3.5 py-1.5 text-[11px] dark:border-zinc-900">
+        <div className="flex items-center justify-between gap-2 border-b border-neutral-100 px-3.5 py-1.5 text-[11px] dark:border-neutral-900">
           {/* Each part truncates on its own: one truncating line swallowed the
               sign-in link whole wherever its words ran longer than English's,
               leaving "3 accounts · …" and nothing to press. */}
-          <span className="flex min-w-0 items-baseline text-zinc-400 dark:text-zinc-500">
+          <span className="flex min-w-0 items-baseline text-neutral-400 dark:text-neutral-500">
             <span className="shrink-0">{t('vault.count', { count: all.length })}</span>
             {syncedAs && (
               <span className="min-w-0 truncate" title={t('vault.syncedWith', { email: syncedAs })}>
@@ -238,7 +238,7 @@ export function VaultScreen({
               }
               title={t('vault.changeOrder')}
               // Never squeezed: a long "synced as" address is what gives way.
-              className="shrink-0 whitespace-nowrap font-medium text-zinc-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400"
+              className="shrink-0 whitespace-nowrap font-medium text-neutral-600 hover:text-brand-600 dark:text-neutral-400 dark:hover:text-brand-400"
             >
               {sortedByName ? t('vault.byName') : t('vault.orderAdded')}
             </button>
@@ -276,7 +276,7 @@ export function VaultScreen({
         {all.length === 0 ? (
           <EmptyState onAdd={() => setAdding(true)} onSignIn={canSignIn ? () => setSigningIn(true) : undefined} />
         ) : filtered.length === 0 ? (
-          <p className="px-3 py-10 text-center text-[13px] text-zinc-400">
+          <p className="px-3 py-10 text-center text-[13px] text-neutral-400">
             {t('vault.noMatch', { query })}
           </p>
         ) : (
@@ -286,7 +286,7 @@ export function VaultScreen({
                 <SectionLabel>
                   {t('vault.forHost', { host: tab?.hostname ?? '' })}
                   {canFill && (
-                    <span className="ms-1.5 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
+                    <span className="ms-1.5 inline-block rounded-full bg-brand-100 px-1.5 py-0.5 text-[11px] font-medium text-brand-700 first-letter:uppercase dark:bg-brand-500/15 dark:text-brand-300">
                       {t('vault.fieldDetected')}
                     </span>
                   )}
@@ -297,7 +297,7 @@ export function VaultScreen({
                   ))}
                 </ul>
                 {shortcutWouldFill && (
-                  <p className="px-3 pt-0.5 pb-1.5 text-[11.5px] text-zinc-400 dark:text-zinc-500">
+                  <p className="px-3 pt-0.5 pb-1.5 text-[11.5px] text-neutral-400 dark:text-neutral-500">
                     {t.rich('vault.shortcutHint', { keys: <Keys shortcut={fillKeys} /> })}
                   </p>
                 )}
@@ -335,17 +335,17 @@ export function VaultScreen({
       {askRating && !query && all.length > 0 && joinRequests === 0 && <RatePrompt onClose={() => setAskRating(false)} />}
 
       {/* Always on screen: the claim and the way to check it, side by side. */}
-      <footer className="flex items-center justify-between gap-3 border-t border-zinc-100 px-3.5 py-1.5 text-[11px] dark:border-zinc-900">
-        <span className="inline-flex items-center gap-1 font-medium text-zinc-500 dark:text-zinc-400">
-          <ShieldIcon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+      <footer className="flex items-center justify-between gap-3 border-t border-neutral-100 px-3.5 py-1.5 text-[11px] dark:border-neutral-900">
+        <span className="inline-flex items-center gap-1 font-medium text-neutral-600 dark:text-neutral-400">
+          <ShieldIcon className="h-3.5 w-3.5 text-green-700 dark:text-green-300" />
           {t('common.encryptedHere')}
         </span>
         <SourceLink />
       </footer>
 
       {confirmFill && (
-        <div className="absolute inset-x-0 bottom-0 z-20 border-t border-amber-200 bg-amber-50 p-3.5 animate-slide-up dark:border-amber-500/30 dark:bg-amber-500/10">
-          <p className="text-[13px] leading-relaxed text-amber-900 dark:text-amber-200">
+        <div className="absolute inset-x-0 bottom-0 z-20 border-t border-yellow-200 bg-yellow-50 p-3.5 animate-slide-up dark:border-yellow-500/30 dark:bg-yellow-500/10">
+          <p className="text-[13px] leading-relaxed text-yellow-900 dark:text-yellow-200">
             {t.rich('vault.fillWarning', {
               account: titleOf(confirmFill),
               domain: confirmFill.domains[0],
@@ -387,9 +387,11 @@ export function VaultScreen({
   );
 }
 
+// Sentence case, never capitals: half the languages this speaks have none,
+// and a heading in capitals in the rest reads as shouting.
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="flex items-center px-3 pt-2 pb-1 text-[11px] font-semibold tracking-wide text-zinc-400 uppercase dark:text-zinc-500">
+    <h2 className="flex items-center px-3 pt-2 pb-1 text-[12px] font-semibold text-neutral-600 dark:text-neutral-400">
       {children}
     </h2>
   );
@@ -411,8 +413,8 @@ function IconButton({
       aria-label={label}
       title={label}
       className={cx(
-        'shrink-0 rounded-lg p-1.5 text-base text-zinc-500 transition',
-        'hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-900 dark:hover:text-zinc-100',
+        'shrink-0 rounded-lg p-1.5 text-base text-neutral-600 transition',
+        'hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-900 dark:hover:text-neutral-100',
       )}
     >
       {children}
@@ -427,7 +429,7 @@ function EmptyState({ onAdd, onSignIn }: { onAdd: () => void; onSignIn?: (() => 
       <Logo className="h-10 w-10 opacity-90" />
       <div>
         <h2 className="text-[15px] font-semibold">{t('vault.empty.title')}</h2>
-        <p className="mt-1 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">
           {t('vault.empty.body')}
         </p>
       </div>
@@ -437,7 +439,7 @@ function EmptyState({ onAdd, onSignIn }: { onAdd: () => void; onSignIn?: (() => 
       {/* A new browser is the likeliest place to find an empty vault — and its
           owner, more often than not, has the codes somewhere already. */}
       {onSignIn && (
-        <p className="text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+        <p className="text-[12.5px] leading-relaxed text-neutral-600 dark:text-neutral-400">
           {t.rich('vault.empty.signIn', {}, {
             link: (chunk) => (
               <button

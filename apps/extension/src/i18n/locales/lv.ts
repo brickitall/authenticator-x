@@ -21,6 +21,8 @@ export const lv: Dictionary = {
   'error.alreadySignedIn': 'Pierakstīšanās jau ir veikta.',
   'error.signedOutElsewhere':
     'Šī ierīce ir izrakstīta no sinhronizācijas — parole tika mainīta vai ierīce tika noņemta no citas. Pierakstieties vēlreiz.',
+  'error.signOutUnsynced':
+    'Dažas šī pārlūka izmaiņas vēl nav nonākušas jūsu kontā, un izrakstīšanās tagad tās zaudētu. Izveidojiet savienojumu ar internetu un mēģiniet vēlreiz.',
   'error.enterAccountPassword': 'Ievadiet konta paroli.',
   'error.accountPasswordWrong': 'Tā nav jūsu konta parole.',
   'error.accountPasswordWeak':
@@ -676,7 +678,7 @@ export const lv: Dictionary = {
     one: ' {count} ierakstu nevarēja atšifrēt, un tas tika izlaists. Ja tas atkārtojas, ar saglabāto kopiju kaut kas nav kārtībā.',
     other: ' {count} ierakstus nevarēja atšifrēt, un tie tika izlaisti. Ja tas atkārtojas, ar saglabāto kopiju kaut kas nav kārtībā.',
   },
-  'account.signOutNote': 'Izrakstīšanās atstāj glabātavu tieši tādu, kāda tā ir — joprojām šeit, joprojām šifrētu, un tā atveras tāpat.',
+  'account.signOutNote': 'Izrakstoties jūsu kodi tiek noņemti no šī pārlūka. Tie paliek jūsu Keyrook kontā — pierakstieties vēlreiz, lai tos atgūtu.',
   'password.changedBoth': 'Parole nomainīta jūsu kontam un šai glabātavai. Jūsu citas ierīces lūgs ar to pierakstīties vēlreiz.',
   'password.changedAccount': 'Konta parole nomainīta. Jūsu citas ierīces lūgs ar to pierakstīties vēlreiz.',
   'password.title': 'Parole',

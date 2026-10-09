@@ -115,7 +115,7 @@ export function GeneralPanel({ data, mutate }: { data: VaultData; mutate: Mutate
               shortcuts === null ? null : shortcuts[name] ? (
                 <Keys shortcut={shortcuts[name]!} />
               ) : (
-                <span className="text-[12.5px] text-zinc-400 dark:text-zinc-500">{t('shortcut.notSet')}</span>
+                <span className="text-[12.5px] text-neutral-400 dark:text-neutral-500">{t('shortcut.notSet')}</span>
               )
             }
           />
@@ -130,7 +130,7 @@ export function GeneralPanel({ data, mutate }: { data: VaultData; mutate: Mutate
               {APP_NAME}
             </span>
           }
-          control={<span className="text-[13px] text-zinc-500 dark:text-zinc-400">{t('about.version', { version })}</span>}
+          control={<span className="text-[13px] text-neutral-600 dark:text-neutral-400">{t('about.version', { version })}</span>}
         />
         <Row
           label={t('about.source')}
@@ -158,7 +158,7 @@ export function GeneralPanel({ data, mutate }: { data: VaultData; mutate: Mutate
               rel="noreferrer"
               // Rated from here, the popup has no reason to ask.
               onClick={() => void updateRating(answered)}
-              className="inline-flex items-center gap-1 text-[13px] font-medium text-zinc-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400"
+              className="inline-flex items-center gap-1 text-[13px] font-medium text-neutral-600 hover:text-brand-600 dark:text-neutral-400 dark:hover:text-brand-400"
             >
               <StarIcon className="h-3.5 w-3.5 shrink-0" />
               {t('rate.rate')}
@@ -177,25 +177,25 @@ export function GeneralPanel({ data, mutate }: { data: VaultData; mutate: Mutate
       </Section>
 
       {/* Folded: worth reading once, in the way of everything else after. */}
-      <details className="group mb-8 rounded-2xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900/60">
+      <details className="group mb-8 rounded-2xl border border-neutral-200/80 bg-white dark:border-neutral-800 dark:bg-neutral-900/60">
         <summary className="cursor-pointer list-none px-4 py-3.5 text-[13.5px] font-medium marker:hidden">
           <span className="flex items-center justify-between gap-4">
             {t('about.how')}
-            <ChevronIcon className="h-4 w-4 shrink-0 rotate-90 text-zinc-400 transition-transform group-open:-rotate-90" />
+            <ChevronIcon className="h-4 w-4 shrink-0 rotate-90 text-neutral-400 transition-transform group-open:-rotate-90" />
           </span>
         </summary>
-        <dl className="divide-y divide-zinc-100 border-t border-zinc-100 dark:divide-zinc-800/80 dark:border-zinc-800/80">
+        <dl className="divide-y divide-neutral-100 border-t border-neutral-100 dark:divide-neutral-800/80 dark:border-neutral-800/80">
           {FACTS.map((fact) => (
             <div key={fact.title} className="px-4 py-3.5">
               <dt className="text-[13px] font-medium">{t(fact.title)}</dt>
-              <dd className="mt-1 max-w-prose text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+              <dd className="mt-1 max-w-prose text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">
                 {t(fact.body)}
               </dd>
             </div>
           ))}
           <div className="px-4 py-3.5">
             <dt className="text-[13px] font-medium">{t('about.logos.title')}</dt>
-            <dd className="mt-1 max-w-prose text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <dd className="mt-1 max-w-prose text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">
               {t('about.logos.description')}{' '}
               {t.rich(
                 'about.logos.body',

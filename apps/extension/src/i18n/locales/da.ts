@@ -20,6 +20,8 @@ export const da: Dictionary = {
   'error.alreadySignedIn': 'Allerede logget ind.',
   'error.signedOutElsewhere':
     'Denne enhed blev logget ud af synkroniseringen — adgangskoden blev ændret, eller enheden blev fjernet fra en anden. Log ind igen.',
+  'error.signOutUnsynced':
+    'Nogle ændringer i denne browser er endnu ikke nået frem til din konto, og hvis du logger ud nu, går de tabt. Opret forbindelse til internettet, og prøv igen.',
   'error.enterAccountPassword': 'Indtast adgangskoden til din konto.',
   'error.accountPasswordWrong': 'Det er ikke adgangskoden til din konto.',
   'error.accountPasswordWeak':
@@ -641,7 +643,7 @@ export const da: Dictionary = {
     one: ' {count} post kunne ikke dekrypteres og blev sprunget over. Sker det igen, er der noget galt med den gemte kopi.',
     other: ' {count} poster kunne ikke dekrypteres og blev sprunget over. Sker det igen, er der noget galt med den gemte kopi.',
   },
-  'account.signOutNote': 'At logge ud efterlader boksen præcis som den er — stadig her, stadig krypteret, åbnet på samme måde.',
+  'account.signOutNote': 'Når du logger ud, fjernes dine koder fra denne browser. De bliver i din Keyrook-konto — log ind igen for at få dem tilbage.',
   'password.changedBoth': 'Adgangskoden er ændret, for din konto og boksen. Dine andre enheder beder dig logge ind igen med den.',
   'password.changedAccount': 'Adgangskoden til kontoen er ændret. Dine andre enheder beder dig logge ind igen med den.',
   'password.title': 'Adgangskode',

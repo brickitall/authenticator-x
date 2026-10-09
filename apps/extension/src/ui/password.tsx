@@ -5,11 +5,11 @@ import { cx } from './primitives.js';
 import { useT } from '../i18n/react.js';
 
 const LEVELS = [
-  { bar: 'bg-red-500', text: 'text-red-600 dark:text-red-400' },
-  { bar: 'bg-red-500', text: 'text-red-600 dark:text-red-400' },
-  { bar: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400' },
-  { bar: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' },
-  { bar: 'bg-emerald-600', text: 'text-emerald-600 dark:text-emerald-400' },
+  { bar: 'bg-red-500', text: 'text-red-600 dark:text-red-300' },
+  { bar: 'bg-red-500', text: 'text-red-600 dark:text-red-300' },
+  { bar: 'bg-yellow-500', text: 'text-yellow-800 dark:text-yellow-300' },
+  { bar: 'bg-green-500', text: 'text-green-700 dark:text-green-300' },
+  { bar: 'bg-green-600', text: 'text-green-700 dark:text-green-300' },
 ] as const;
 
 /**
@@ -30,7 +30,7 @@ export function StrengthMeter({ password }: { password: string }) {
             key={bar}
             className={cx(
               'h-1 flex-1 rounded-full transition-colors',
-              bar <= filled ? level.bar : 'bg-zinc-200 dark:bg-zinc-800',
+              bar <= filled ? level.bar : 'bg-neutral-200 dark:bg-neutral-800',
             )}
           />
         ))}
@@ -81,7 +81,7 @@ export function PasswordField({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-3">
-        <label htmlFor={id} className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300">
+        <label htmlFor={id} className="text-[13px] font-medium text-neutral-700 dark:text-neutral-300">
           {label}
         </label>
         {labelAction}
@@ -98,10 +98,10 @@ export function PasswordField({
           aria-invalid={error ? true : undefined}
           className={cx(
             'h-10 w-full rounded-xl border pe-10 ps-3 text-sm transition-colors',
-            'bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-50',
+            'bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-50',
             error
               ? 'border-red-400 dark:border-red-500'
-              : 'border-zinc-200 focus:border-brand-500 dark:border-zinc-800 dark:focus:border-brand-500',
+              : 'border-neutral-200 focus:border-brand-500 dark:border-neutral-800 dark:focus:border-brand-500',
           )}
         />
         <button
@@ -109,16 +109,16 @@ export function PasswordField({
           onClick={() => setShown((current) => !current)}
           aria-label={shown ? t('password.hide') : t('password.show')}
           title={shown ? t('password.hide') : t('password.show')}
-          className="absolute inset-y-0 end-0 grid w-10 place-items-center rounded-e-xl text-[16px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+          className="absolute inset-y-0 end-0 grid w-10 place-items-center rounded-e-xl text-[16px] text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
         >
           {shown ? <EyeOffIcon /> : <EyeIcon />}
         </button>
       </div>
       {meter && value.length > 0 && <StrengthMeter password={value} />}
       {error ? (
-        <p className="text-[12px] text-red-600 dark:text-red-400">{error}</p>
+        <p className="text-[12px] text-red-600 dark:text-red-300">{error}</p>
       ) : (
-        hint && <p className="text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">{hint}</p>
+        hint && <p className="text-[12px] leading-relaxed text-neutral-600 dark:text-neutral-400">{hint}</p>
       )}
     </div>
   );

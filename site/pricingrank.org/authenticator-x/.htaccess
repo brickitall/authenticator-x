@@ -1,0 +1,7 @@
+# The app's pages moved to keyrook.com/authenticator/ in October 2026. This
+# file is all that stays at pricingrank.org/authenticator-x/: every old
+# address, the store listings' privacy policy among them, lands on the same
+# page there. RewriteEngine here also stops the WordPress rules above it from
+# answering for this folder.
+RewriteEngine On
+RewriteRule ^(.*)$ https://keyrook.com/authenticator/$1 [R=301,L]

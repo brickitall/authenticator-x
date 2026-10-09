@@ -1,5 +1,5 @@
 {
-  "name": "authenticator-x",
+  "name": "keyrook-authenticator",
   "private": true,
   "version": "0.1.0",
   "description": "Keyrook Authenticator — cross-platform 2FA/TOTP authenticator. Chrome extension first.",
@@ -27,6 +27,6 @@
   "license": "GPL-3.0-or-later",
   "repository": {
     "type": "git",
-    "url": "https://github.com/brickitall/authenticator-x.git"
+    "url": "https://github.com/keyrook/keyrook-authenticator.git"
   }
 }

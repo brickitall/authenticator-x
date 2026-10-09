@@ -21,6 +21,8 @@ export const ko: Dictionary = {
   'error.alreadySignedIn': '이미 로그인되어 있습니다.',
   'error.signedOutElsewhere':
     '이 기기는 동기화에서 로그아웃되었습니다. 비밀번호가 바뀌었거나 다른 기기에서 이 기기를 제거했습니다. 다시 로그인하세요.',
+  'error.signOutUnsynced':
+    '이 브라우저의 일부 변경 사항이 아직 계정에 반영되지 않아 지금 로그아웃하면 사라집니다. 인터넷에 연결한 뒤 다시 시도하세요.',
   'error.enterAccountPassword': '계정 비밀번호를 입력하세요.',
   'error.accountPasswordWrong': '계정 비밀번호가 아닙니다.',
   'error.accountPasswordWeak':
@@ -724,7 +726,7 @@ export const ko: Dictionary = {
     other: ' 레코드 {count}개를 복호화할 수 없어 무시했습니다. 계속 일어나면 저장된 사본에 문제가 있는 것입니다.',
   },
   'account.signOutNote':
-    '로그아웃해도 이 보관함은 그대로 남습니다. 여기에, 암호화된 채로, 같은 방법으로 열립니다.',
+    '로그아웃하면 이 브라우저에서 코드가 삭제됩니다. 코드는 Keyrook 계정에 남아 있으니 다시 로그인하면 돌아옵니다.',
   'password.changedBoth':
     '계정과 이 보관함의 비밀번호를 변경했습니다. 다른 기기에서는 새 비밀번호로 다시 로그인하라는 요청이 나옵니다.',
   'password.changedAccount':

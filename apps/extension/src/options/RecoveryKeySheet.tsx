@@ -40,14 +40,14 @@ export function RecoveryKeySheet({
       <Callout tone="warning">
         {t('sheet.once')}
       </Callout>
-      <code className="code-digits block rounded-xl bg-zinc-100 px-4 py-3.5 text-center text-[15px] font-semibold dark:bg-zinc-900">
+      <code className="code-digits block rounded-xl bg-neutral-100 px-4 py-3.5 text-center text-[15px] font-semibold dark:bg-neutral-900">
         <KeyHalves recoveryKey={recoveryKey} />
       </code>
       <div className={wide ? 'grid grid-cols-2 gap-2' : 'flex flex-wrap gap-2'}>
         <Button onClick={downloadSheet}>{t('sheet.download')}</Button>
         <Button onClick={() => void navigator.clipboard.writeText(recoveryKey)}>{t('sheet.copy')}</Button>
       </div>
-      <label className="flex items-start gap-2.5 text-[13px] text-zinc-600 dark:text-zinc-300">
+      <label className="flex items-start gap-2.5 text-[13px] text-neutral-600 dark:text-neutral-300">
         <input
           type="checkbox"
           checked={acknowledged}

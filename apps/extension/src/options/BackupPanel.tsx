@@ -110,14 +110,14 @@ export function BackupPanel({
             // Named by the job alone; what it does is the description.
             aria-labelledby={`job-${id}`}
             aria-describedby={`job-${id}-body`}
-            className="flex w-full items-center gap-4 border-b border-zinc-100 px-4 py-4 text-start transition-colors last:border-b-0 hover:bg-zinc-50 dark:border-zinc-800/80 dark:hover:bg-zinc-900"
+            className="flex w-full items-center gap-4 border-b border-neutral-100 px-4 py-4 text-start transition-colors last:border-b-0 hover:bg-neutral-50 dark:border-neutral-800/80 dark:hover:bg-neutral-900"
           >
             <span
               className={cx(
                 'grid h-10 w-10 shrink-0 place-items-center rounded-xl',
                 // Readable exports are the one way out that is not encrypted.
                 id === 'move'
-                  ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
+                  ? 'bg-yellow-50 text-yellow-800 dark:bg-yellow-500/10 dark:text-yellow-300'
                   : 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400',
               )}
             >
@@ -129,12 +129,12 @@ export function BackupPanel({
               </span>
               <span
                 id={`job-${id}-body`}
-                className="mt-0.5 block text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400"
+                className="mt-0.5 block text-[12.5px] leading-relaxed text-neutral-600 dark:text-neutral-400"
               >
                 {t(body)}
               </span>
             </span>
-            <ChevronIcon className="h-4 w-4 shrink-0 text-zinc-400" />
+            <ChevronIcon className="h-4 w-4 shrink-0 text-neutral-400" />
           </button>
         ))}
       </Section>
@@ -472,26 +472,26 @@ function ImportSection({
             </Callout>
 
             {pending.fresh.length > 0 && (
-              <ul className="max-h-56 overflow-y-auto rounded-xl border border-zinc-200 text-[13px] scrollarea dark:border-zinc-800">
+              <ul className="max-h-56 overflow-y-auto rounded-xl border border-neutral-200 text-[13px] scrollarea dark:border-neutral-800">
                 {pending.fresh.map((item) => (
                   <li
                     key={item.id}
-                    className="flex justify-between gap-4 border-b border-zinc-100 px-3 py-2 last:border-b-0 dark:border-zinc-900"
+                    className="flex justify-between gap-4 border-b border-neutral-100 px-3 py-2 last:border-b-0 dark:border-neutral-900"
                   >
                     <span className="font-medium">{item.issuer || t('common.untitled')}</span>
-                    <span className="truncate text-zinc-500 dark:text-zinc-400">{item.label}</span>
+                    <span className="truncate text-neutral-600 dark:text-neutral-400">{item.label}</span>
                   </li>
                 ))}
               </ul>
             )}
 
             {pending.errors.length > 0 && (
-              <details className="text-[12px] text-zinc-500 dark:text-zinc-400">
+              <details className="text-[12px] text-neutral-600 dark:text-neutral-400">
                 <summary className="cursor-pointer">{t('import.showFailed')}</summary>
                 <ul className="mt-2 flex flex-col gap-1">
                   {pending.errors.map((entry, index) => (
                     <li key={index}>
-                      <code className="text-zinc-400">{entry.line}</code> — {localise(entry.reason)}
+                      <code className="text-neutral-400">{entry.line}</code> — {localise(entry.reason)}
                     </li>
                   ))}
                 </ul>
@@ -511,7 +511,7 @@ function ImportSection({
           </div>
         ) : (
           <>
-            <p className="text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">{t('import.fromApps')}</p>
+            <p className="text-[12.5px] leading-relaxed text-neutral-600 dark:text-neutral-400">{t('import.fromApps')}</p>
             <div className="flex flex-wrap gap-2">
               <Button onClick={startScan}>
                 <CameraIcon /> {t('import.scan')}
@@ -536,7 +536,7 @@ function ImportSection({
             <div className="flex flex-col gap-2">
               <label
                 htmlFor="import-paste"
-                className="text-[13px] font-medium text-zinc-700 dark:text-zinc-300"
+                className="text-[13px] font-medium text-neutral-700 dark:text-neutral-300"
               >
                 {t('import.paste')}
               </label>
@@ -547,7 +547,7 @@ function ImportSection({
                 rows={4}
                 spellCheck={false}
                 placeholder="otpauth://totp/GitHub:you@example.com?secret=JBSWY3DPEHPK3PXP&issuer=GitHub"
-                className="w-full rounded-xl border border-zinc-200 bg-white p-3 font-mono text-[12px] placeholder:text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900"
+                className="w-full rounded-xl border border-neutral-200 bg-white p-3 font-mono text-[12px] placeholder:text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900"
               />
               <div>
                 <Button

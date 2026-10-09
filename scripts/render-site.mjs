@@ -1,9 +1,10 @@
 /**
- * Builds the site's code page — https://pricingrank.org/authenticator-x/code/ —
+ * Builds the site's code page — https://keyrook.com/authenticator/code/ —
  * from its template and its script, and keeps the intro page's policy current:
  *
- *   site/src/code.html + site/src/code.ts  →  site/authenticator-x/code/index.html
- *   site/authenticator-x/index.html           its Content Security Policy, from its script
+ *   site/src/code.html + site/src/code.ts  →  site/keyrook.com/authenticator/code/index.html
+ *   site/keyrook.com/authenticator/index.html           its Content Security Policy, from its script
+ *   both                                                 Keyrook's tokens and icons (scripts/site-brand.mjs)
  *
  *   node scripts/render-site.mjs            write it
  *   node scripts/render-site.mjs --check    fail if it is out of date (CI)
@@ -20,18 +21,19 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { withBrand } from './site-brand.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const TEMPLATE = resolve(ROOT, 'site/src/code.html');
 const ENTRY = resolve(ROOT, 'site/src/code.ts');
-const OUT = resolve(ROOT, 'site/authenticator-x/code/index.html');
-const INTRO = resolve(ROOT, 'site/authenticator-x/index.html');
+const OUT = resolve(ROOT, 'site/keyrook.com/authenticator/code/index.html');
+const INTRO = resolve(ROOT, 'site/keyrook.com/authenticator/index.html');
 
 const sha256 = (text) => createHash('sha256').update(text, 'utf8').digest('base64');
 
 /**
  * Every page allows no connection and no script but its own. Cloudflare, in
- * front of pricingrank.org, injects its analytics beacon into every page; this
+ * front of keyrook.com, injects its analytics beacon into every page; this
  * is what keeps it from running on these.
  */
 const policy = (scriptHash) =>
@@ -65,11 +67,11 @@ for (const slot of ['{{CSP}}', '{{SCRIPT}}']) {
 }
 // Replaced with functions: the minified script is full of `$&` and `$'`,
 // which a replacement string would expand.
-const page = template.replace('{{CSP}}', () => csp).replace('{{SCRIPT}}', () => script);
+const page = withBrand(template, 'site/src/code.html').replace('{{CSP}}', () => csp).replace('{{SCRIPT}}', () => script);
 
 // The intro page is edited by hand; only its policy is written here, from
 // the one inline script it has.
-const intro = readFileSync(INTRO, 'utf8');
+const intro = withBrand(readFileSync(INTRO, 'utf8'), 'the intro page');
 const introScripts = [...intro.matchAll(/<script data-cfasync="false">([\s\S]*?)<\/script>/g)];
 if (introScripts.length !== 1 || intro.split('<script').length !== 2) {
   throw new Error('The intro page must have exactly one script, as <script data-cfasync="false">.');

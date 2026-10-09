@@ -36,7 +36,7 @@ export function CountdownRing({
           r={RADIUS}
           fill="none"
           strokeWidth={STROKE}
-          className="stroke-zinc-200 dark:stroke-zinc-800"
+          className="stroke-neutral-200 dark:stroke-neutral-800"
         />
         <circle
           cx={SIZE / 2}
@@ -50,14 +50,14 @@ export function CountdownRing({
           transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
           className={cx(
             'transition-[stroke-dashoffset] duration-200 ease-linear',
-            urgent ? 'stroke-amber-500' : 'stroke-brand-500',
+            urgent ? 'stroke-yellow-500' : 'stroke-brand-500',
           )}
         />
       </svg>
       <span
         className={cx(
           'absolute inset-0 grid place-items-center text-[10px] font-semibold tabular-nums',
-          urgent ? 'text-amber-600 dark:text-amber-400' : 'text-zinc-500 dark:text-zinc-400',
+          urgent ? 'text-yellow-800 dark:text-yellow-300' : 'text-neutral-600 dark:text-neutral-400',
         )}
       >
         {seconds}

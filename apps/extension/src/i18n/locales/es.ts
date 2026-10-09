@@ -21,6 +21,8 @@ export const es: Dictionary = {
   'error.alreadySignedIn': 'Ya has iniciado sesión.',
   'error.signedOutElsewhere':
     'Se cerró la sesión de sincronización de este dispositivo: se cambió la contraseña o se quitó el dispositivo desde otro. Vuelve a iniciar sesión.',
+  'error.signOutUnsynced':
+    'Algunos cambios de este navegador aún no han llegado a tu cuenta, y cerrar sesión ahora los perdería. Conéctate a internet y vuelve a intentarlo.',
   'error.enterAccountPassword': 'Introduce la contraseña de tu cuenta.',
   'error.accountPasswordWrong': 'Esa no es la contraseña de tu cuenta.',
   'error.accountPasswordWeak':
@@ -742,7 +744,7 @@ export const es: Dictionary = {
     other: ' {count} registros no se pudieron descifrar y se ignoraron. Si sigue pasando, algo va mal con la copia guardada.',
   },
   'account.signOutNote':
-    'Cerrar sesión deja esta bóveda exactamente como está: aquí, cifrada y abriéndose igual que siempre.',
+    'Cerrar sesión quita tus códigos de este navegador. Se quedan en tu cuenta de Keyrook: vuelve a iniciar sesión para recuperarlos.',
   'password.changedBoth':
     'Contraseña cambiada, para tu cuenta y esta bóveda. Tus otros dispositivos te pedirán que vuelvas a iniciar sesión con ella.',
   'password.changedAccount':

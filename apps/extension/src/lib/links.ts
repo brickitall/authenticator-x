@@ -6,7 +6,7 @@
  * because "open source" only earns trust when the code is one click away.
  * Following a link is ordinary navigation in a new tab; nothing is fetched.
  */
-export const SOURCE_URL = 'https://github.com/brickitall/authenticator-x';
+export const SOURCE_URL = 'https://github.com/keyrook/keyrook-authenticator';
 export const SECURITY_MODEL_URL = `${SOURCE_URL}/blob/main/docs/security-model.md`;
 export const LICENCE = 'GPL-3.0-or-later';
 
@@ -15,7 +15,7 @@ export const LICENCE = 'GPL-3.0-or-later';
  * created: the policy says creating one is agreeing to it, which only holds if
  * it was one click away at that moment.
  */
-export const PRIVACY_URL = 'https://pricingrank.org/authenticator-x/privacy/';
+export const PRIVACY_URL = 'https://keyrook.com/authenticator/privacy/';
 
 /**
  * Problems and suggestions, in public. Linked from About, with a warning:

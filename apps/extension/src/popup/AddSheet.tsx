@@ -208,13 +208,13 @@ export function AddSheet({
   }
 
   return (
-    <div className="absolute inset-0 z-10 flex flex-col bg-white animate-slide-up dark:bg-zinc-950">
-      <header className="flex items-center gap-2 border-b border-zinc-100 px-3 py-2.5 dark:border-zinc-900">
+    <div className="absolute inset-0 z-10 flex flex-col bg-white animate-slide-up dark:bg-neutral-950">
+      <header className="flex items-center gap-2 border-b border-neutral-100 px-3 py-2.5 dark:border-neutral-900">
         <button
           type="button"
           onClick={() => (mode === 'choose' ? onClose() : setMode('choose'))}
           aria-label={t('common.back')}
-          className="rounded-lg p-1.5 text-base text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+          className="rounded-lg p-1.5 text-base text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-900"
         >
           <ArrowLeftIcon />
         </button>
@@ -283,7 +283,7 @@ export function AddSheet({
               }}
             />
 
-            <p className="mt-2 text-center text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500">
+            <p className="mt-2 text-center text-[11px] leading-relaxed text-neutral-400 dark:text-neutral-500">
               {t('add.fromGoogle')}
             </p>
           </>
@@ -339,14 +339,14 @@ function Choice({
       type="button"
       onClick={onClick}
       disabled={busy}
-      className="flex items-start gap-3 rounded-xl border border-zinc-200 p-3 text-start transition hover:border-brand-400 hover:bg-brand-50/50 disabled:opacity-60 dark:border-zinc-800 dark:hover:border-brand-500 dark:hover:bg-brand-500/5"
+      className="flex items-start gap-3 rounded-xl border border-neutral-200 p-3 text-start transition hover:border-brand-400 hover:bg-brand-50/50 disabled:opacity-60 dark:border-neutral-800 dark:hover:border-brand-500 dark:hover:bg-brand-500/5"
     >
       <span className="mt-0.5 shrink-0 text-lg text-brand-600 dark:text-brand-400">
         {busy ? <Spinner className="h-[1em] w-[1em]" /> : icon}
       </span>
       <span className="flex flex-col gap-0.5">
-        <span className="text-[13px] font-medium text-zinc-800 dark:text-zinc-100">{title}</span>
-        <span className="text-[12px] leading-snug text-zinc-500 dark:text-zinc-400">
+        <span className="text-[13px] font-medium text-neutral-800 dark:text-neutral-100">{title}</span>
+        <span className="text-[12px] leading-snug text-neutral-600 dark:text-neutral-400">
           {description}
         </span>
       </span>

@@ -22,7 +22,7 @@ export function PageHeader({
       <div className="min-w-0">
         <h1 className="text-[22px] font-semibold tracking-[-0.015em]">{title}</h1>
         {description && (
-          <p className="mt-1 max-w-[62ch] text-[13.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 max-w-[62ch] text-[13.5px] leading-relaxed text-neutral-600 dark:text-neutral-400">
             {description}
           </p>
         )}
@@ -48,13 +48,13 @@ export function SubpageHeader({
         type="button"
         onClick={onBack}
         aria-label={translate('common.back')}
-        className="-ms-1.5 mb-3 grid h-8 w-8 place-items-center rounded-lg text-[17px] text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+        className="-ms-1.5 mb-3 grid h-8 w-8 place-items-center rounded-lg text-[17px] text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-neutral-100"
       >
         <ArrowLeftIcon />
       </button>
       <h1 className="text-[22px] font-semibold tracking-[-0.015em]">{title}</h1>
       {description && (
-        <p className="mt-1 max-w-[62ch] text-[13.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 max-w-[62ch] text-[13.5px] leading-relaxed text-neutral-600 dark:text-neutral-400">
           {description}
         </p>
       )}
@@ -91,14 +91,14 @@ export function Section({
               <h2
                 className={cx(
                   'text-[13px] font-semibold',
-                  tone === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-zinc-800 dark:text-zinc-200',
+                  tone === 'danger' ? 'text-red-600 dark:text-red-300' : 'text-neutral-800 dark:text-neutral-200',
                 )}
               >
                 {title}
               </h2>
             )}
             {description && (
-              <p className="mt-0.5 max-w-[62ch] text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+              <p className="mt-0.5 max-w-[62ch] text-[12.5px] leading-relaxed text-neutral-600 dark:text-neutral-400">
                 {description}
               </p>
             )}
@@ -109,8 +109,8 @@ export function Section({
       {children ? (
         <div
           className={cx(
-            'overflow-hidden rounded-2xl border bg-white dark:bg-zinc-900/60',
-            tone === 'danger' ? 'border-red-200 dark:border-red-500/30' : 'border-zinc-200/80 dark:border-zinc-800',
+            'overflow-hidden rounded-2xl border bg-white dark:bg-neutral-900/60',
+            tone === 'danger' ? 'border-red-200 dark:border-red-500/30' : 'border-neutral-200/80 dark:border-neutral-800',
           )}
         >
           {children}
@@ -133,12 +133,12 @@ export function Row({
   children?: ReactNode;
 }) {
   return (
-    <div className="border-b border-zinc-100 px-4 py-3.5 last:border-b-0 dark:border-zinc-800/80">
+    <div className="border-b border-neutral-100 px-4 py-3.5 last:border-b-0 dark:border-neutral-800/80">
       <div className="flex items-center justify-between gap-6">
         <div className="min-w-0">
           <div className="text-[13.5px] font-medium">{label}</div>
           {description && (
-            <p className="mt-0.5 text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">{description}</p>
+            <p className="mt-0.5 text-[12.5px] leading-relaxed text-neutral-600 dark:text-neutral-400">{description}</p>
           )}
         </div>
         {control && <div className="shrink-0">{control}</div>}
@@ -153,7 +153,7 @@ export function StateDot({ good }: { good: boolean }) {
   return (
     <span
       aria-hidden="true"
-      className={cx('me-2 inline-block h-2 w-2 shrink-0 rounded-full align-middle', good ? 'bg-emerald-500' : 'bg-amber-500')}
+      className={cx('me-2 inline-block h-2 w-2 shrink-0 rounded-full align-middle', good ? 'bg-green-500' : 'bg-yellow-500')}
     />
   );
 }
@@ -175,7 +175,7 @@ export function Toggle({
       aria-label={label}
       onClick={() => onChange(!checked)}
       className={`relative h-6 w-10 rounded-full transition-colors ${
-        checked ? 'bg-brand-600' : 'bg-zinc-300 dark:bg-zinc-700'
+        checked ? 'bg-brand-600' : 'bg-neutral-300 dark:bg-neutral-700'
       }`}
     >
       {/* `start-0` is load-bearing. An absolutely placed box with no inset
@@ -213,7 +213,7 @@ export function Select<T extends string | number>({
       <div
         role="radiogroup"
         aria-label={label}
-        className="inline-flex rounded-xl bg-zinc-100 p-0.5 dark:bg-zinc-800"
+        className="inline-flex rounded-xl bg-neutral-100 p-0.5 dark:bg-neutral-800"
       >
         {options.map((option) => {
           const selected = option.value === value;
@@ -227,8 +227,8 @@ export function Select<T extends string | number>({
               className={cx(
                 'h-8 rounded-[10px] px-3 text-[12.5px] font-medium transition-colors',
                 selected
-                  ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white'
-                  : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200',
+                  ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white'
+                  : 'text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200',
               )}
             >
               {option.label}
@@ -248,7 +248,7 @@ export function Select<T extends string | number>({
           const match = options.find((option) => String(option.value) === event.target.value);
           if (match) onChange(match.value);
         }}
-        className="h-9 appearance-none rounded-xl border border-zinc-200 bg-white pe-8 ps-3 text-[13px] font-medium text-zinc-800 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
+        className="h-9 appearance-none rounded-xl border border-neutral-200 bg-white pe-8 ps-3 text-[13px] font-medium text-neutral-800 hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
       >
         {options.map((option) => (
           <option key={String(option.value)} value={String(option.value)}>
@@ -259,7 +259,7 @@ export function Select<T extends string | number>({
       <svg
         viewBox="0 0 24 24"
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 end-2.5 h-4 w-4 -translate-y-1/2 text-zinc-400"
+        className="pointer-events-none absolute top-1/2 end-2.5 h-4 w-4 -translate-y-1/2 text-neutral-400"
         fill="none"
         stroke="currentColor"
         strokeWidth="2"

@@ -19,6 +19,8 @@ export const zhCN: Dictionary = {
   'error.notSignedIn': '未登录。',
   'error.alreadySignedIn': '已经登录。',
   'error.signedOutElsewhere': '此设备已退出同步——密码已更改，或在另一台设备上移除了此设备。请重新登录。',
+  'error.signOutUnsynced':
+    '此浏览器上的部分更改尚未同步到你的账户，现在退出登录会丢失它们。请连接互联网后重试。',
   'error.enterAccountPassword': '请输入你的账户密码。',
   'error.accountPasswordWrong': '这不是你的账户密码。',
   'error.accountPasswordWeak':
@@ -611,7 +613,7 @@ export const zhCN: Dictionary = {
   'summary.end': '。',
   'summary.deleted': { other: '{count} 个账户已在另一台设备上移除——你可以在“账户”下恢复。' },
   'summary.rejected': { other: '{count} 条记录无法解密，已忽略。如果反复出现，说明存储的副本有问题。' },
-  'account.signOutNote': '退出登录后，此保险库保持原样——仍在这里、仍然加密、仍以同样的方式打开。',
+  'account.signOutNote': '退出登录会从此浏览器中移除你的验证码。它们仍保存在你的 Keyrook 账户中——重新登录即可找回。',
   'password.changedBoth': '密码已更改，你的账户和此保险库都已更新。你的其他设备会要求你用新密码重新登录。',
   'password.changedAccount': '账户密码已更改。你的其他设备会要求你用新密码重新登录。',
   'password.title': '密码',

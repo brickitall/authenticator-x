@@ -21,6 +21,8 @@ export const zhTW: Dictionary = {
   'error.alreadySignedIn': '已經登入。',
   'error.signedOutElsewhere':
     '這部裝置已登出同步：密碼已變更，或是另一部裝置移除了這部裝置。請重新登入。',
+  'error.signOutUnsynced':
+    '這個瀏覽器上的部分變更尚未同步到你的帳號，現在登出會讓它們遺失。請連上網際網路後再試一次。',
   'error.enterAccountPassword': '請輸入帳號密碼。',
   'error.accountPasswordWrong': '這不是你的帳號密碼。',
   'error.accountPasswordWeak':
@@ -724,7 +726,7 @@ export const zhTW: Dictionary = {
     other: '有 {count} 筆記錄無法解密，已略過。如果持續發生，表示儲存的副本有問題。',
   },
   'account.signOutNote':
-    '登出不會改變這個保管庫：它仍在這裡，仍然加密，開啟方式也不變。',
+    '登出會從這個瀏覽器移除你的驗證碼。它們仍保存在你的 Keyrook 帳號中，重新登入即可找回。',
   'password.changedBoth':
     '已變更你帳號和這個保管庫的密碼。你的其他裝置會要求你用新密碼重新登入。',
   'password.changedAccount':

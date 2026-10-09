@@ -4,3 +4,5 @@ export * from './authenticator.ts';
 export * from './wordmark.ts';
 export * from './lockup.ts';
 export * from './svg.ts';
+export * from './icons.ts';
+export * from './lettering.ts';

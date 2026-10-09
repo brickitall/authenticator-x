@@ -20,6 +20,8 @@ export const ro: Dictionary = {
   'error.alreadySignedIn': 'Sunteți deja conectat.',
   'error.signedOutElsewhere':
     'Acest dispozitiv a fost deconectat de la sincronizare — parola a fost schimbată sau dispozitivul a fost eliminat de pe altul. Conectați-vă din nou.',
+  'error.signOutUnsynced':
+    'Unele modificări din acest browser nu au ajuns încă în contul dvs., iar deconectarea acum le-ar pierde. Conectați-vă la internet și încercați din nou.',
   'error.enterAccountPassword': 'Introduceți parola contului.',
   'error.accountPasswordWrong': 'Aceasta nu este parola contului dvs.',
   'error.accountPasswordWeak':
@@ -661,7 +663,7 @@ export const ro: Dictionary = {
     few: ' {count} înregistrări nu au putut fi decriptate și au fost ignorate. Dacă se repetă, ceva nu e în regulă cu copia salvată.',
     other: ' {count} de înregistrări nu au putut fi decriptate și au fost ignorate. Dacă se repetă, ceva nu e în regulă cu copia salvată.',
   },
-  'account.signOutNote': 'Deconectarea lasă seiful exact cum este — tot aici, tot criptat, deschis la fel.',
+  'account.signOutNote': 'Deconectarea elimină codurile din acest browser. Ele rămân în contul dvs. Keyrook — conectați-vă din nou ca să le readuceți.',
   'password.changedBoth': 'Parola a fost schimbată, pentru cont și pentru acest seif. Celelalte dispozitive vă vor cere să vă conectați din nou cu ea.',
   'password.changedAccount': 'Parola contului a fost schimbată. Celelalte dispozitive vă vor cere să vă conectați din nou cu ea.',
   'password.title': 'Parolă',

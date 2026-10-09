@@ -167,7 +167,7 @@ export function AccountPanel({
 function LocalVaultFacts({ compact = false }: { compact?: boolean }) {
   const t = useT();
   const facts = (
-    <dl className="divide-y divide-zinc-100 text-[13px] dark:divide-zinc-900">
+    <dl className="divide-y divide-neutral-100 text-[13px] dark:divide-neutral-900">
       {/* Every line here states what *this build* does, read from the same
           flags that govern it. The table once printed a five-account cap
           the build did not enforce — shown beside a vault holding seven,
@@ -186,10 +186,10 @@ function LocalVaultFacts({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
       <div className="mx-auto w-full max-w-[400px]">
-        <p className="mb-2 px-1 text-[12px] font-medium text-zinc-500 dark:text-zinc-400">
+        <p className="mb-2 px-1 text-[12px] font-medium text-neutral-600 dark:text-neutral-400">
           {t('facts.withoutAccount')}
         </p>
-        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800">{facts}</div>
+        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800">{facts}</div>
       </div>
     );
   }
@@ -210,7 +210,7 @@ function NotAvailableYet() {
   return (
     <div>
       <p className="text-[13px] font-medium">{t('account.localOnly')}</p>
-      <p className="mt-0.5 text-[12px] text-zinc-500 dark:text-zinc-400">{t('account.noServer')}</p>
+      <p className="mt-0.5 text-[12px] text-neutral-600 dark:text-neutral-400">{t('account.noServer')}</p>
     </div>
   );
 }
@@ -248,10 +248,10 @@ function SignedIn({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
           <div>
             <p className="text-[13px] font-medium">{data.account.email}</p>
-            <p className="mt-0.5 text-[12px] text-zinc-500 dark:text-zinc-400">
+            <p className="mt-0.5 text-[12px] text-neutral-600 dark:text-neutral-400">
               {provider && (
                 <>
                   <ProviderMark provider={provider} className="me-1 inline h-3 w-3 align-[-1px]" />
@@ -312,7 +312,7 @@ function SignedIn({
         </Callout>
       )}
 
-      <p className="text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+      <p className="text-[12px] leading-relaxed text-neutral-600 dark:text-neutral-400">
         {t('account.signOutNote')}
       </p>
     </div>
@@ -457,7 +457,7 @@ function DevicesSection() {
       title={t('devices.title')}
       description={t('devices.description')}
     >
-      <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-900">
+      <div className="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-900">
         {error && (
           <div className="p-4">
             <Callout tone="danger">{error}</Callout>
@@ -465,7 +465,7 @@ function DevicesSection() {
         )}
         {!devices && !error && (
           <div className="p-4">
-            <Spinner className="h-4 w-4 text-zinc-400" />
+            <Spinner className="h-4 w-4 text-neutral-400" />
           </div>
         )}
         {devices?.map((device) => (
@@ -474,12 +474,12 @@ function DevicesSection() {
               <p className="text-[13px] font-medium">
                 {device.name}
                 {device.current && (
-                  <span className="ms-2 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                  <span className="ms-2 rounded-md bg-green-50 px-1.5 py-0.5 text-[11px] font-medium text-green-700 dark:bg-green-500/10 dark:text-green-300">
                     {t('devices.this')}
                   </span>
                 )}
               </p>
-              <p className="mt-0.5 text-[12px] text-zinc-500 dark:text-zinc-400">
+              <p className="mt-0.5 text-[12px] text-neutral-600 dark:text-neutral-400">
                 {t('devices.when', {
                   created: new Date(device.createdAt).toLocaleDateString(t.locale),
                   seen: new Date(device.lastSeenAt).toLocaleString(t.locale),
@@ -539,7 +539,7 @@ function DeleteAccountSection({ provider }: { provider: SignInProvider | undefin
               variant="ghost"
               // The ghost variant sets its own text colour; the destructive one
               // has to win, or the row reads like any other setting.
-              className="text-red-600! hover:bg-red-50! hover:text-red-700! dark:text-red-400! dark:hover:bg-red-500/10!"
+              className="text-red-600! hover:bg-red-50! hover:text-red-700! dark:text-red-300! dark:hover:bg-red-500/10!"
               onClick={() => setOpen(true)}
             >
               {t('delete.open')}
@@ -553,7 +553,7 @@ function DeleteAccountSection({ provider }: { provider: SignInProvider | undefin
             {t('delete.warning')}
           </Callout>
           {provider ? (
-            <p className="text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+            <p className="text-[12px] leading-relaxed text-neutral-600 dark:text-neutral-400">
               {t('delete.reauth', { provider: providerLabel(provider) })}
             </p>
           ) : (
@@ -589,7 +589,7 @@ function Fact({ term, detail }: { term: string; detail: string }) {
   return (
     <div className="flex items-center justify-between gap-4 px-4 py-3">
       <dt className="font-medium">{term}</dt>
-      <dd className="text-end text-zinc-500 dark:text-zinc-400">{detail}</dd>
+      <dd className="text-end text-neutral-600 dark:text-neutral-400">{detail}</dd>
     </div>
   );
 }

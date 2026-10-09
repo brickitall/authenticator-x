@@ -12,10 +12,10 @@ import { localise } from '../i18n/error-text.js';
 
 const STRENGTH_COLORS = [
   'bg-red-500',
-  'bg-orange-500',
-  'bg-amber-500',
-  'bg-lime-500',
-  'bg-emerald-500',
+  'bg-yellow-600',
+  'bg-yellow-500',
+  'bg-green-400',
+  'bg-green-500',
 ];
 
 export function SetupScreen({
@@ -60,7 +60,7 @@ export function SetupScreen({
         <Logo className="h-11 w-11" settle />
         <div>
           <h1 className="text-[17px] font-semibold">{APP_NAME}</h1>
-          <p className="mt-1 text-[13px] text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-[13px] text-neutral-600 dark:text-neutral-400">
             {t('setup.prompt')}
           </p>
         </div>
@@ -91,7 +91,7 @@ export function SetupScreen({
           in: it opens with this browser's key, and can take a master
           password later like any other. */}
       {SYNC_ENABLED && (
-        <p className="text-center text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+        <p className="text-center text-[12.5px] leading-relaxed text-neutral-600 dark:text-neutral-400">
           {t.rich('setup.haveAccount', {}, {
             link: (chunk) => (
               <button
@@ -108,7 +108,7 @@ export function SetupScreen({
       )}
 
       <div className="mt-auto flex flex-col items-center gap-1.5 pt-2">
-        <p className="text-center text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-500">
+        <p className="text-center text-[11px] leading-relaxed text-neutral-400 dark:text-neutral-500">
           {t('setup.footer')}
         </p>
         {/* The first moment someone decides whether to trust this with their
@@ -141,7 +141,7 @@ function ProtectionOption({
       type="button"
       onClick={onClick}
       disabled={busy}
-      className="flex flex-col gap-1.5 rounded-xl border border-zinc-200 p-3.5 text-start transition hover:border-brand-400 hover:bg-brand-50/40 disabled:opacity-60 dark:border-zinc-800 dark:hover:border-brand-500 dark:hover:bg-brand-500/5"
+      className="flex flex-col gap-1.5 rounded-xl border border-neutral-200 p-3.5 text-start transition hover:border-brand-400 hover:bg-brand-50/40 disabled:opacity-60 dark:border-neutral-800 dark:hover:border-brand-500 dark:hover:bg-brand-500/5"
     >
       <span className="flex items-center gap-2">
         {busy ? (
@@ -149,17 +149,17 @@ function ProtectionOption({
         ) : (
           icon && <span className="text-brand-600 dark:text-brand-400">{icon}</span>
         )}
-        <span className="text-[14px] font-semibold text-zinc-900 dark:text-zinc-50">{title}</span>
+        <span className="text-[14px] font-semibold text-neutral-900 dark:text-neutral-50">{title}</span>
         {badge && (
           <span className="rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
             {badge}
           </span>
         )}
       </span>
-      <span className="text-[13px] leading-snug text-zinc-600 dark:text-zinc-300">
+      <span className="text-[13px] leading-snug text-neutral-600 dark:text-neutral-300">
         {description}
       </span>
-      <span className="text-[11px] leading-snug text-zinc-400 dark:text-zinc-500">{footnote}</span>
+      <span className="text-[11px] leading-snug text-neutral-400 dark:text-neutral-500">{footnote}</span>
     </button>
   );
 }
@@ -196,7 +196,7 @@ function PasswordStep({
           type="button"
           onClick={onBack}
           aria-label={t('common.back')}
-          className="rounded-lg p-1.5 text-base text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+          className="rounded-lg p-1.5 text-base text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-900"
         >
           <ArrowLeftIcon />
         </button>
@@ -228,12 +228,12 @@ function PasswordStep({
                       'h-1 flex-1 rounded-full transition-colors',
                       index <= strength.score
                         ? STRENGTH_COLORS[strength.score]
-                        : 'bg-zinc-200 dark:bg-zinc-800',
+                        : 'bg-neutral-200 dark:bg-neutral-800',
                     )}
                   />
                 ))}
               </div>
-              <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
+              <p className="text-[12px] text-neutral-600 dark:text-neutral-400">
                 {strength.warnings[0]
                   ? t('strength.lineWithWarning', {
                       label: t(`strength.${strength.score}` as 'strength.0'),
@@ -255,14 +255,14 @@ function PasswordStep({
         />
       </div>
 
-      {error && <p className="text-[13px] text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="text-[13px] text-red-600 dark:text-red-300">{error}</p>}
 
       <div className="mt-auto flex flex-col gap-2">
         <Button type="submit" variant="primary" disabled={!ready || busy}>
           {busy ? <Spinner /> : null}
           {t('setup.passwordStep.submit')}
         </Button>
-        <p className="text-center text-[11px] text-zinc-400 dark:text-zinc-500">
+        <p className="text-center text-[11px] text-neutral-400 dark:text-neutral-500">
           {t('setup.passwordStep.footer')}
         </p>
       </div>

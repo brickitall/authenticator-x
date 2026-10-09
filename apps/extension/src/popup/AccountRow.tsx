@@ -43,7 +43,7 @@ export function AccountRow({
       <div
         className={cx(
           'flex items-center gap-3 rounded-xl px-2.5 py-2 transition-colors',
-          'hover:bg-zinc-50 dark:hover:bg-zinc-900',
+          'hover:bg-neutral-50 dark:hover:bg-neutral-900',
         )}
       >
         <BrandMark issuer={item.issuer} label={item.label} domains={item.domains} icon={item.icon} />
@@ -62,12 +62,12 @@ export function AccountRow({
           {/* A name keeps its own direction: "Amazon (production)" read right
               to left lost its bracket and its beginning. It still lines up
               with the page. */}
-          <span dir="auto" className="w-0 min-w-full truncate text-[13px] font-medium text-zinc-800 rtl:text-right dark:text-zinc-100">
+          <span dir="auto" className="w-0 min-w-full truncate text-[13px] font-medium text-neutral-800 rtl:text-right dark:text-neutral-100">
             {titleOf(item)}
           </span>
           <span
             className={cx(
-              'code-digits whitespace-nowrap text-[19px] leading-tight font-semibold text-zinc-900 dark:text-zinc-50',
+              'code-digits whitespace-nowrap text-[19px] leading-tight font-semibold text-neutral-900 dark:text-neutral-50',
               hideCodes && 'blur-[5px] transition group-hover:blur-none',
               pending && 'opacity-40',
             )}
@@ -75,7 +75,7 @@ export function AccountRow({
             {pending ? '••• •••' : formatCode(code)}
           </span>
           {subtitle && (
-            <span dir="auto" className="w-0 min-w-full truncate text-[11px] text-zinc-400 rtl:text-right dark:text-zinc-500">
+            <span dir="auto" className="w-0 min-w-full truncate text-[11px] text-neutral-400 rtl:text-right dark:text-neutral-500">
               {subtitle}
             </span>
           )}
@@ -91,7 +91,7 @@ export function AccountRow({
               onClick={onShare}
               aria-label={t('row.share')}
               title={t('row.shareHint')}
-              className="rounded-lg p-1.5 text-base text-zinc-300 opacity-0 transition group-hover:opacity-100 hover:text-zinc-600 focus-visible:opacity-100 dark:text-zinc-700 dark:hover:text-zinc-400"
+              className="rounded-lg p-1.5 text-base text-neutral-300 opacity-0 transition group-hover:opacity-100 hover:text-neutral-600 focus-visible:opacity-100 dark:text-neutral-700 dark:hover:text-neutral-400"
             >
               <QrIcon />
             </button>
@@ -104,8 +104,8 @@ export function AccountRow({
             className={cx(
               'rounded-lg p-1.5 text-base transition',
               item.favorite
-                ? 'text-amber-400'
-                : 'text-zinc-300 opacity-0 group-hover:opacity-100 hover:text-zinc-500 dark:text-zinc-700 dark:hover:text-zinc-500',
+                ? 'text-yellow-500'
+                : 'text-neutral-300 opacity-0 group-hover:opacity-100 hover:text-neutral-500 dark:text-neutral-700 dark:hover:text-neutral-500',
             )}
           >
             <StarIcon filled={item.favorite} />
@@ -135,8 +135,8 @@ export function AccountRow({
             className={cx(
               'rounded-lg p-1.5 text-base transition',
               copied
-                ? 'text-emerald-500'
-                : 'text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200',
+                ? 'text-green-500'
+                : 'text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200',
             )}
           >
             {copied ? <CheckIcon /> : <CopyIcon />}
@@ -148,7 +148,7 @@ export function AccountRow({
               onClick={onAdvanceCounter}
               aria-label={t('row.next')}
               title={t('row.counter', { counter: String(item.counter) })}
-              className="rounded-lg p-1.5 text-base text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+              className="rounded-lg p-1.5 text-base text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
             >
               <RefreshIcon />
             </button>

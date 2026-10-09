@@ -21,6 +21,8 @@ export const am: Dictionary = {
   'error.alreadySignedIn': 'አስቀድመው ገብተዋል።',
   'error.signedOutElsewhere':
     'ይህ መሣሪያ ከማመሳሰል ወጥቷል — የይለፍ ቃሉ ተቀይሯል ወይም ከሌላ መሣሪያ ተወግዷል። እንደገና ይግቡ።',
+  'error.signOutUnsynced':
+    'በዚህ አሳሽ ላይ ያሉ አንዳንድ ለውጦች ገና ወደ መለያዎ አልደረሱም፤ አሁን መውጣት ያጠፋቸዋል። ከበይነመረብ ጋር ይገናኙ እና እንደገና ይሞክሩ።',
   'error.enterAccountPassword': 'የመለያዎን የይለፍ ቃል ያስገቡ።',
   'error.accountPasswordWrong': 'ይህ የመለያዎ የይለፍ ቃል አይደለም።',
   'error.accountPasswordWeak':
@@ -643,7 +645,7 @@ export const am: Dictionary = {
     one: ' {count} መዝገብ ሊፈታ ስላልቻለ ተዘሏል። ይህ ከቀጠለ በተቀመጠው ቅጂ ላይ የሆነ ችግር አለ።',
     other: ' {count} መዛግብት ሊፈቱ ስላልቻሉ ተዘለዋል። ይህ ከቀጠለ በተቀመጠው ቅጂ ላይ የሆነ ችግር አለ።',
   },
-  'account.signOutNote': 'መውጣት ካዝናውን ልክ እንዳለ ይተወዋል — አሁንም እዚህ፣ አሁንም የተመሰጠረ፣ በተመሳሳይ መንገድ ይከፈታል።',
+  'account.signOutNote': 'መውጣት ኮዶችዎን ከዚህ አሳሽ ያስወግዳል። በKeyrook መለያዎ ውስጥ ይቀራሉ — መልሰው ለማምጣት እንደገና ይግቡ።',
   'password.changedBoth': 'የመለያዎና የዚህ ካዝና የይለፍ ቃል ተቀይሯል። ሌሎች መሣሪያዎችዎ በእሱ እንደገና እንዲገቡ ይጠይቃሉ።',
   'password.changedAccount': 'የመለያው የይለፍ ቃል ተቀይሯል። ሌሎች መሣሪያዎችዎ በእሱ እንደገና እንዲገቡ ይጠይቃሉ።',
   'password.title': 'የይለፍ ቃል',

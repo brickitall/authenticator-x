@@ -19,6 +19,8 @@ export const he: Dictionary = {
   'error.notSignedIn': 'לא מחוברים.',
   'error.alreadySignedIn': 'כבר מחוברים.',
   'error.signedOutElsewhere': 'המכשיר הזה נותק מהסנכרון — הסיסמה שונתה או שהמכשיר הוסר ממכשיר אחר. התחברו שוב.',
+  'error.signOutUnsynced':
+    'חלק מהשינויים בדפדפן הזה עדיין לא הגיעו לחשבון שלכם, והתנתקות עכשיו תאבד אותם. התחברו לאינטרנט ונסו שוב.',
   'error.enterAccountPassword': 'הזינו את סיסמת החשבון.',
   'error.accountPasswordWrong': 'זו לא סיסמת החשבון שלכם.',
   'error.accountPasswordWeak':
@@ -646,7 +648,7 @@ export const he: Dictionary = {
     two: ' {count} רשומות לא פוענחו ונדלגו. אם זה חוזר, משהו לא תקין בעותק השמור.',
     other: ' {count} רשומות לא פוענחו ונדלגו. אם זה חוזר, משהו לא תקין בעותק השמור.',
   },
-  'account.signOutNote': 'התנתקות משאירה את הכספת בדיוק כמו שהיא — עדיין כאן, עדיין מוצפנת, עדיין נפתחת באותה דרך.',
+  'account.signOutNote': 'התנתקות מסירה את הקודים שלכם מהדפדפן הזה. הם נשארים בחשבון Keyrook שלכם — התחברו שוב כדי להחזיר אותם.',
   'password.changedBoth': 'הסיסמה שונתה, לחשבון ולכספת הזו. המכשירים האחרים שלכם יבקשו להתחבר שוב איתה.',
   'password.changedAccount': 'סיסמת החשבון שונתה. המכשירים האחרים שלכם יבקשו להתחבר שוב איתה.',
   'password.title': 'סיסמה',

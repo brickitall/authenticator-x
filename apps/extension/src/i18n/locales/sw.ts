@@ -20,6 +20,8 @@ export const sw: Dictionary = {
   'error.alreadySignedIn': 'Tayari umeingia.',
   'error.signedOutElsewhere':
     'Kifaa hiki kimetolewa kwenye usawazishaji — nenosiri lilibadilishwa au kifaa kiliondolewa kutoka kifaa kingine. Ingia tena.',
+  'error.signOutUnsynced':
+    'Baadhi ya mabadiliko kwenye kivinjari hiki bado hayajafika kwenye akaunti yako, na kutoka sasa kungeyapoteza. Unganisha kwenye intaneti kisha ujaribu tena.',
   'error.enterAccountPassword': 'Weka nenosiri la akaunti yako.',
   'error.accountPasswordWrong': 'Hilo si nenosiri la akaunti yako.',
   'error.accountPasswordWeak':
@@ -642,7 +644,7 @@ export const sw: Dictionary = {
     one: ' Rekodi {count} haikuweza kusimbuliwa na imerukwa. Ikiendelea kutokea, kuna tatizo kwenye nakala iliyohifadhiwa.',
     other: ' Rekodi {count} hazikuweza kusimbuliwa na zimerukwa. Ikiendelea kutokea, kuna tatizo kwenye nakala iliyohifadhiwa.',
   },
-  'account.signOutNote': 'Kutoka huacha hifadhi kama ilivyo kabisa — bado iko hapa, bado imesimbwa, hufunguka kwa njia ile ile.',
+  'account.signOutNote': 'Kutoka huondoa misimbo yako kwenye kivinjari hiki. Inabaki katika akaunti yako ya Keyrook — ingia tena ili uirudishe.',
   'password.changedBoth': 'Nenosiri limebadilishwa kwa akaunti yako na hifadhi hii. Vifaa vyako vingine vitakuomba uingie tena kwalo.',
   'password.changedAccount': 'Nenosiri la akaunti limebadilishwa. Vifaa vyako vingine vitakuomba uingie tena kwalo.',
   'password.title': 'Nenosiri',

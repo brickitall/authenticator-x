@@ -52,13 +52,13 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
         </form>
 
         {groups.length === 0 ? (
-          <p className="text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">{t('groups.none')}</p>
+          <p className="text-[12.5px] leading-relaxed text-neutral-600 dark:text-neutral-400">{t('groups.none')}</p>
         ) : (
-          <ul className="rounded-xl border border-zinc-200 dark:border-zinc-800">
+          <ul className="rounded-xl border border-neutral-200 dark:border-neutral-800">
             {groups.map((group, index) => (
               <li
                 key={group.id}
-                className="flex items-center gap-3 border-b border-zinc-100 px-3 py-2.5 last:border-b-0 dark:border-zinc-900"
+                className="flex items-center gap-3 border-b border-neutral-100 px-3 py-2.5 last:border-b-0 dark:border-neutral-900"
               >
                 <div className="flex shrink-0 flex-col">
                   {([-1, 1] as const).map((direction) => (
@@ -69,8 +69,8 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
                       disabled={direction === -1 ? index === 0 : index === groups.length - 1}
                       onClick={() => void mutate({ op: 'groups/move', id: group.id, direction })}
                       className={cx(
-                        'px-1 text-[9px] leading-none text-zinc-400 hover:text-zinc-700 disabled:opacity-25',
-                        'dark:hover:text-zinc-200',
+                        'px-1 text-[9px] leading-none text-neutral-400 hover:text-neutral-700 disabled:opacity-25',
+                        'dark:hover:text-neutral-200',
                       )}
                     >
                       {direction === -1 ? '▲' : '▼'}
@@ -91,7 +91,7 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
                       autoFocus
                       value={editing.name}
                       onChange={(event) => setEditing({ id: group.id, name: event.target.value })}
-                      className="h-8 flex-1 rounded-lg border border-zinc-200 px-2 text-[13px] dark:border-zinc-700 dark:bg-zinc-900"
+                      className="h-8 flex-1 rounded-lg border border-neutral-200 px-2 text-[13px] dark:border-neutral-700 dark:bg-neutral-900"
                     />
                     <Button size="sm" type="submit" variant="primary">
                       {t('common.save')}
@@ -104,14 +104,14 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
                   <>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13px] font-medium">{group.name}</p>
-                      <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
+                      <p className="text-[12px] text-neutral-600 dark:text-neutral-400">
                         {t('groups.count', { count: countIn(group.id) })}
                       </p>
                     </div>
 
                     {confirmingDelete === group.id ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-[12px] text-zinc-500 dark:text-zinc-400">
+                        <span className="text-[12px] text-neutral-600 dark:text-neutral-400">
                           {t('groups.removeNote')}
                         </span>
                         <Button
@@ -154,7 +154,7 @@ export function GroupsPanel({ data, mutate }: { data: VaultData; mutate: Mutate 
         )}
 
         {groups.length > 0 && ungrouped > 0 && (
-          <p className="text-[12px] text-zinc-500 dark:text-zinc-400">
+          <p className="text-[12px] text-neutral-600 dark:text-neutral-400">
             {t('groups.ungrouped', { count: ungrouped })}
           </p>
         )}

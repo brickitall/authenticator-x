@@ -21,7 +21,7 @@ export function SourceLink({
       target="_blank"
       rel="noreferrer"
       className={cx(
-        'inline-flex items-center gap-1 font-medium text-zinc-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400',
+        'inline-flex items-center gap-1 font-medium text-neutral-600 hover:text-brand-600 dark:text-neutral-400 dark:hover:text-brand-400',
         className,
       )}
     >

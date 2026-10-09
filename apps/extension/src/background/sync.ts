@@ -142,12 +142,22 @@ async function keyringKeepingMode(
  * Everything a device knows locally becomes an unsynced change to push, and it
  * forgets which account kit it had seen: a vault that has just joined or
  * created an account has seen none of that account's kits yet.
+ *
+ * Except removals. A tombstone here was made while this browser belonged to
+ * no account — signed out, or never signed in — and sent now it would win
+ * over the account's copy and delete it on every device: sign out, tidy this
+ * browser, sign back in, and the account has lost those codes everywhere. At
+ * revision 0 it is never sent, and whatever the account still holds replaces
+ * it; one the account never had stays in Recently deleted, and restoring it
+ * makes it an ordinary change again.
  */
 export function markEverythingPending(data: VaultData, email: string): VaultData {
   return updateAccount(
     {
       ...data,
-      items: data.items.map((item) => ({ ...item, syncedRev: 0 })),
+      items: data.items.map((item) =>
+        item.deletedAt === null ? { ...item, syncedRev: 0 } : { ...item, rev: 0, syncedRev: 0 },
+      ),
       sync: { ...data.sync, serverRev: 0, lastSyncAt: null, recoveryAt: 0, epoch: undefined },
     },
     // A password account unless the caller says otherwise: a vault once
@@ -493,13 +503,16 @@ export async function deleteAccount(data: VaultData, proof: OwnerProof): Promise
 }
 
 /**
- * Signing out ends the session on the server and drops it here. The vault stays
- * exactly as it is — still encrypted, still openable with the same password —
- * because wiping it here would turn a stray click into data loss.
+ * Signing out ends the session and takes the account's codes off this
+ * browser: they live in the account, and signing in again brings them back.
+ * The caller has made sure nothing here is still waiting to be sent, so
+ * nothing is lost. The vault itself stays — how it opens, its settings, its
+ * key — which is what lets a browser signed out by its owner resume with a
+ * provider sign-in instead of waiting for another browser's approval.
  */
 export async function signOut(data: VaultData): Promise<VaultData> {
   await endSession();
-  return forgetAccount(data);
+  return { ...forgetAccount(data), items: [] };
 }
 
 /** Ends this browser's session on the server, if it has one, and forgets it. */

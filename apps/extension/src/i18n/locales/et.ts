@@ -20,6 +20,8 @@ export const et: Dictionary = {
   'error.alreadySignedIn': 'Olete juba sisse logitud.',
   'error.signedOutElsewhere':
     'See seade logiti sünkroonimisest välja — parool muudeti või seade eemaldati teisest seadmest. Logige uuesti sisse.',
+  'error.signOutUnsynced':
+    'Mõned selle brauseri muudatused pole veel teie kontole jõudnud ja väljalogimine praegu kaotaks need. Looge internetiühendus ja proovige uuesti.',
   'error.enterAccountPassword': 'Sisestage konto parool.',
   'error.accountPasswordWrong': 'See pole teie konto parool.',
   'error.accountPasswordWeak':
@@ -642,7 +644,7 @@ export const et: Dictionary = {
     one: ' {count} kirjet ei õnnestunud dekrüpteerida ja see jäeti vahele. Kui see kordub, on salvestatud koopiaga midagi valesti.',
     other: ' {count} kirjet ei õnnestunud dekrüpteerida ja need jäeti vahele. Kui see kordub, on salvestatud koopiaga midagi valesti.',
   },
-  'account.signOutNote': 'Väljalogimine jätab hoidla täpselt selliseks, nagu see on — endiselt siin, endiselt krüpteeritud ja avaneb samamoodi.',
+  'account.signOutNote': 'Väljalogimine eemaldab teie koodid sellest brauserist. Need jäävad teie Keyrooki kontole — logige uuesti sisse, et need tagasi tuua.',
   'password.changedBoth': 'Parool muudeti teie konto ja selle hoidla jaoks. Teie teised seadmed paluvad sellega uuesti sisse logida.',
   'password.changedAccount': 'Konto parool muudeti. Teie teised seadmed paluvad sellega uuesti sisse logida.',
   'password.title': 'Parool',

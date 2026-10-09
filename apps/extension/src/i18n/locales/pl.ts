@@ -20,6 +20,8 @@ export const pl: Dictionary = {
   'error.alreadySignedIn': 'Już zalogowano.',
   'error.signedOutElsewhere':
     'To urządzenie zostało wylogowane z synchronizacji — hasło zmieniono albo urządzenie usunięto na innym. Zaloguj się ponownie.',
+  'error.signOutUnsynced':
+    'Niektóre zmiany w tej przeglądarce nie dotarły jeszcze na Twoje konto, a wylogowanie teraz by je utraciło. Połącz się z internetem i spróbuj ponownie.',
   'error.enterAccountPassword': 'Wpisz hasło do konta.',
   'error.accountPasswordWrong': 'To nie jest hasło do twojego konta.',
   'error.accountPasswordWeak':
@@ -740,7 +742,7 @@ export const pl: Dictionary = {
     other: ' {count} rekordu nie udało się odszyfrować i je pominięto. Jeśli to się powtarza, z zapisaną kopią jest coś nie tak.',
   },
   'account.signOutNote':
-    'Wylogowanie zostawia ten sejf dokładnie takim, jaki jest — nadal tutaj, nadal zaszyfrowany, otwierany tak samo.',
+    'Wylogowanie usuwa Twoje kody z tej przeglądarki. Zostają na Twoim koncie Keyrook — zaloguj się ponownie, aby je przywrócić.',
   'password.changedBoth':
     'Hasło zmieniono dla twojego konta i tego sejfu. Inne twoje urządzenia poproszą o ponowne zalogowanie nowym hasłem.',
   'password.changedAccount': 'Zmieniono hasło do konta. Inne twoje urządzenia poproszą o ponowne zalogowanie nowym hasłem.',

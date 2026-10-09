@@ -21,6 +21,8 @@ export const it: Dictionary = {
   'error.alreadySignedIn': 'Accesso già effettuato.',
   'error.signedOutElsewhere':
     'Questo dispositivo è stato disconnesso dalla sincronizzazione: la password è stata cambiata o il dispositivo è stato rimosso da un altro. Accedi di nuovo.',
+  'error.signOutUnsynced':
+    'Alcune modifiche fatte in questo browser non sono ancora arrivate al tuo account e uscire ora le farebbe perdere. Connettiti a Internet e riprova.',
   'error.enterAccountPassword': 'Inserisci la password del tuo account.',
   'error.accountPasswordWrong': 'Non è la password del tuo account.',
   'error.accountPasswordWeak':
@@ -742,7 +744,7 @@ export const it: Dictionary = {
     other: ' {count} elementi non sono stati decifrati e sono stati ignorati. Se continua a succedere, c’è un problema con la copia salvata.',
   },
   'account.signOutNote':
-    'Uscire lascia questa cassaforte esattamente com’è: sempre qui, sempre cifrata, sempre aperta allo stesso modo.',
+    'Uscire rimuove i tuoi codici da questo browser. Restano nel tuo account Keyrook: accedi di nuovo per riaverli.',
   'password.changedBoth':
     'Password cambiata, per il tuo account e questa cassaforte. Gli altri dispositivi ti chiederanno di accedere di nuovo con la nuova.',
   'password.changedAccount':

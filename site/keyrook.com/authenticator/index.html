@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-euS3W07cgPkLXHDN85O9vXB690sp628wB81UCGRh4Z4='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Keyrook Authenticator — two-factor codes in your browser</title>
+<meta name="description" content="A browser extension for your two-factor codes. Encrypted on your own computer, unable to read the websites you visit, and open source.">
+<link rel="canonical" href="https://keyrook.com/authenticator/">
+<meta property="og:title" content="Keyrook Authenticator — two-factor codes in your browser">
+<meta property="og:description" content="Encrypted on your own computer, unable to read the websites you visit, and open source.">
+<meta property="og:url" content="https://keyrook.com/authenticator/">
+<meta property="og:image" content="https://keyrook.com/authenticator/icon.png?v=3">
+<meta name="color-scheme" content="light dark">
+<!-- Nothing on this page is fetched from anywhere else: no fonts, no
+     analytics, no scripts but the one below. The favicon is inline too. The
+     policy above makes the browser hold the page to that: Cloudflare, in front
+     of keyrook.com, injects its analytics beacon into every page, and here
+     it does not run. scripts/render-site.mjs keeps the script's hash current.
+     The email_off comments keep Cloudflare, in front of keyrook.com, from
+     rewriting the addresses and injecting a script to decode them. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' aria-hidden='true'%3E%3Cpath d='M50.35 33.1 C49.4 25.09 49.11 17.06 49.48 9' fill='none' stroke='%233A6FDB' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M61.01 38.39 C67.64 33.37 73.73 27.78 79.3 21.61' fill='none' stroke='%23F2B21B' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M66.8 49.77 C74.55 50.68 82.31 50.87 90.1 50.34' fill='none' stroke='%23E0493A' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M61.47 62.13 C67.9 67.17 73.93 72.65 79.54 78.57' fill='none' stroke='%232FA05A' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M50.28 66.2 C49.42 74.21 49.18 82.25 49.58 90.3' fill='none' stroke='%233A6FDB' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M37.75 61.79 C32.85 68.12 27.41 73.94 21.41 79.25' fill='none' stroke='%23F2B21B' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M33.7 49.74 C25.55 50.65 17.39 50.86 9.2 50.38' fill='none' stroke='%23E0493A' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M37.78 38.32 C33.04 32.21 27.81 26.55 22.1 21.33' fill='none' stroke='%232FA05A' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  /* @keyrook/brand — copied from packages/brand/brand.css by scripts/site-brand.mjs. Change packages/brand/src. */
+:root {
+  --kr-ink: #22201C;
+  --kr-paper: #FBF8F2;
+  --kr-neutral-0: #FFFFFF;
+  --kr-neutral-50: #FBF8F2;
+  --kr-neutral-100: #F3EEE4;
+  --kr-neutral-200: #E6DFD1;
+  --kr-neutral-300: #CFC7B7;
+  --kr-neutral-400: #A69F92;
+  --kr-neutral-500: #7E786D;
+  --kr-neutral-600: #5C574F;
+  --kr-neutral-700: #403C36;
+  --kr-neutral-800: #2C2925;
+  --kr-neutral-900: #22201C;
+  --kr-neutral-950: #1A1916;
+  --kr-blue-50: #EFF3FC;
+  --kr-blue-100: #DFE8F9;
+  --kr-blue-200: #BCCEF3;
+  --kr-blue-300: #95B1EC;
+  --kr-blue-400: #6992E4;
+  --kr-blue-500: #3A6FDB;
+  --kr-blue-600: #3561BB;
+  --kr-blue-700: #30539C;
+  --kr-blue-800: #2B467C;
+  --kr-blue-900: #263A61;
+  --kr-red-50: #FDF0EF;
+  --kr-red-100: #FAE2DF;
+  --kr-red-200: #F4C1BC;
+  --kr-red-300: #EE9D95;
+  --kr-red-400: #E77569;
+  --kr-red-500: #E0493A;
+  --kr-red-600: #C04134;
+  --kr-red-700: #A13A2E;
+  --kr-red-800: #813229;
+  --kr-red-900: #652B24;
+  --kr-yellow-50: #FEF9ED;
+  --kr-yellow-100: #FDF3DB;
+  --kr-yellow-200: #FBE5B1;
+  --kr-yellow-300: #F8D584;
+  --kr-yellow-400: #F5C452;
+  --kr-yellow-500: #F2B21B;
+  --kr-yellow-600: #CF9A1A;
+  --kr-yellow-700: #AD8119;
+  --kr-yellow-800: #8A6919;
+  --kr-yellow-900: #6C5318;
+  --kr-green-50: #EEF7F2;
+  --kr-green-100: #DEF0E5;
+  --kr-green-200: #B8DFC7;
+  --kr-green-300: #8FCCA6;
+  --kr-green-400: #61B782;
+  --kr-green-500: #2FA05A;
+  --kr-green-600: #2C8A4F;
+  --kr-green-700: #287544;
+  --kr-green-800: #255F39;
+  --kr-green-900: #224C30;
+  --kr-font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --kr-font-mono: 'SF Mono', ui-monospace, 'JetBrains Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  --kr-line-hair: 1.5px;
+  --kr-line-pen: 2px;
+  --kr-line-marker: 3px;
+  --kr-radius-sketch: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --kr-radius-sketch-small: 14px 4px 12px 4px / 4px 12px 4px 14px;
+  --kr-radius-sketch-alt: 15px 225px 15px 255px / 255px 15px 225px 15px;
+  --kr-radius-sketch-small-alt: 4px 14px 4px 12px / 12px 4px 14px 4px;
+  --kr-space-1: 4px;
+  --kr-space-2: 8px;
+  --kr-space-3: 12px;
+  --kr-space-4: 16px;
+  --kr-space-5: 20px;
+  --kr-space-6: 24px;
+  --kr-space-8: 32px;
+  --kr-space-10: 40px;
+  --kr-space-12: 48px;
+  --kr-space-16: 64px;
+  --kr-space-24: 96px;
+  --kr-motion-fast: 120ms;
+  --kr-motion-base: 200ms;
+  --kr-motion-slow: 400ms;
+  --kr-motion-draw: 700ms;
+  --kr-motion-stagger: 40ms;
+  --kr-motion-wait: 300ms;
+  --kr-motion-hold: 1500ms;
+  --kr-motion-toast: 4000ms;
+  --kr-boil-step: 150ms;
+  --kr-boil-rounds: 4;
+  --kr-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --kr-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --kr-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --kr-ease-settle: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  /* What a page reads. Light by default; dark below. */
+  --kr-page: var(--kr-paper);
+  --kr-surface: var(--kr-neutral-0);
+  --kr-surface-sunken: var(--kr-neutral-100);
+  --kr-text: var(--kr-ink);
+  --kr-text-muted: var(--kr-neutral-600);
+  --kr-line: var(--kr-neutral-200);
+  --kr-line-strong: var(--kr-neutral-500);
+  --kr-crow-ink: var(--kr-ink);
+  --kr-focus: var(--kr-blue-500);
+  --kr-highlight: var(--kr-yellow-200);
+  --kr-shadow-raised: 3px 4px 0 rgba(34, 32, 28, 0.14);
+  --kr-shadow-floating: 5px 7px 0 rgba(34, 32, 28, 0.16);
+  --kr-action: var(--kr-blue-600);
+  --kr-danger: var(--kr-red-600);
+  --kr-warning: var(--kr-yellow-800);
+  --kr-success: var(--kr-green-700);
+}
+
+[data-theme='dark'] {
+  --kr-page: var(--kr-neutral-950);
+  --kr-surface: var(--kr-neutral-900);
+  --kr-surface-sunken: var(--kr-neutral-800);
+  --kr-text: var(--kr-paper);
+  --kr-text-muted: var(--kr-neutral-400);
+  --kr-line: var(--kr-neutral-700);
+  --kr-line-strong: var(--kr-neutral-400);
+  --kr-crow-ink: var(--kr-paper);
+  --kr-focus: var(--kr-blue-300);
+  --kr-highlight: var(--kr-yellow-900);
+  --kr-shadow-raised: 3px 4px 0 rgba(0, 0, 0, 0.4);
+  --kr-shadow-floating: 5px 7px 0 rgba(0, 0, 0, 0.45);
+  --kr-action: var(--kr-blue-300);
+  --kr-danger: var(--kr-red-300);
+  --kr-warning: var(--kr-yellow-300);
+  --kr-success: var(--kr-green-300);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --kr-page: var(--kr-neutral-950);
+    --kr-surface: var(--kr-neutral-900);
+    --kr-surface-sunken: var(--kr-neutral-800);
+    --kr-text: var(--kr-paper);
+    --kr-text-muted: var(--kr-neutral-400);
+    --kr-line: var(--kr-neutral-700);
+    --kr-line-strong: var(--kr-neutral-400);
+    --kr-crow-ink: var(--kr-paper);
+    --kr-focus: var(--kr-blue-300);
+    --kr-highlight: var(--kr-yellow-900);
+    --kr-shadow-raised: 3px 4px 0 rgba(0, 0, 0, 0.4);
+    --kr-shadow-floating: 5px 7px 0 rgba(0, 0, 0, 0.45);
+    --kr-action: var(--kr-blue-300);
+    --kr-danger: var(--kr-red-300);
+    --kr-warning: var(--kr-yellow-300);
+    --kr-success: var(--kr-green-300);
+  }
+}
+/* end of @keyrook/brand */
+
+  /* Ink on paper, paper on night; blue acts. Boxes are drawn by hand and laid
+     on the page as cut paper — an ink line and a hard shadow, never a blur. */
+  :root { --on-action: var(--kr-neutral-0); --action-soft: var(--kr-blue-50); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) { --on-action: var(--kr-neutral-950); --action-soft: var(--kr-blue-900); }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--kr-page); color: var(--kr-text);
+    font: 17px/1.6 var(--kr-font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--kr-action); text-underline-offset: .18em; }
+  :focus-visible { outline: 2px solid var(--kr-focus); outline-offset: 2px; }
+  .wrap { max-width: 68rem; margin: 0 auto; padding: 0 16px; }
+  @media (min-width: 640px) { .wrap { padding: 0 2rem; } }
+
+  header.top { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; padding: 1.25rem 0; }
+  .brand { display: flex; align-items: center; gap: .6rem; font-weight: 600; color: var(--kr-text); text-decoration: none; white-space: nowrap; }
+  .brand svg { width: 30px; height: 30px; flex: none; }
+  nav { margin-left: auto; display: flex; gap: 1.25rem; font-size: .95rem; }
+  nav a { color: var(--kr-text-muted); text-decoration: none; white-space: nowrap; }
+  /* The name is two words: on a phone the links go under it rather than squeeze it. */
+  @media (max-width: 520px) { nav { margin-left: 0; } }
+  nav a:hover { color: var(--kr-text); }
+  @media (max-width: 520px) { nav .optional { display: none; } }
+
+  .hero { display: grid; gap: 3rem; align-items: center; padding: 3rem 0 4.5rem; }
+  @media (min-width: 900px) { .hero { grid-template-columns: 1.1fr 1fr; padding: 4.5rem 0 6rem; } }
+  h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); font-weight: 600; line-height: 1.08; letter-spacing: -0.025em; margin: 0 0 1.25rem; }
+  /* Crayon laid behind the words that matter, the brand's highlighter. */
+  h1 .mark { background: linear-gradient(transparent 58%, var(--kr-highlight) 58%, var(--kr-highlight) 92%, transparent 92%); }
+  .lede { font-size: 1.15rem; color: var(--kr-text-muted); margin: 0 0 2rem; max-width: 34rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+  .button, .secondary {
+    display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding: .7rem 1.3rem;
+    border: var(--kr-line-pen) solid var(--kr-text); border-radius: var(--kr-radius-sketch-small);
+    font-weight: 600; text-decoration: none;
+    transition: transform var(--kr-motion-base) var(--kr-ease-settle);
+  }
+  .button { background: var(--kr-action); color: var(--on-action); box-shadow: var(--kr-shadow-raised); }
+  .secondary { color: var(--kr-text); border-radius: var(--kr-radius-sketch-small-alt); }
+  .button:hover, .secondary:hover { transform: translate(-1px, -1px); }
+  .button:active, .secondary:active { transform: scale(.97); transition-duration: var(--kr-motion-fast); }
+  .small { margin: 1.25rem 0 0; font-size: .9rem; color: var(--kr-text-muted); }
+
+  /* The popup, drawn rather than photographed: sample accounts, live codes. */
+  .popup {
+    width: 100%; max-width: 380px; justify-self: center; background: var(--kr-surface);
+    border: var(--kr-line-pen) solid var(--kr-text); border-radius: 22px 10px 20px 12px / 12px 20px 10px 22px;
+    box-shadow: var(--kr-shadow-floating); overflow: hidden;
+  }
+  .popup-bar { display: flex; align-items: center; gap: .6rem; padding: .8rem .9rem; border-bottom: 1px solid var(--kr-line); }
+  .popup-bar svg.mark { width: 26px; height: 26px; flex: none; }
+  .search { flex: 1; padding: .45rem .75rem; border-radius: 9px; background: var(--kr-surface-sunken); color: var(--kr-text-muted); font-size: .85rem; }
+  .group { padding: .9rem 1rem .25rem; font-size: .75rem; font-weight: 600; color: var(--kr-text-muted); }
+  .entry { display: flex; align-items: center; gap: .8rem; padding: .6rem 1rem; }
+  /* A service's first letter on a neutral tile: another company's logo is
+     never redrawn, and the crayons already have jobs. */
+  .tile {
+    width: 34px; height: 34px; border-radius: 9px; flex: none; display: grid; place-items: center;
+    background: var(--kr-surface-sunken); box-shadow: inset 0 0 0 1px var(--kr-line);
+    color: var(--kr-text); font-weight: 600; font-size: .95rem;
+  }
+  .entry .name { font-size: .9rem; }
+  .code { font: 600 1.3rem/1.2 var(--kr-font-mono); letter-spacing: .06em; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+  .who { font-size: .75rem; color: var(--kr-text-muted); }
+  .entry .text { flex: 1; min-width: 0; }
+  .ring { width: 30px; height: 30px; flex: none; }
+  .ring circle { fill: none; stroke-width: 3; }
+  .ring .track { stroke: var(--kr-line); }
+  .ring .left { stroke: var(--kr-action); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
+  .ring text { font: 600 9px var(--kr-font-mono); fill: var(--kr-text-muted); }
+  .caption { text-align: center; font-size: .8rem; color: var(--kr-text-muted); margin: 1.1rem 0 0; }
+
+  section { padding: 4rem 0; border-top: 1px solid var(--kr-line); }
+  h2 { font-size: clamp(1.6rem, 3.5vw, 2.1rem); font-weight: 600; letter-spacing: -0.015em; line-height: 1.2; margin: 0 0 .75rem; }
+  .intro { color: var(--kr-text-muted); margin: 0 0 2.5rem; max-width: 40rem; }
+  .cards { display: grid; gap: 1.25rem; }
+  @media (min-width: 720px) { .cards { grid-template-columns: 1fr 1fr; } }
+  .card {
+    background: var(--kr-surface); padding: 1.4rem 1.5rem;
+    border: 1.5px solid var(--kr-text); border-radius: var(--kr-radius-sketch-small); box-shadow: var(--kr-shadow-raised);
+  }
+  /* Two boxes side by side with the same corners read as a pattern, not a hand. */
+  .card:nth-child(even) { border-radius: var(--kr-radius-sketch-small-alt); }
+  .card h3 { font-size: 1.05rem; font-weight: 600; margin: .9rem 0 .4rem; }
+  .card p { margin: 0; color: var(--kr-text-muted); font-size: .97rem; }
+  .icon { width: 40px; height: 40px; border-radius: 10px; background: var(--action-soft); color: var(--kr-action); display: grid; place-items: center; }
+  .icon svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+  .features { list-style: none; padding: 0; margin: 0; display: grid; gap: .25rem 2.5rem; }
+  @media (min-width: 720px) { .features { grid-template-columns: 1fr 1fr; } }
+  .features li { padding: .65rem 0 .65rem 1.9rem; position: relative; border-bottom: 1px solid var(--kr-line); }
+  .features li svg { position: absolute; left: 0; top: .85rem; width: 18px; height: 18px; fill: none; stroke: var(--kr-success); stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; }
+  .next {
+    background: var(--action-soft); padding: 2rem 1.5rem;
+    border: 1.5px solid var(--kr-text); border-radius: var(--kr-radius-sketch-small);
+  }
+  @media (min-width: 640px) { .next { padding: 2.5rem 2.75rem; } }
+  .next p { margin: 0; max-width: 42rem; }
+  .next p + p { margin-top: .9rem; color: var(--kr-text-muted); }
+  .tag { display: inline-block; font-size: .85rem; font-weight: 600; color: var(--kr-action); margin-bottom: .75rem; }
+
+  footer { border-top: 1px solid var(--kr-line); padding: 2rem 0 3rem; color: var(--kr-text-muted); font-size: .9rem; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; }
+  footer .links { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; margin-left: auto; }
+  footer a { color: var(--kr-text-muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .button, .secondary, .button:hover, .secondary:hover, .button:active, .secondary:active { transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="./">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark"/></svg>
+      Keyrook Authenticator
+    </a>
+    <nav>
+      <a class="optional" href="#features">Features</a>
+      <a href="code/">Get a code</a>
+      <a href="privacy/">Privacy</a>
+      <a href="https://github.com/keyrook/keyrook-authenticator">Source</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div>
+        <h1>Your two-factor codes, <span class="mark">one click away.</span></h1>
+        <p class="lede">A browser extension for the six-digit codes that GitHub, Google,
+        your bank and everything else ask for. They are encrypted on your own
+        computer, kept in step across your browsers if you want, and the
+        extension cannot read the websites you visit.</p>
+        <div class="actions">
+          <a class="button" href="https://chromewebstore.google.com/detail/occcfljfhlijenkofoceocnimkfpdndl">Add to Chrome — free</a>
+          <a class="secondary" href="https://microsoftedge.microsoft.com/addons/detail/lnbabkbknabedpnmdihllnbhdmolianm">Add to Microsoft Edge</a>
+        </div>
+        <p class="small">Free, with no ads. Open source under GPL-3.0.</p>
+      </div>
+
+      <div>
+        <div class="popup" aria-label="The extension's window, with sample accounts">
+          <div class="popup-bar">
+            <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><use href="#mark"/></svg>
+            <div class="search">Search accounts</div>
+          </div>
+          <div class="group">Work</div>
+          <div class="entry" data-secret="JBSWY3DPEHPK3PXP">
+            <div class="tile">G</div>
+            <div class="text"><div class="name">GitHub</div><div class="code">492 039</div><div class="who"><!--email_off-->octocat@example.com<!--/email_off--></div></div>
+            <svg class="ring" viewBox="0 0 30 30" aria-hidden="true"><circle class="track" cx="15" cy="15" r="12"/><circle class="left" cx="15" cy="15" r="12" stroke-dasharray="75.4" stroke-dashoffset="0"/><text x="15" y="18" text-anchor="middle">30</text></svg>
+          </div>
+          <div class="entry" data-secret="GEZDGNBVGY3TQOJQ">
+            <div class="tile">C</div>
+            <div class="text"><div class="name">Cloudflare</div><div class="code">817 260</div><div class="who"><!--email_off-->ops@example.com<!--/email_off--></div></div>
+            <svg class="ring" viewBox="0 0 30 30" aria-hidden="true"><circle class="track" cx="15" cy="15" r="12"/><circle class="left" cx="15" cy="15" r="12" stroke-dasharray="75.4" stroke-dashoffset="0"/><text x="15" y="18" text-anchor="middle">30</text></svg>
+          </div>
+          <div class="group">Personal</div>
+          <div class="entry" data-secret="MZXW6YTBOIQWY3DP">
+            <div class="tile">G</div>
+            <div class="text"><div class="name">Google</div><div class="code">305 714</div><div class="who"><!--email_off-->you@example.com<!--/email_off--></div></div>
+            <svg class="ring" viewBox="0 0 30 30" aria-hidden="true"><circle class="track" cx="15" cy="15" r="12"/><circle class="left" cx="15" cy="15" r="12" stroke-dasharray="75.4" stroke-dashoffset="0"/><text x="15" y="18" text-anchor="middle">30</text></svg>
+          </div>
+          <div style="height:.6rem"></div>
+        </div>
+        <p class="caption">Sample accounts. The codes are real, made in this page the way the extension makes them.</p>
+      </div>
+    </div>
+
+    <section>
+      <h2>Built to be trusted, not just used</h2>
+      <p class="intro">An authenticator holds the second half of every login you
+      protect. So it is built to know as little as possible, and to show its work.</p>
+      <div class="cards">
+        <div class="card">
+          <div class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-lock"/></svg></div>
+          <h3>Encrypted on your computer</h3>
+          <p>Your accounts are sealed with AES-256-GCM under a key only you hold.
+          Nothing readable is ever written to disk.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-eye-off"/></svg></div>
+          <h3>No access to websites</h3>
+          <p>It asks for no permission to read or change the sites you visit.
+          Scanning a QR code or filling in a code works only on the tab you open
+          it on, at the moment you open it.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-code"/></svg></div>
+          <h3>Open source</h3>
+          <p>The extension and its encryption are published under GPL-3.0. Read
+          it, build it yourself, and compare your build with the one the store
+          ships.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-cloud-off"/></svg></div>
+          <h3>Nothing phones home</h3>
+          <p>No analytics, no ads, no tracking. Service logos are built in, so no
+          website ever learns which accounts you keep.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <h2>Everything you need to sign in</h2>
+      <p class="intro">Works with any site that offers an authenticator app — the
+      standard six-digit codes.</p>
+      <ul class="features">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Scan the QR code straight from the page you are setting up</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Or point your camera at a code shown on your phone</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Fill a code into the page with one click</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Sync your browsers — optional, free, end-to-end encrypted</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Move everything over from Google Authenticator</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Move to any other app, whenever you like, in a few scans</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Groups, search, auto-lock and encrypted backups</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Get one code from a key, without saving anything</li>
+      </ul>
+    </section>
+
+    <section>
+      <div class="next">
+        <span class="tag">New in 0.2.0</span>
+        <p><strong>Sync, if you want it.</strong> Create an account and your codes
+        stay in step across every browser you sign in to, end-to-end encrypted:
+        the server stores only what it cannot read, and the code that encrypts it
+        is open source. Sync is free, with no limit on accounts.</p>
+        <p>No account is required. Without one, nothing leaves your computer. On
+        Chrome and Edge now; Opera follows when its review finishes.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>No extension at hand?</h2>
+      <p class="intro" style="margin-bottom:0">Paste a setup key into
+      <a href="code/">the code page</a> and get the current code. It is worked out
+      in that page, never sent anywhere and never kept — and the page's own
+      security policy, enforced by your browser, is what makes that so.</p>
+    </section>
+
+    <section>
+      <h2>Questions, problems, security reports</h2>
+      <p class="intro" style="margin-bottom:0">Write to
+      <!--email_off--><a href="mailto:brickitall.hi@gmail.com">brickitall.hi@gmail.com</a><!--/email_off-->, or open an issue
+      <a href="https://github.com/keyrook/keyrook-authenticator/issues">on GitHub</a>.
+      What the extension stores, and where, is in the
+      <a href="privacy/">privacy policy</a>.</p>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 BRICK IT ALL LLC</span>
+    <span class="links">
+      <a href="privacy/">Privacy policy</a>
+      <a href="https://github.com/keyrook/keyrook-authenticator">Source code</a>
+      <a href="/">Keyrook</a>
+    </span>
+  </div>
+</footer>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+<!-- @keyrook/brand icons: mark lock eye-off code cloud-off check -->
+<symbol id="mark" viewBox="0 0 100 100"><path d="M50.32 34.6 C48.58 26.45 48.31 18.25 49.5 10" fill="none" stroke="#3A6FDB" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M59.98 39.48 C67.36 35.03 73.56 29.3 78.58 22.3" fill="none" stroke="#F2B21B" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M65.3 49.79 C73.2 51.57 81.13 51.75 89.1 50.33" fill="none" stroke="#E0493A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M60.44 61.04 C67.47 65.67 73.6 71.28 78.83 77.88" fill="none" stroke="#2FA05A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M50.26 64.7 C48.63 72.86 48.41 81.06 49.59 89.3" fill="none" stroke="#3A6FDB" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.83 60.75 C34.47 67.82 28.9 73.75 22.11 78.54" fill="none" stroke="#F2B21B" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M35.2 49.77 C26.91 51.5 18.57 51.71 10.2 50.38" fill="none" stroke="#E0493A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="M38.87 39.36 C34.59 32.59 29.23 26.82 22.8 22.05" fill="none" stroke="#2FA05A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="kr-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 11.2 C9.7 11 14.3 11.2 18.8 11 C19.5 11 20 11.5 20 12.2 C20 14.5 20 16.8 20 19 C20 19.7 19.5 20.2 18.8 20.2 C14.3 20.2 9.7 20.3 5.2 20.2 C4.5 20.2 4 19.7 4 19 C4 16.8 3.9 14.5 4 12.2 C4 11.6 4.4 11.1 5.9 11.2 M12 14.6 C12 15.4 12.1 16.1 12 16.8 M7.6 11 C7.5 9.8 7.5 8.7 7.6 7.6 C7.9 5.2 9.7 3.8 12 3.8 C14.4 3.8 16.2 5.3 16.4 7.7 C16.5 8.8 16.5 9.9 16.4 11"/></symbol>
+<symbol id="kr-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 12.2 C5 8 8.3 5.8 12 5.8 C15.8 5.8 19 8.1 21.2 12 C19 16 15.7 18.2 12 18.2 C8.3 18.2 5.1 16.1 2.9 12.6 M4.2 3.9 C9.4 9.3 14.6 14.7 19.9 20.2"/></symbol>
+<symbol id="kr-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 7.2 C6.8 8.8 5.2 10.4 3.6 12 C5.2 13.6 6.8 15.2 8.4 16.8 M15.6 7.2 C17.2 8.8 18.8 10.4 20.4 12 C18.8 13.6 17.2 15.2 15.6 16.8 M13.4 5.4 C12.5 9.6 11.5 14.4 10.6 18.6"/></symbol>
+<symbol id="kr-cloud-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.2 18.6 C4.9 18.6 3.2 16.9 3.2 14.7 C3.2 12.6 4.8 11 6.8 10.8 C7.4 7.8 9.8 5.6 12.8 5.6 C15.9 5.6 18.4 8 18.6 11.1 C20.2 11.5 21.2 12.9 21.2 14.6 C21.2 16.8 19.6 18.5 17.4 18.5 C14 18.6 10.6 18.5 7.8 18.6 M4 4 C9.3 9.4 14.7 14.8 20 20.2"/></symbol>
+<symbol id="kr-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 12.6 C6.6 14.3 8.3 16 9.8 17.8 C12.6 13.5 15.6 9.6 19.4 6.2"/></symbol>
+<!-- end of @keyrook/brand icons -->
+  </defs>
+</svg>
+
+<script data-cfasync="false">
+  // The sample codes are computed here (RFC 6238) from the made-up secrets on
+  // each row. Where the browser has no Web Crypto — a page opened over plain
+  // HTTP — the codes printed in the markup simply stay put.
+  (function () {
+    var subtle = window.crypto && window.crypto.subtle;
+    if (!subtle) return;
+    var rows = Array.prototype.slice.call(document.querySelectorAll('[data-secret]'));
+    var circumference = 2 * Math.PI * 12;
+
+    function base32(text) {
+      var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567', bits = '', bytes = [];
+      for (var i = 0; i < text.length; i++) bits += alphabet.indexOf(text[i]).toString(2).padStart(5, '0');
+      for (var j = 0; j + 8 <= bits.length; j += 8) bytes.push(parseInt(bits.slice(j, j + 8), 2));
+      return new Uint8Array(bytes);
+    }
+
+    var keys = rows.map(function (row) {
+      return subtle.importKey('raw', base32(row.dataset.secret), { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+    });
+
+    function code(key, step) {
+      var counter = new ArrayBuffer(8), view = new DataView(counter);
+      view.setUint32(4, step);
+      return subtle.sign('HMAC', key, counter).then(function (mac) {
+        var bytes = new Uint8Array(mac), offset = bytes[19] & 15;
+        var value = ((bytes[offset] & 127) << 24 | bytes[offset + 1] << 16 | bytes[offset + 2] << 8 | bytes[offset + 3]) % 1e6;
+        var digits = String(value).padStart(6, '0');
+        return digits.slice(0, 3) + ' ' + digits.slice(3);
+      });
+    }
+
+    var shownStep = -1;
+    function tick() {
+      var now = Date.now() / 1000, step = Math.floor(now / 30), left = 30 - Math.floor(now % 30);
+      rows.forEach(function (row, index) {
+        var ring = row.querySelector('.left');
+        ring.setAttribute('stroke-dashoffset', String(circumference * (1 - left / 30)));
+        row.querySelector('text').textContent = String(left);
+        if (step !== shownStep) {
+          keys[index].then(function (key) { return code(key, step); }).then(function (text) {
+            row.querySelector('.code').textContent = text;
+          });
+        }
+      });
+      shownStep = step;
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
+</body>
+</html>

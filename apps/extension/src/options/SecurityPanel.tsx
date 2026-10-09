@@ -87,7 +87,7 @@ export function SecurityPanel({
                 ]}
               />
             ) : (
-              <span className="text-[12.5px] text-zinc-400 dark:text-zinc-500">{t('security.needsPassword')}</span>
+              <span className="text-[12.5px] text-neutral-400 dark:text-neutral-500">{t('security.needsPassword')}</span>
             )
           }
         />
@@ -324,7 +324,7 @@ function DangerZone({ onReset }: { onReset: () => Promise<void> }) {
         description={t('danger.description')}
         control={
           open ? null : (
-            <Button variant="ghost" size="sm" className="text-red-600! dark:text-red-400!" onClick={() => setOpen(true)}>
+            <Button variant="ghost" size="sm" className="text-red-600! dark:text-red-300!" onClick={() => setOpen(true)}>
               {t('danger.open')}
             </Button>
           )
@@ -528,7 +528,7 @@ function RecoverySection({
                     </Callout>
                   )}
                   {reauth && (
-                    <p className="text-[12px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    <p className="text-[12px] leading-relaxed text-neutral-600 dark:text-neutral-400">
                       {t('kit.reauth', { provider: providerLabel(provider!) })}
                     </p>
                   )}

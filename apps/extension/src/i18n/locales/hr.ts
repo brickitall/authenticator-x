@@ -20,6 +20,8 @@ export const hr: Dictionary = {
   'error.alreadySignedIn': 'Već ste prijavljeni.',
   'error.signedOutElsewhere':
     'Ovaj je uređaj odjavljen iz sinkronizacije — lozinka je promijenjena ili je uređaj uklonjen s drugog. Prijavite se ponovno.',
+  'error.signOutUnsynced':
+    'Neke promjene u ovom pregledniku još nisu stigle na vaš račun, a odjava bi ih sada izgubila. Povežite se s internetom i pokušajte ponovno.',
   'error.enterAccountPassword': 'Unesite lozinku računa.',
   'error.accountPasswordWrong': 'To nije lozinka vašeg računa.',
   'error.accountPasswordWeak':
@@ -655,7 +657,7 @@ export const hr: Dictionary = {
     few: ' {count} zapisa nije moguće dešifrirati i preskočena su. Ako se to ponavlja, nešto nije u redu sa spremljenom kopijom.',
     other: ' {count} zapisa nije moguće dešifrirati i preskočeni su. Ako se to ponavlja, nešto nije u redu sa spremljenom kopijom.',
   },
-  'account.signOutNote': 'Odjava ostavlja trezor točno onakvim kakav jest — još ovdje, još šifriran, otvara se na isti način.',
+  'account.signOutNote': 'Odjava uklanja vaše kodove iz ovog preglednika. Ostaju na vašem računu za Keyrook — prijavite se ponovno da ih vratite.',
   'password.changedBoth': 'Lozinka je promijenjena za vaš račun i ovaj trezor. Vaši drugi uređaji tražit će da se ponovno prijavite njome.',
   'password.changedAccount': 'Lozinka računa promijenjena. Vaši drugi uređaji tražit će da se ponovno prijavite njome.',
   'password.title': 'Lozinka',

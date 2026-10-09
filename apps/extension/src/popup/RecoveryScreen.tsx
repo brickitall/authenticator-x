@@ -64,7 +64,7 @@ export function RecoveryScreen({
           type="button"
           onClick={onCancel}
           aria-label={t('common.back')}
-          className="rounded-lg p-1.5 text-base text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+          className="rounded-lg p-1.5 text-base text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-900"
         >
           <ArrowLeftIcon />
         </button>
@@ -100,7 +100,7 @@ export function RecoveryScreen({
       />
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 text-[13px] font-medium text-zinc-700 dark:text-zinc-300">
+        <legend className="mb-1 text-[13px] font-medium text-neutral-700 dark:text-neutral-300">
           {t('recover.lockQuestion')}
         </legend>
         {(
@@ -115,7 +115,7 @@ export function RecoveryScreen({
               'flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 text-[13px] transition',
               mode === value
                 ? 'border-brand-400 bg-brand-50/50 dark:border-brand-500 dark:bg-brand-500/5'
-                : 'border-zinc-200 dark:border-zinc-800',
+                : 'border-neutral-200 dark:border-neutral-800',
             )}
           >
             <input

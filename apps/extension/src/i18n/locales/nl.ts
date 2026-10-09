@@ -21,6 +21,8 @@ export const nl: Dictionary = {
   'error.alreadySignedIn': 'Al ingelogd.',
   'error.signedOutElsewhere':
     'Dit apparaat is uitgelogd bij synchronisatie: het wachtwoord is gewijzigd of het apparaat is vanaf een ander verwijderd. Log opnieuw in.',
+  'error.signOutUnsynced':
+    'Sommige wijzigingen in deze browser zijn nog niet in je account aangekomen, en door nu uit te loggen raak je ze kwijt. Maak verbinding met internet en probeer het opnieuw.',
   'error.enterAccountPassword': 'Voer het wachtwoord van je account in.',
   'error.accountPasswordWrong': 'Dat is niet het wachtwoord van je account.',
   'error.accountPasswordWeak':
@@ -742,7 +744,7 @@ export const nl: Dictionary = {
     other: ' {count} records konden niet worden ontsleuteld en zijn genegeerd. Blijft dit gebeuren, dan klopt er iets niet met de opgeslagen kopie.',
   },
   'account.signOutNote':
-    'Uitloggen laat deze kluis precies zoals hij is: nog steeds hier, nog steeds versleuteld, nog steeds op dezelfde manier te openen.',
+    'Uitloggen haalt je codes van deze browser. Ze blijven in je Keyrook-account: log opnieuw in om ze terug te halen.',
   'password.changedBoth':
     'Wachtwoord gewijzigd, voor je account en deze kluis. Je andere apparaten vragen je om er opnieuw mee in te loggen.',
   'password.changedAccount':

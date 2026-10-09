@@ -35,7 +35,7 @@ export function UnrecoverableScreen({
 
       {hasRecovery ? (
         <>
-          <p className="text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+          <p className="text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">
             {t('unrecoverable.hasKit')}
           </p>
           <Button variant="primary" onClick={onUseRecoveryKey}>
@@ -43,7 +43,7 @@ export function UnrecoverableScreen({
           </Button>
         </>
       ) : (
-        <p className="text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+        <p className="text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">
           {t('unrecoverable.noKit')}
         </p>
       )}

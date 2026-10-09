@@ -28,6 +28,8 @@ export const en = {
   'error.alreadySignedIn': 'Already signed in.',
   'error.signedOutElsewhere':
     'This device was signed out of sync — the password was changed or the device was removed on another one. Sign in again.',
+  'error.signOutUnsynced':
+    'Some changes on this browser haven’t reached your account yet, and signing out now would lose them. Connect to the internet and try again.',
   'error.enterAccountPassword': 'Enter your account password.',
   'error.accountPasswordWrong': 'That is not your account password.',
   'error.accountPasswordWeak':
@@ -743,7 +745,7 @@ export const en = {
     other: ' {count} records could not be decrypted and were ignored. If this keeps happening, something is wrong with the stored copy.',
   },
   'account.signOutNote':
-    'Signing out leaves this vault exactly as it is — still here, still encrypted, still opened the same way.',
+    'Signing out removes your codes from this browser. They stay in your Keyrook account — sign in again to bring them back.',
   'password.changedBoth':
     'Password changed, for your account and this vault. Your other devices will ask you to sign in again with it.',
   'password.changedAccount':

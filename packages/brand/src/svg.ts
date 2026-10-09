@@ -16,34 +16,37 @@ export interface SvgOptions {
   title?: string;
   /** Pixel width; default is the view box's own. null leaves size to CSS. */
   width?: number | null;
+  /** Give each line pathLength="1", so .kr-draw can draw it in. */
+  drawable?: boolean;
 }
 
 const ROUND = 'stroke-linecap="round" stroke-linejoin="round"';
 
-function element(part: MarkPart, colour: string, grow = 0): string {
+function element(part: MarkPart, colour: string, grow = 0, drawable = false): string {
+  const length = drawable ? ' pathLength="1"' : '';
   switch (part.kind) {
     case 'fill':
       return grow
         ? `<path d="${part.d}" fill="${colour}" stroke="${colour}" stroke-width="${grow * 2}" ${ROUND}/>`
         : `<path d="${part.d}" fill="${colour}"/>`;
     case 'stroke':
-      return `<path d="${part.d}" fill="none" stroke="${colour}" stroke-width="${part.width + grow * 2}" ${ROUND}/>`;
+      return `<path${length} d="${part.d}" fill="none" stroke="${colour}" stroke-width="${part.width + grow * 2}" ${ROUND}/>`;
     case 'disc':
       return `<circle cx="${part.cx}" cy="${part.cy}" r="${part.r + grow}" fill="${colour}"/>`;
     case 'ring':
       return grow
         ? `<circle cx="${part.cx}" cy="${part.cy}" r="${part.r + part.width / 2 + grow}" fill="${colour}"/>`
-        : `<circle cx="${part.cx}" cy="${part.cy}" r="${part.r}" fill="none" stroke="${colour}" stroke-width="${part.width}"/>`;
+        : `<circle${length} cx="${part.cx}" cy="${part.cy}" r="${part.r}" fill="none" stroke="${colour}" stroke-width="${part.width}"/>`;
   }
 }
 
 /** Just the drawing's elements, for a <symbol> or an <svg> a page already has. */
-export function markElements(mark: Mark, options: Pick<SvgOptions, 'ink' | 'mono' | 'sticker'> = {}): string {
-  const { ink = INK, mono, sticker = false } = options;
+export function markElements(mark: Mark, options: Pick<SvgOptions, 'ink' | 'mono' | 'sticker' | 'drawable'> = {}): string {
+  const { ink = INK, mono, sticker = false, drawable = false } = options;
   const colourOf = (part: MarkPart) => mono ?? (part.colour === 'ink' ? ink : part.colour);
   return [
     sticker ? `<g>${mark.parts.map((part) => element(part, PAPER, mark.halo)).join('')}</g>` : '',
-    ...mark.parts.map((part) => element(part, colourOf(part))),
+    ...mark.parts.map((part) => element(part, colourOf(part), 0, drawable)),
   ].join('');
 }
 

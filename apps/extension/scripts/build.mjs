@@ -64,7 +64,7 @@ writeFileSync(resolve(dist, 'manifest.json'), `${JSON.stringify(manifest, null, 
 if (process.argv.includes('--zip')) {
   const releases = resolve(root, '../../release');
   mkdirSync(releases, { recursive: true });
-  const archive = resolve(releases, `authenticator-x-${pkg.version}.zip`);
+  const archive = resolve(releases, `keyrook-authenticator-${pkg.version}.zip`);
   rmSync(archive, { force: true });
   console.log(`\n▸ Packaging ${archive}`);
   // Byte for byte the same archive from the same source, on any machine: a

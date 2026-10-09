@@ -9,13 +9,13 @@ import { titleOf } from '../i18n/titles.js';
 export function ShareSheet({ item, onClose }: { item: VaultItem; onClose: () => void }) {
   const t = useT();
   return (
-    <div className="absolute inset-0 z-10 flex flex-col bg-white animate-slide-up dark:bg-zinc-950">
-      <header className="flex items-center gap-2 border-b border-zinc-100 px-3 py-2.5 dark:border-zinc-900">
+    <div className="absolute inset-0 z-10 flex flex-col bg-white animate-slide-up dark:bg-neutral-950">
+      <header className="flex items-center gap-2 border-b border-neutral-100 px-3 py-2.5 dark:border-neutral-900">
         <button
           type="button"
           onClick={onClose}
           aria-label={t('common.back')}
-          className="rounded-lg p-1.5 text-base text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+          className="rounded-lg p-1.5 text-base text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-900"
         >
           <ArrowLeftIcon />
         </button>
@@ -27,7 +27,7 @@ export function ShareSheet({ item, onClose }: { item: VaultItem; onClose: () => 
           <div className="min-w-0">
             <p className="truncate text-[14px] font-semibold">{titleOf(item)}</p>
             {item.issuer && item.label && (
-              <p className="truncate text-[12px] text-zinc-500 dark:text-zinc-400">{item.label}</p>
+              <p className="truncate text-[12px] text-neutral-600 dark:text-neutral-400">{item.label}</p>
             )}
           </div>
         </div>

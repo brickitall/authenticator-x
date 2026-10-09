@@ -44,7 +44,7 @@ export function UnlockScreen({
         <Logo className="h-12 w-12" settle />
         <div>
           <h1 className="text-[17px] font-semibold">{APP_NAME}</h1>
-          <p className="mt-1 text-[13px] text-zinc-500 dark:text-zinc-400">
+          <p className="mt-1 text-[13px] text-neutral-600 dark:text-neutral-400">
             {t('unlock.prompt')}
           </p>
         </div>
@@ -72,7 +72,7 @@ export function UnlockScreen({
         <button
           type="button"
           onClick={onUseRecoveryKey}
-          className="group text-[12px] text-zinc-500 dark:text-zinc-400"
+          className="group text-[12px] text-neutral-600 dark:text-neutral-400"
         >
           {t.rich('unlock.forgot', {}, {
             link: (chunk) => (

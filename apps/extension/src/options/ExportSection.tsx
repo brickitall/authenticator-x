@@ -97,10 +97,10 @@ export function AccountPicker({
               );
             })}
           </div>
-          <ul className="max-h-72 overflow-y-auto rounded-xl border border-zinc-200 scrollarea dark:border-zinc-800">
+          <ul className="max-h-72 overflow-y-auto rounded-xl border border-neutral-200 scrollarea dark:border-neutral-800">
             {items.map((item) => (
-              <li key={item.id} className="border-b border-zinc-100 last:border-b-0 dark:border-zinc-800/80">
-                <label className="flex cursor-pointer items-center gap-3 px-3 py-2 text-[13px] hover:bg-zinc-50 dark:hover:bg-zinc-900">
+              <li key={item.id} className="border-b border-neutral-100 last:border-b-0 dark:border-neutral-800/80">
+                <label className="flex cursor-pointer items-center gap-3 px-3 py-2 text-[13px] hover:bg-neutral-50 dark:hover:bg-neutral-900">
                   <input
                     type="checkbox"
                     checked={selected.has(item.id)}
@@ -114,7 +114,7 @@ export function AccountPicker({
                   />
                   <span className="min-w-0 flex-1 truncate font-medium">{titleOf(item)}</span>
                   {item.issuer && item.label && (
-                    <span className="max-w-[45%] truncate text-[12px] text-zinc-500 dark:text-zinc-400">
+                    <span className="max-w-[45%] truncate text-[12px] text-neutral-600 dark:text-neutral-400">
                       {item.label}
                     </span>
                   )}
@@ -137,7 +137,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
         'h-7 rounded-full border px-3 text-[12px] font-medium transition-colors',
         active
           ? 'border-brand-600 bg-brand-50 text-brand-700 dark:border-brand-400 dark:bg-brand-500/10 dark:text-brand-300'
-          : 'border-zinc-200 text-zinc-600 hover:border-zinc-300 dark:border-zinc-700 dark:text-zinc-300',
+          : 'border-neutral-200 text-neutral-600 hover:border-neutral-300 dark:border-neutral-700 dark:text-neutral-300',
       )}
     >
       {children}
@@ -278,7 +278,7 @@ export function MoveToAnotherApp({
           <Callout tone="danger">
             {t('export.move.danger')}
           </Callout>
-          <label className="flex items-start gap-2.5 text-[13px] text-zinc-600 dark:text-zinc-300">
+          <label className="flex items-start gap-2.5 text-[13px] text-neutral-600 dark:text-neutral-300">
             <input
               type="checkbox"
               checked={understood}
@@ -325,13 +325,13 @@ export function MoveToAnotherApp({
                     'flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-start text-[13px] font-medium transition-colors',
                     destination?.id === option.id
                       ? 'border-brand-600 bg-brand-50 text-brand-800 dark:border-brand-400 dark:bg-brand-500/10 dark:text-brand-200'
-                      : 'border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:border-zinc-700 dark:hover:bg-zinc-900',
+                      : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:border-neutral-700 dark:hover:bg-neutral-900',
                   )}
                 >
                   {option.brand ? (
                     <BrandMark issuer={option.brand} size={24} />
                   ) : (
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-[7px] bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-[7px] bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
                       <QrIcon className="h-3.5 w-3.5" />
                     </span>
                   )}
@@ -351,8 +351,8 @@ export function MoveToAnotherApp({
               />
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-2 border-t border-zinc-100 px-4 py-3 dark:border-zinc-800/80">
-            <span className="me-1 text-[12px] text-zinc-500 dark:text-zinc-400">{t('export.filesAndPaper')}</span>
+          <div className="flex flex-wrap items-center gap-2 border-t border-neutral-100 px-4 py-3 dark:border-neutral-800/80">
+            <span className="me-1 text-[12px] text-neutral-600 dark:text-neutral-400">{t('export.filesAndPaper')}</span>
             <Button size="sm" onClick={() => saveFile('aegis')}>
               {t('export.aegis')}
             </Button>
@@ -366,7 +366,7 @@ export function MoveToAnotherApp({
               {t('export.print')}
             </Button>
           </div>
-          <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-3 text-[12px] text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+          <div className="flex items-center justify-between border-t border-neutral-100 px-4 py-3 text-[12px] text-neutral-600 dark:border-neutral-800/80 dark:text-neutral-400">
             <span>
               {openUntil
                 ? t('export.closesIn', {
@@ -420,7 +420,7 @@ function DestinationPanel({
   return (
     <div
       aria-live="polite"
-      className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 animate-fade-in dark:border-zinc-800 dark:bg-zinc-900/60"
+      className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50/70 p-4 animate-fade-in dark:border-neutral-800 dark:bg-neutral-900/60"
     >
       <div className="flex flex-wrap items-center gap-2">
         <p className="text-[13px] font-semibold">{appName(destination)}</p>
@@ -428,14 +428,14 @@ function DestinationPanel({
           className={cx(
             'rounded-full px-2 py-0.5 text-[11px] font-medium',
             destination.allAtOnce
-              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300'
-              : 'bg-zinc-200/80 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
+              ? 'bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300'
+              : 'bg-neutral-200/80 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300',
           )}
         >
           {destination.allAtOnce ? t('export.allAtOnce') : t('export.oneAtATime')}
         </span>
       </div>
-      <p className="mt-1.5 max-w-[68ch] text-[12.5px] leading-relaxed text-zinc-600 dark:text-zinc-300">
+      <p className="mt-1.5 max-w-[68ch] text-[12.5px] leading-relaxed text-neutral-600 dark:text-neutral-300">
         {t(destination.steps)}
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
@@ -462,7 +462,7 @@ function Overlay({ children, onClose, label }: { children: ReactNode; onClose: (
       role="dialog"
       aria-modal="true"
       aria-label={label}
-      className="export-sheet fixed inset-0 z-50 overflow-y-auto bg-white text-zinc-900 animate-fade-in dark:bg-zinc-950 dark:text-zinc-50"
+      className="export-sheet fixed inset-0 z-50 overflow-y-auto bg-white text-neutral-900 animate-fade-in dark:bg-neutral-950 dark:text-neutral-50"
     >
       {children}
     </div>,
@@ -493,7 +493,7 @@ function TransferCodes({
         <h2 className="text-[20px] font-semibold tracking-tight">
           {destination.id === 'other' ? t('export.transfer.title') : t('export.moveTo', { app: destination.name })}
         </h2>
-        <p className="mt-2 text-center text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-center text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">
           {t(destination.steps)}
         </p>
 
@@ -503,7 +503,7 @@ function TransferCodes({
           </div>
         ) : (
           <>
-            <div className="mt-8 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-700">
+            <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-3 dark:border-neutral-700">
               <QrCode text={uris[index]!} size={360} label={t('export.transfer.codeLabel', { index: index + 1, total: uris.length })} />
             </div>
             {uris.length > 1 ? (
@@ -534,7 +534,7 @@ function TransferCodes({
                 </Button>
               </div>
             ) : (
-              <p className="mt-4 text-[13px] text-zinc-500 dark:text-zinc-400">
+              <p className="mt-4 text-[13px] text-neutral-600 dark:text-neutral-400">
                 {t('export.transfer.oneHolds', { count: chosen.length - skipped.length })}
               </p>
             )}
@@ -609,7 +609,7 @@ function OneByOne({
         <h2 className="text-[20px] font-semibold tracking-tight">
           {destination.id === 'other' ? t('export.oneByOne.title') : t('export.moveTo', { app: destination.name })}
         </h2>
-        <p className="mt-2 text-center text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-center text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-400">
           {t(destination.steps)}
         </p>
 
@@ -618,16 +618,16 @@ function OneByOne({
           <div className="min-w-0">
             <p className="truncate text-[15px] font-semibold">{titleOf(item)}</p>
             {item.issuer && item.label && (
-              <p className="truncate text-[12.5px] text-zinc-500 dark:text-zinc-400">{item.label}</p>
+              <p className="truncate text-[12.5px] text-neutral-600 dark:text-neutral-400">{item.label}</p>
             )}
           </div>
         </div>
-        <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-700">
+        <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-3 dark:border-neutral-700">
           <QrCode text={buildOtpUri(item)} size={300} label={t('share.qrLabel', { account: titleOf(item) })} />
         </div>
 
         <div
-          className="mt-5 h-1 w-64 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800"
+          className="mt-5 h-1 w-64 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800"
           role="progressbar"
           aria-valuemin={1}
           aria-valuemax={chosen.length}
@@ -656,7 +656,7 @@ function OneByOne({
             </Button>
           )}
         </div>
-        <p className="mt-3 text-[11.5px] text-zinc-400 dark:text-zinc-500">{t('export.oneByOne.keys')}</p>
+        <p className="mt-3 text-[11.5px] text-neutral-400 dark:text-neutral-500">{t('export.oneByOne.keys')}</p>
       </div>
     </Overlay>
   );
@@ -675,7 +675,7 @@ function PrintSheet({ chosen, onClose }: { chosen: VaultItem[]; onClose: () => v
         <div className="mb-6 flex items-start justify-between gap-6 print:mb-4">
           <div>
             <h2 className="text-[20px] font-semibold tracking-tight">{t('export.print.title')}</h2>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400 print:text-zinc-600">
+            <p className="mt-1 text-[12.5px] leading-relaxed text-neutral-600 dark:text-neutral-400 print:text-neutral-600">
               {t('export.print.body', {
                 accounts: t('export.accounts', { count: chosen.length }),
                 date: new Date().toLocaleDateString(t.locale),
@@ -693,12 +693,12 @@ function PrintSheet({ chosen, onClose }: { chosen: VaultItem[]; onClose: () => v
           {chosen.map((item) => (
             <li
               key={item.id}
-              className="flex break-inside-avoid flex-col items-center rounded-2xl border border-zinc-200 p-4 text-center dark:border-zinc-800 print:border-zinc-300 print:p-3"
+              className="flex break-inside-avoid flex-col items-center rounded-2xl border border-neutral-200 p-4 text-center dark:border-neutral-800 print:border-neutral-300 print:p-3"
             >
               <QrCode text={buildOtpUri(item)} size={168} exact label={t('share.qrLabel', { account: titleOf(item) })} />
               <p className="mt-2 w-full truncate text-[13px] font-semibold">{titleOf(item)}</p>
               {item.issuer && item.label && (
-                <p className="w-full truncate text-[11.5px] text-zinc-500 print:text-zinc-600">{item.label}</p>
+                <p className="w-full truncate text-[11.5px] text-neutral-600 print:text-neutral-600">{item.label}</p>
               )}
             </li>
           ))}

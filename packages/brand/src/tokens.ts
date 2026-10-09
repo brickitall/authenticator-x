@@ -97,12 +97,63 @@ export const SKETCH_RADIUS = '255px 15px 225px 15px / 15px 225px 15px 255px';
 export const SKETCH_RADIUS_SMALL = '14px 4px 12px 4px / 4px 12px 4px 14px';
 
 /**
+ * The same boxes turned round. Two cards or two buttons side by side with
+ * the same corners read as a pattern, not a hand; the second takes these.
+ */
+export const SKETCH_RADIUS_ALT = '15px 225px 15px 255px / 255px 15px 225px 15px';
+export const SKETCH_RADIUS_SMALL_ALT = '4px 14px 4px 12px / 12px 4px 14px 4px';
+
+/**
+ * Spacing on a 4 px beat, in px. The hand is in the lines; the measuring is
+ * here, so a drawn interface still lines up, reads fast and is easy to hit.
+ */
+export const SPACE = { 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 8: 32, 10: 40, 12: 48, 16: 64, 24: 96 } as const;
+
+/**
+ * The type scale for sites and apps, in the system's faces (FONT). Size and
+ * line height in px, tracking in em. Line heights are even so text sits on
+ * the 4 px beat. The code styles are mono and tabular: what a person copies
+ * is never drawn, never moves, and always reads left to right.
+ */
+export const TYPE = {
+  display: { size: 64, line: 68, weight: 600, tracking: -0.025, mono: false },
+  h1: { size: 44, line: 52, weight: 600, tracking: -0.02, mono: false },
+  h2: { size: 32, line: 40, weight: 600, tracking: -0.015, mono: false },
+  h3: { size: 24, line: 32, weight: 600, tracking: -0.01, mono: false },
+  h4: { size: 19, line: 28, weight: 600, tracking: 0, mono: false },
+  'body-lg': { size: 19, line: 30, weight: 400, tracking: 0, mono: false },
+  body: { size: 16, line: 26, weight: 400, tracking: 0, mono: false },
+  small: { size: 14, line: 22, weight: 400, tracking: 0, mono: false },
+  caption: { size: 12, line: 18, weight: 500, tracking: 0.01, mono: false },
+  'code-xl': { size: 40, line: 48, weight: 600, tracking: 0.08, mono: true },
+  code: { size: 28, line: 36, weight: 600, tracking: 0.06, mono: true },
+  'code-sm': { size: 15, line: 24, weight: 500, tracking: 0.02, mono: true },
+} as const;
+
+/**
+ * Height without blur. A thing that floats is cut paper laid on the page: an
+ * ink line and a hard shadow down and to the right. A blurred shadow would be
+ * the one soft, machine-made edge in a drawn interface.
+ */
+export const ELEVATION = {
+  raised: { x: 3, y: 4, light: 'rgba(34, 32, 28, 0.14)', dark: 'rgba(0, 0, 0, 0.4)' },
+  floating: { x: 5, y: 7, light: 'rgba(34, 32, 28, 0.16)', dark: 'rgba(0, 0, 0, 0.45)' },
+} as const;
+
+/**
  * Motion. Two hand-drawn movements and the plain ones under them.
  *
  * - boil: a drawing redrawn three times a second, a hair out of place each
  *   time, the way animated pencil lines shimmer. Brief, on arrival, on
  *   drawings only.
  * - draw: a line drawn in by the pen, once.
+ *
+ * Under them: things arrive (easeOut), leave in about two thirds of the time
+ * (easeIn), move between two places on screen (easeInOut), and small drawn
+ * things land like a stamp (easeSettle, which overshoots — never on a block
+ * of text). A list arrives `stagger` apart; nothing says it is waiting until
+ * `wait` has passed, since an indicator that flashes and vanishes is worse
+ * than none. Countdowns alone are linear: time is.
  *
  * Everything stops for prefers-reduced-motion.
  */
@@ -113,5 +164,12 @@ export const MOTION = {
   draw: 700,
   boilStep: 150,
   boilRounds: 4,
+  stagger: 40,
+  wait: 300,
+  hold: 1500,
+  toast: 4000,
   easeOut: 'cubic-bezier(0.16, 1, 0.3, 1)',
+  easeIn: 'cubic-bezier(0.7, 0, 0.84, 0)',
+  easeInOut: 'cubic-bezier(0.65, 0, 0.35, 1)',
+  easeSettle: 'cubic-bezier(0.34, 1.4, 0.64, 1)',
 } as const;

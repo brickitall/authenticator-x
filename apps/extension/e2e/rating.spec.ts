@@ -109,7 +109,7 @@ test('About offers the rating and a public place for problems, with a warning', 
   );
   await expect(options.getByRole('link', { name: 'Open an issue' })).toHaveAttribute(
     'href',
-    'https://github.com/brickitall/authenticator-x/issues/new',
+    'https://github.com/keyrook/keyrook-authenticator/issues/new',
   );
   await expect(options.getByText(/Never paste a setup key/)).toBeVisible();
 });

@@ -20,6 +20,8 @@ export const fi: Dictionary = {
   'error.alreadySignedIn': 'Olet jo kirjautunut.',
   'error.signedOutElsewhere':
     'Tämä laite kirjattiin ulos synkronoinnista — salasana vaihdettiin tai laite poistettiin toiselta laitteelta. Kirjaudu uudelleen.',
+  'error.signOutUnsynced':
+    'Osa tämän selaimen muutoksista ei ole vielä päätynyt tilillesi, ja uloskirjautuminen nyt hävittäisi ne. Yhdistä internetiin ja yritä uudelleen.',
   'error.enterAccountPassword': 'Anna tilisi salasana.',
   'error.accountPasswordWrong': 'Tämä ei ole tilisi salasana.',
   'error.accountPasswordWeak':
@@ -641,7 +643,7 @@ export const fi: Dictionary = {
     one: ' {count} tietueen salausta ei voitu purkaa, ja se ohitettiin. Jos tämä toistuu, tallennetussa kopiossa on jotain vialla.',
     other: ' {count} tietueen salausta ei voitu purkaa, ja ne ohitettiin. Jos tämä toistuu, tallennetussa kopiossa on jotain vialla.',
   },
-  'account.signOutNote': 'Uloskirjautuminen jättää holvin juuri sellaiseksi kuin se on — täällä, salattuna, samalla tavalla avautuvana.',
+  'account.signOutNote': 'Uloskirjautuminen poistaa koodisi tästä selaimesta. Ne pysyvät Keyrook-tililläsi — kirjaudu uudelleen sisään, niin saat ne takaisin.',
   'password.changedBoth': 'Salasana vaihdettu tilillesi ja tälle holville. Muut laitteesi pyytävät kirjautumaan uudelleen sillä.',
   'password.changedAccount': 'Tilin salasana vaihdettu. Muut laitteesi pyytävät kirjautumaan uudelleen sillä.',
   'password.title': 'Salasana',

@@ -20,8 +20,62 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 @theme {
-  /* Keyrook's blue crayon. Its red, yellow and green already carry their
-     usual meanings here: danger, warning, success. */
+  /* Only Keyrook's colours exist here. Tailwind's own palettes are switched
+     off, so a class naming one (zinc, amber, emerald…) builds nothing and
+     shows up in review as a missing colour, rather than shipping a grey or a
+     green the brand never chose. */
+  --color-*: initial;
+  --color-white: var(--kr-neutral-0);
+  /* Scrims and overlays dim under ink, not under pure black. */
+  --color-black: var(--kr-ink);
+
+  /* Warm neutrals, paper (50) to night (950). Muted text is 600 on light
+     pages and 400 on dark ones — 500 is under 4.5:1 on paper. */
+  --color-neutral-50: var(--kr-neutral-50);
+  --color-neutral-100: var(--kr-neutral-100);
+  --color-neutral-200: var(--kr-neutral-200);
+  --color-neutral-300: var(--kr-neutral-300);
+  --color-neutral-400: var(--kr-neutral-400);
+  --color-neutral-500: var(--kr-neutral-500);
+  --color-neutral-600: var(--kr-neutral-600);
+  --color-neutral-700: var(--kr-neutral-700);
+  --color-neutral-800: var(--kr-neutral-800);
+  --color-neutral-900: var(--kr-neutral-900);
+  --color-neutral-950: var(--kr-neutral-950);
+
+  /* Each crayon has one job: blue acts, red is danger, yellow warns, green
+     succeeds. Text in one uses its role's stop (ROLES in tokens.ts). */
+  --color-red-50: var(--kr-red-50);
+  --color-red-100: var(--kr-red-100);
+  --color-red-200: var(--kr-red-200);
+  --color-red-300: var(--kr-red-300);
+  --color-red-400: var(--kr-red-400);
+  --color-red-500: var(--kr-red-500);
+  --color-red-600: var(--kr-red-600);
+  --color-red-700: var(--kr-red-700);
+  --color-red-800: var(--kr-red-800);
+  --color-red-900: var(--kr-red-900);
+  --color-yellow-50: var(--kr-yellow-50);
+  --color-yellow-100: var(--kr-yellow-100);
+  --color-yellow-200: var(--kr-yellow-200);
+  --color-yellow-300: var(--kr-yellow-300);
+  --color-yellow-400: var(--kr-yellow-400);
+  --color-yellow-500: var(--kr-yellow-500);
+  --color-yellow-600: var(--kr-yellow-600);
+  --color-yellow-700: var(--kr-yellow-700);
+  --color-yellow-800: var(--kr-yellow-800);
+  --color-yellow-900: var(--kr-yellow-900);
+  --color-green-50: var(--kr-green-50);
+  --color-green-100: var(--kr-green-100);
+  --color-green-200: var(--kr-green-200);
+  --color-green-300: var(--kr-green-300);
+  --color-green-400: var(--kr-green-400);
+  --color-green-500: var(--kr-green-500);
+  --color-green-600: var(--kr-green-600);
+  --color-green-700: var(--kr-green-700);
+  --color-green-800: var(--kr-green-800);
+  --color-green-900: var(--kr-green-900);
+
   --color-brand-50: var(--kr-blue-50);
   --color-brand-100: var(--kr-blue-100);
   --color-brand-200: var(--kr-blue-200);
@@ -33,11 +87,20 @@
   --color-brand-800: var(--kr-blue-800);
   --color-brand-900: var(--kr-blue-900);
 
-  --font-mono:
-    'SF Mono', ui-monospace, 'JetBrains Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  --font-sans: var(--kr-font-sans);
+  --font-mono: var(--kr-font-mono);
 
-  --animate-fade-in: fade-in 160ms ease-out;
-  --animate-slide-up: slide-up 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  /* Height is cut paper: a hard shadow down and to the right, never a blur —
+     a blurred one would be the only machine-made edge in a drawn interface.
+     Tailwind's soft shadows are switched off with the colours. */
+  --shadow-*: initial;
+  --shadow-raised: var(--kr-shadow-raised);
+  --shadow-floating: var(--kr-shadow-floating);
+  /* A knob or a chosen tab sitting on its track: one hard pixel under it. */
+  --shadow-sm: 0 1px 0 color-mix(in srgb, var(--kr-ink) 14%, transparent);
+
+  --animate-fade-in: fade-in var(--kr-motion-base) var(--kr-ease-out);
+  --animate-slide-up: slide-up var(--kr-motion-base) var(--kr-ease-out);
 }
 
 @keyframes fade-in {
@@ -72,13 +135,13 @@
   html,
   body {
     margin: 0;
-    font-family:
-      ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    font-family: var(--kr-font-sans);
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Ink on paper; paper on night. White is a surface laid on the page. */
   body {
-    @apply bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50;
+    @apply bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50;
   }
 
   /* Focus rings only when keyboard-driven — clicking a code should stay quiet. */
@@ -99,7 +162,7 @@
 
   /* Codes are read digit by digit; tabular figures stop them jittering. */
   .code-digits {
-    font-family: var(--font-mono);
+    font-family: var(--kr-font-mono);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.06em;
   }
@@ -138,11 +201,11 @@
 
   .export-sheet,
   .export-sheet * {
-    color: #18181b !important;
+    color: var(--kr-ink) !important;
     background-color: transparent !important;
   }
 
   .export-sheet li {
-    border-color: #d4d4d8 !important;
+    border-color: var(--kr-neutral-300) !important;
   }
 }

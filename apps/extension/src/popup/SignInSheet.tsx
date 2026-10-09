@@ -35,14 +35,14 @@ export function SignInSheet({ onClose }: { onClose: () => void }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="sign-in-title"
-      className="absolute inset-0 z-10 flex flex-col bg-white animate-slide-up dark:bg-zinc-950"
+      className="absolute inset-0 z-10 flex flex-col bg-white animate-slide-up dark:bg-neutral-950"
     >
-      <header className="flex items-center gap-2 border-b border-zinc-100 px-3 py-2.5 dark:border-zinc-900">
+      <header className="flex items-center gap-2 border-b border-neutral-100 px-3 py-2.5 dark:border-neutral-900">
         <button
           type="button"
           onClick={onClose}
           aria-label={t('common.back')}
-          className="rounded-lg p-1.5 text-base text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+          className="rounded-lg p-1.5 text-base text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-900"
         >
           <ArrowLeftIcon />
         </button>
@@ -56,12 +56,12 @@ export function SignInSheet({ onClose }: { onClose: () => void }) {
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-[18px] text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
             <CloudLockIcon />
           </span>
-          <p className="text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-300">{t('intro.subtitle')}</p>
+          <p className="text-[13px] leading-relaxed text-neutral-600 dark:text-neutral-300">{t('intro.subtitle')}</p>
         </div>
 
         <ul className="flex flex-col gap-2">
           {BENEFITS.map((benefit) => (
-            <li key={benefit} className="flex gap-2 text-[12.5px] leading-snug text-zinc-600 dark:text-zinc-300">
+            <li key={benefit} className="flex gap-2 text-[12.5px] leading-snug text-neutral-600 dark:text-neutral-300">
               <CheckIcon className="mt-px shrink-0 text-[14px] text-brand-600 dark:text-brand-400" />
               {t(benefit)}
             </li>
@@ -85,7 +85,7 @@ export function SignInSheet({ onClose }: { onClose: () => void }) {
               {t('intro.signIn')}
             </Button>
           </div>
-          <p className="text-center text-[11.5px] leading-relaxed text-zinc-400 dark:text-zinc-500">
+          <p className="text-center text-[11.5px] leading-relaxed text-neutral-400 dark:text-neutral-500">
             {t('popup.signInOpensTab')}
           </p>
         </div>

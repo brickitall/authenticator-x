@@ -21,6 +21,8 @@ export const ja: Dictionary = {
   'error.alreadySignedIn': 'すでにログインしています。',
   'error.signedOutElsewhere':
     'このデバイスは同期からログアウトされました。パスワードが変更されたか、別のデバイスからこのデバイスが削除されました。もう一度ログインしてください。',
+  'error.signOutUnsynced':
+    'このブラウザでの変更の一部がまだアカウントに届いていないため、今ログアウトすると失われます。インターネットに接続して、もう一度お試しください。',
   'error.enterAccountPassword': 'アカウントのパスワードを入力してください。',
   'error.accountPasswordWrong': 'アカウントのパスワードではありません。',
   'error.accountPasswordWeak':
@@ -724,7 +726,7 @@ export const ja: Dictionary = {
     other: ' {count} 件のレコードを復号できなかったため、無視しました。繰り返し起きる場合は、保存されているコピーに問題があります。',
   },
   'account.signOutNote':
-    'ログアウトしても、この保管庫はそのまま残ります。ここにあり、暗号化されたまま、同じ方法で開けます。',
+    'ログアウトすると、このブラウザからコードが削除されます。コードは Keyrook アカウントに残っているので、もう一度ログインすれば戻ります。',
   'password.changedBoth':
     'アカウントとこの保管庫のパスワードを変更しました。ほかのデバイスでは、新しいパスワードで再ログインを求められます。',
   'password.changedAccount':

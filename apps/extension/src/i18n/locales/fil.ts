@@ -22,6 +22,8 @@ export const fil: Dictionary = {
   'error.alreadySignedIn': 'Naka-sign in ka na.',
   'error.signedOutElsewhere':
     'Na-sign out ang device na ito sa sync — pinalitan ang password o inalis ito mula sa ibang device. Mag-sign in ulit.',
+  'error.signOutUnsynced':
+    'May ilang pagbabago sa browser na ito na hindi pa nakakarating sa account mo, at mawawala ang mga ito kung magsa-sign out ka ngayon. Kumonekta sa internet at subukan ulit.',
   'error.enterAccountPassword': 'Ilagay ang password ng account mo.',
   'error.accountPasswordWrong': 'Hindi iyan ang password ng account mo.',
   'error.accountPasswordWeak':
@@ -644,7 +646,7 @@ export const fil: Dictionary = {
     one: ' {count} record ang hindi ma-decrypt at nilaktawan. Kung mangyari ulit ito, may mali sa naka-save na kopya.',
     other: ' {count} record ang hindi ma-decrypt at nilaktawan. Kung mangyari ulit ito, may mali sa naka-save na kopya.',
   },
-  'account.signOutNote': 'Kapag nag-sign out, maiiwan ang vault nang eksakto kung ano ito — nandito pa rin, naka-encrypt pa rin, bumubukas sa parehong paraan.',
+  'account.signOutNote': 'Kapag nag-sign out, aalisin ang mga code mo sa browser na ito. Mananatili ang mga ito sa Keyrook account mo — mag-sign in ulit para maibalik ang mga ito.',
   'password.changedBoth': 'Napalitan ang password para sa account mo at sa vault na ito. Hihilingin ng iba mong device na mag-sign in ulit gamit ito.',
   'password.changedAccount': 'Napalitan ang password ng account. Hihilingin ng iba mong device na mag-sign in ulit gamit ito.',
   'password.title': 'Password',

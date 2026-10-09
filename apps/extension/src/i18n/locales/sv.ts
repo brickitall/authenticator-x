@@ -20,6 +20,8 @@ export const sv: Dictionary = {
   'error.alreadySignedIn': 'Redan inloggad.',
   'error.signedOutElsewhere':
     'Den här enheten loggades ut från synkroniseringen — lösenordet ändrades eller enheten togs bort från en annan. Logga in igen.',
+  'error.signOutUnsynced':
+    'Vissa ändringar i den här webbläsaren har inte nått ditt konto ännu, och loggar du ut nu går de förlorade. Anslut till internet och försök igen.',
   'error.enterAccountPassword': 'Ange ditt kontolösenord.',
   'error.accountPasswordWrong': 'Det där är inte ditt kontolösenord.',
   'error.accountPasswordWeak':
@@ -655,7 +657,7 @@ export const sv: Dictionary = {
     one: ' {count} post kunde inte dekrypteras och hoppades över. Händer det igen är något fel med den sparade kopian.',
     other: ' {count} poster kunde inte dekrypteras och hoppades över. Händer det igen är något fel med den sparade kopian.',
   },
-  'account.signOutNote': 'Att logga ut lämnar valvet precis som det är — kvar här, krypterat och öppnat på samma sätt.',
+  'account.signOutNote': 'När du loggar ut tas dina koder bort från den här webbläsaren. De finns kvar i ditt Keyrook-konto — logga in igen för att få tillbaka dem.',
   'password.changedBoth': 'Lösenordet ändrades, för ditt konto och valvet. Dina andra enheter ber dig logga in igen med det.',
   'password.changedAccount': 'Kontolösenordet ändrades. Dina andra enheter ber dig logga in igen med det.',
   'password.title': 'Lösenord',
