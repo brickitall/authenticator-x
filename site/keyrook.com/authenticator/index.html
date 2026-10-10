@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-euS3W07cgPkLXHDN85O9vXB690sp628wB81UCGRh4Z4='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-euS3W07cgPkLXHDN85O9vXB690sp628wB81UCGRh4Z4='; style-src 'unsafe-inline'; img-src data: 'self'; media-src 'self'; base-uri 'none'; form-action 'none'">
 <title>Keyrook Authenticator — two-factor codes in your browser</title>
 <meta name="description" content="A browser extension for your two-factor codes. Encrypted on your own computer, unable to read the websites you visit, and open source.">
 <link rel="canonical" href="https://keyrook.com/authenticator/">
@@ -247,6 +247,11 @@
   .ring .left { stroke: var(--kr-action); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
   .ring text { font: 600 9px var(--kr-font-mono); fill: var(--kr-text-muted); }
   .caption { text-align: center; font-size: .8rem; color: var(--kr-text-muted); margin: 1.1rem 0 0; }
+  .tour {
+    display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: var(--kr-surface-sunken);
+    border: var(--kr-line-pen) solid var(--kr-text); border-radius: 22px 10px 20px 12px / 12px 20px 10px 22px;
+    box-shadow: var(--kr-shadow-floating);
+  }
 
   section { padding: 4rem 0; border-top: 1px solid var(--kr-line); }
   h2 { font-size: clamp(1.6rem, 3.5vw, 2.1rem); font-weight: 600; letter-spacing: -0.015em; line-height: 1.2; margin: 0 0 .75rem; }
@@ -346,6 +351,19 @@
       </div>
     </div>
 
+    <section id="video">
+      <h2>See it in 80 seconds</h2>
+      <p class="intro">Filling a code, adding an account, moving in from your
+      phone, and sync between browsers. With captions.</p>
+      <video class="tour" controls preload="none" playsinline width="1280" height="720"
+        poster="video/poster.png" aria-label="Keyrook Authenticator, an 80-second tour">
+        <source src="video/keyrook-authenticator.mp4" type="video/mp4">
+        <track kind="captions" src="video/keyrook-authenticator.en.vtt" srclang="en" label="English">
+      </video>
+      <p class="caption">Played from this site: nothing loads until you press play.
+      Also <a href="https://www.youtube.com/watch?v=2yPwUKm7N80">on YouTube</a>.</p>
+    </section>
+
     <section>
       <h2>Built to be trusted, not just used</h2>
       <p class="intro">An authenticator holds the second half of every login you
@@ -387,9 +405,11 @@
       <ul class="features">
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Scan the QR code straight from the page you are setting up</li>
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Or point your camera at a code shown on your phone</li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Fill a code into the page with one click</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Fill a code into the page with one click, or with Alt+Shift+F</li>
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Sync your browsers — optional, free, end-to-end encrypted</li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Move everything over from Google Authenticator</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Sign in with Google, GitHub or an email address</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Move in from Google Authenticator, other apps, or a password manager</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>In 50 languages</li>
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Move to any other app, whenever you like, in a few scans</li>
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Groups, search, auto-lock and encrypted backups</li>
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#kr-check"/></svg>Get one code from a key, without saving anything</li>
@@ -398,13 +418,19 @@
 
     <section>
       <div class="next">
-        <span class="tag">New in 0.2.0</span>
-        <p><strong>Sync, if you want it.</strong> Create an account and your codes
-        stay in step across every browser you sign in to, end-to-end encrypted:
-        the server stores only what it cannot read, and the code that encrypts it
-        is open source. Sync is free, with no limit on accounts.</p>
-        <p>No account is required. Without one, nothing leaves your computer. On
-        Chrome and Edge now; Opera follows when its review finishes.</p>
+        <span class="tag">New in 0.3</span>
+        <p><strong>Sign in with Google or GitHub.</strong> Sync your browsers
+        with a Google or GitHub account, or an email address. It is still
+        end-to-end encrypted: the server stores only what it cannot read. A new
+        browser gets your accounts only when you approve it from one already
+        signed in, once both show the same code.</p>
+        <p>Also new: the extension in 50 languages, moving in from other
+        authenticator apps or a password manager's export, and Alt+Shift+F to
+        fill a code without opening anything.
+        <a href="#video">See it in 80 seconds</a>.</p>
+        <p>No account is required. Without one, nothing leaves your computer.
+        0.3 is on Chrome now. Edge keeps 0.2 until its review finishes, then
+        updates by itself. Opera follows.</p>
       </div>
     </section>
 

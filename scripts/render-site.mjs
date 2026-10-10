@@ -36,12 +36,16 @@ const sha256 = (text) => createHash('sha256').update(text, 'utf8').digest('base6
  * front of keyrook.com, injects its analytics beacon into every page; this
  * is what keeps it from running on these.
  */
-const policy = (scriptHash) =>
+const policy = (scriptHash, { video = false } = {}) =>
   [
     "default-src 'none'",
     `script-src 'sha256-${scriptHash}'`,
     "style-src 'unsafe-inline'",
-    'img-src data:',
+    // The intro page plays the promo video from its own folder: the poster is
+    // an image, the film and its captions are media. Still nothing from any
+    // other host, so watching it tells no one but keyrook.com.
+    video ? "img-src data: 'self'" : 'img-src data:',
+    ...(video ? ["media-src 'self'"] : []),
     "base-uri 'none'",
     "form-action 'none'",
   ].join('; ');
@@ -78,9 +82,9 @@ if (introScripts.length !== 1 || intro.split('<script').length !== 2) {
 }
 const introPage = intro.replace(
   /<meta http-equiv="Content-Security-Policy" content="[^"]*">/,
-  () => `<meta http-equiv="Content-Security-Policy" content="${policy(sha256(introScripts[0][1]))}">`,
+  () => `<meta http-equiv="Content-Security-Policy" content="${policy(sha256(introScripts[0][1]), { video: true })}">`,
 );
-if (introPage === intro && !intro.includes(policy(sha256(introScripts[0][1])))) {
+if (introPage === intro && !intro.includes(policy(sha256(introScripts[0][1]), { video: true }))) {
   throw new Error('The intro page has no Content-Security-Policy <meta> to fill in.');
 }
 

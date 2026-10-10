@@ -1,5 +1,5 @@
 import { createHmac } from 'node:crypto';
-import type { Page } from '@playwright/test';
+import type { BrowserContext, Page, Worker } from '@playwright/test';
 import {
   base32Bytes,
   createDeviceVault,
@@ -127,6 +127,21 @@ test('a device-protected vault reopens without any prompt', async ({ context, ex
   await expect(page.locator('input[type="password"]')).toHaveCount(0);
 });
 
+/**
+ * Chrome tears an idle MV3 worker down on its own schedule. Killing it
+ * outright is the same event, on demand: this is the case the "rehydrate from
+ * storage on every message" design exists for, and no amount of stubbing can
+ * prove it.
+ */
+async function killWorker(context: BrowserContext, page: Page, worker: Worker) {
+  const cdp = await context.newCDPSession(page);
+  const { targetInfos } = await cdp.send('Target.getTargets');
+  const swTarget = targetInfos.find((target) => target.type === 'service_worker');
+  expect(swTarget, 'expected a service worker target').toBeTruthy();
+  await cdp.send('Target.closeTarget', { targetId: swTarget!.targetId });
+  await worker.waitForEvent('close', { timeout: 15_000 }).catch(() => undefined);
+}
+
 test('the vault survives the service worker being killed', async ({
   context,
   extensionId,
@@ -137,16 +152,7 @@ test('the vault survives the service worker being killed', async ({
   await addAccount(page, SETUP_URI);
   await expect(page.getByText('GitHub').first()).toBeVisible();
 
-  // Chrome tears an idle MV3 worker down on its own schedule. Killing it
-  // outright is the same event, on demand: this is the case the "rehydrate
-  // from storage on every message" design exists for, and no amount of
-  // stubbing can prove it.
-  const cdp = await context.newCDPSession(page);
-  const { targetInfos } = await cdp.send('Target.getTargets');
-  const swTarget = targetInfos.find((target) => target.type === 'service_worker');
-  expect(swTarget, 'expected a service worker target').toBeTruthy();
-  await cdp.send('Target.closeTarget', { targetId: swTarget!.targetId });
-  await worker.waitForEvent('close', { timeout: 15_000 }).catch(() => undefined);
+  await killWorker(context, page, worker);
 
   const revived = await openPopup(context, extensionId);
   await expect(revived.getByText('GitHub').first()).toBeVisible();
@@ -621,4 +627,181 @@ test('two surfaces writing at once both survive', async ({ context, extensionId 
   await expect(popup.getByText('Popup').first()).toBeVisible();
   await expect(popup.getByText('Options').first()).toBeVisible();
   await expect(popup.getByText('GitHub').first()).toBeVisible();
+});
+
+test('two surfaces making the vault at once make one, and it outlives the worker', async ({
+  context,
+  extensionId,
+  worker,
+}) => {
+  // "Just start" pressed in the popup and in the Settings tab a new install
+  // opens, together. Each would make a device key of its own; only one stays.
+  const popup = await openPopup(context, extensionId);
+  const options = await openOptions(context, extensionId);
+  const create = () =>
+    chrome.runtime.sendMessage({ type: 'vault/create', protection: { mode: 'device' } });
+  const results = await Promise.all([popup.evaluate(create), options.evaluate(create)]);
+
+  expect(results.filter((result) => result.ok)).toHaveLength(1);
+  expect(results.find((result) => !result.ok)).toMatchObject({ key: 'error.vaultExists' });
+
+  await expect(popup.getByText('No accounts yet')).toBeVisible();
+  await addAccount(popup, SETUP_URI);
+  await expect(popup.getByText('GitHub').first()).toBeVisible();
+
+  // The vault on disk has to open with the key the key store kept, not only
+  // with the one this worker still holds in memory.
+  await killWorker(context, popup, worker);
+  const revived = await openPopup(context, extensionId);
+  await expect(revived.getByText('GitHub').first()).toBeVisible();
+});
+
+test('erasing everything while a write is under way leaves nothing behind', async ({
+  context,
+  extensionId,
+}) => {
+  const popup = await openPopup(context, extensionId);
+  await createDeviceVault(popup);
+
+  // A write still under way when the erase arrives: a new master password
+  // being stretched, here, or a sync waiting on the server. It saves only at
+  // the end, after the erase if the two are let side by side.
+  const [write, reset] = await popup.evaluate((password) =>
+    Promise.all([
+      chrome.runtime.sendMessage({ type: 'vault/setProtection', next: { mode: 'passphrase', password } }),
+      chrome.runtime.sendMessage({ type: 'vault/reset' }),
+    ]),
+    MASTER_PASSWORD,
+  );
+  expect(write).toMatchObject({ ok: true });
+  expect(reset).toMatchObject({ ok: true });
+
+  const status = await popup.evaluate(() => chrome.runtime.sendMessage({ type: 'vault/status' }));
+  expect(status).toMatchObject({ ok: true, value: { state: 'uninitialized' } });
+});
+
+test('a lock that lands while a write is under way stays locked', async ({ context, extensionId }) => {
+  const popup = await openPopup(context, extensionId);
+  await createDeviceVault(popup);
+  const set = await popup.evaluate(
+    (password) =>
+      chrome.runtime.sendMessage({ type: 'vault/setProtection', next: { mode: 'passphrase', password } }),
+    MASTER_PASSWORD,
+  );
+  expect(set).toMatchObject({ ok: true });
+
+  // "Lock now", or the auto-lock alarm, while the master password is being
+  // changed — both old and new stretched — or a sync waits on the server.
+  // The write finishes after the lock, and used to open the vault again.
+  const NEW_PASSWORD = 'a different password now';
+  const [write, locked] = await popup.evaluate(
+    ([current, next]) =>
+      Promise.all([
+        chrome.runtime.sendMessage({
+          type: 'vault/setProtection',
+          currentPassword: current,
+          next: { mode: 'passphrase', password: next },
+        }),
+        chrome.runtime.sendMessage({ type: 'vault/lock' }),
+      ]),
+    [MASTER_PASSWORD, NEW_PASSWORD],
+  );
+  expect(write).toMatchObject({ ok: true });
+  expect(locked).toMatchObject({ ok: true });
+
+  const status = await popup.evaluate(() => chrome.runtime.sendMessage({ type: 'vault/status' }));
+  expect(status).toMatchObject({ ok: true, value: { state: 'locked' } });
+
+  // The write itself still landed: the vault opens with the new password.
+  await popup.getByPlaceholder('Master password').fill(NEW_PASSWORD);
+  await popup.getByRole('button', { name: 'Unlock' }).click();
+  await expect(popup.getByText('No accounts yet')).toBeVisible();
+});
+
+/** A device vault given a master password and locked, ready for an unlock. */
+async function lockWithPassword(popup: Page, { recoveryKit = false } = {}) {
+  await createDeviceVault(popup);
+  await addAccount(popup, SETUP_URI);
+  const set = await popup.evaluate(
+    (password) =>
+      chrome.runtime.sendMessage({ type: 'vault/setProtection', next: { mode: 'passphrase', password } }),
+    MASTER_PASSWORD,
+  );
+  expect(set).toMatchObject({ ok: true });
+  if (recoveryKit) {
+    // Before the lock: the worker issues a kit only for an open vault.
+    const kit = await popup.evaluate(() => chrome.runtime.sendMessage({ type: 'vault/createRecoveryKit' }));
+    expect(kit).toMatchObject({ ok: true });
+  }
+  await popup.getByTitle('Lock now').click();
+  await expect(popup.getByText('Enter your master password to unlock.')).toBeVisible();
+}
+
+test('Settings opened before the vault exists follows the vault made in the popup', async ({
+  context,
+  extensionId,
+}) => {
+  // What a new install does: the welcome tab opens on the setup screen, and
+  // the person makes the vault from the toolbar instead.
+  const options = await openOptions(context, extensionId);
+  await expect(options.getByRole('button', { name: /Just start/ })).toBeVisible();
+
+  const popup = await openPopup(context, extensionId);
+  await createDeviceVault(popup);
+
+  await expect(options.getByRole('button', { name: 'Sync', exact: true })).toBeVisible();
+});
+
+test('a locked Settings tab follows an unlock made in the popup', async ({ context, extensionId }) => {
+  const popup = await openPopup(context, extensionId);
+  await lockWithPassword(popup);
+
+  const options = await openOptions(context, extensionId);
+  await expect(options.getByText('Enter your master password to unlock.')).toBeVisible();
+
+  await popup.getByPlaceholder('Master password').fill(MASTER_PASSWORD);
+  await popup.getByRole('button', { name: 'Unlock' }).click();
+  await expect(popup.getByText('GitHub').first()).toBeVisible();
+
+  await expect(options.getByRole('button', { name: 'Sync', exact: true })).toBeVisible();
+  await expect(options.getByText('GitHub').first()).toBeVisible();
+});
+
+test('a Settings tab left on the recovery form asks for the password at the next lock', async ({
+  context,
+  extensionId,
+}) => {
+  const popup = await openPopup(context, extensionId);
+  await lockWithPassword(popup, { recoveryKit: true });
+
+  const options = await openOptions(context, extensionId);
+  await options.getByRole('button', { name: /Use your recovery key/ }).click();
+  await expect(options.getByRole('heading', { name: 'Use your recovery key' })).toBeVisible();
+
+  await popup.getByPlaceholder('Master password').fill(MASTER_PASSWORD);
+  await popup.getByRole('button', { name: 'Unlock' }).click();
+  await expect(options.getByRole('button', { name: 'Sync', exact: true })).toBeVisible();
+
+  await popup.getByTitle('Lock now').click();
+  await expect(options.getByText('Enter your master password to unlock.')).toBeVisible();
+});
+
+// The page that makes the vault hears it announced like every other, and may
+// draw it before its own answer arrives. Where it was headed must survive that.
+test('a vault made on the way to signing in opens the popup on signing in', async ({
+  context,
+  extensionId,
+}) => {
+  const popup = await openPopup(context, extensionId);
+  await popup.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(popup.getByRole('dialog', { name: 'Sync your vault' })).toBeVisible();
+});
+
+test('a vault made on the way to signing in opens Settings on Sync', async ({ context, extensionId }) => {
+  const options = await openOptions(context, extensionId);
+  await options.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(options.getByRole('button', { name: 'Sync', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
 });

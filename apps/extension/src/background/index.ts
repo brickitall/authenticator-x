@@ -129,11 +129,56 @@ const SYNC_INTERVAL_MINUTES = 5;
 let cached: UnlockedVault | null = null;
 
 /**
+ * How many times the vault has locked. A lock never waits for the queue:
+ * requests to the sync server have no timeout, and "Lock now" must not sit
+ * behind one that hangs. So a turn that read the session before a lock can
+ * finish after it, and everything that puts a session back first checks that
+ * no lock came in between — see `keep`.
+ */
+let locks = 0;
+/** `locks` as the running turn found it. Turns never overlap, so one will do. */
+let locksAtTurn = 0;
+
+const queue = createSerialiser();
+
+/**
  * Every write runs through here, one at a time. See createSerialiser: the whole
  * read-modify-write has to be inside, or two of them still race on the snapshot
  * they read before taking their turn.
  */
-const serial = createSerialiser();
+function serial<T>(run: () => Promise<T>): Promise<T> {
+  return queue(() => {
+    locksAtTurn = locks;
+    return run();
+  });
+}
+
+function lockedDuringTurn(): boolean {
+  return locks !== locksAtTurn;
+}
+
+/**
+ * Leaves `next` as the open session, for a caller holding the write queue —
+ * unless the vault locked while the turn ran. Then its write still reaches the
+ * disk, sealed like any other, but nothing reopens what the lock closed, and
+ * any session opened since goes too: it may have been read before that write.
+ */
+function keep(next: UnlockedVault): boolean {
+  if (lockedDuringTurn()) {
+    cached = null;
+    return false;
+  }
+  cached = next;
+  return true;
+}
+
+/** Keeps a password-protected vault's data key in session memory, on the same terms. */
+async function keepSessionKey(dataKey: CryptoKey): Promise<void> {
+  const raw = await exportDataKey(dataKey);
+  // Checked after the export, which waits, and just before the write: a lock
+  // from here on clears the key after it is stored.
+  if (!lockedDuringTurn()) await saveSessionKey(raw);
+}
 
 /** Read the vault, change it, store it — without anything else interleaving. */
 async function mutateVault<T>(
@@ -161,6 +206,18 @@ async function keyringFor(choice: ProtectionChoice): Promise<Keyring> {
 async function getUnlocked(): Promise<UnlockedVault | null> {
   if (cached) return cached;
 
+  // Often outside the queue — `status` is — so a lock or a turn can land
+  // while this reads. A lock wins: start again from what it left, which for a
+  // password-protected vault is no key. A session a turn kept meanwhile is
+  // newer than the file read here, and stays.
+  const before = locks;
+  const opened = await openFromStorage();
+  if (locks !== before) return getUnlocked();
+  cached ??= opened;
+  return cached;
+}
+
+async function openFromStorage(): Promise<UnlockedVault | null> {
   const file = await loadVaultFile();
   if (!file) return null;
 
@@ -168,16 +225,14 @@ async function getUnlocked(): Promise<UnlockedVault | null> {
     if (file.protection.mode === 'device') {
       const deviceKey = await getDeviceKey();
       if (!deviceKey) return null;
-      cached = await unlockVault(file, deviceKeyring(deviceKey));
-      return cached;
+      return await unlockVault(file, deviceKeyring(deviceKey));
     }
 
     const rawKey = await loadSessionKey();
     if (!rawKey) return null;
 
     const dataKey = await importDataKey(rawKey);
-    cached = { file, dataKey, data: await readPayload(file, dataKey) };
-    return cached;
+    return { file, dataKey, data: await readPayload(file, dataKey) };
   } catch {
     // A key that no longer opens the file means the vault was replaced or
     // reset elsewhere. Treat it as locked rather than surfacing a crash.
@@ -203,14 +258,17 @@ async function status(): Promise<VaultStatus> {
   return { state: 'locked', hasRecovery };
 }
 
-async function persist(data: VaultData): Promise<void> {
+/** Seals and stores `data`, for a caller holding the write queue. */
+async function persist(data: VaultData): Promise<UnlockedVault> {
   const unlocked = cached;
   if (!unlocked) fail('error.vaultLocked');
 
   const file = await sealVault(unlocked.file, unlocked.dataKey, data);
   await saveVaultFile(file);
-  cached = { ...unlocked, file, data };
+  const next = { ...unlocked, file, data };
+  keep(next);
   broadcastChange();
+  return next;
 }
 
 function broadcastChange(): void {
@@ -234,6 +292,7 @@ async function scheduleAutoLock(file: VaultFile, minutes: number): Promise<void>
 }
 
 async function lock(): Promise<void> {
+  locks += 1;
   cached = null;
   await clearSessionKey();
   await chrome.alarms.clear(AUTO_LOCK_ALARM);
@@ -242,13 +301,19 @@ async function lock(): Promise<void> {
 }
 
 async function openSession(unlocked: UnlockedVault): Promise<VaultStatus> {
-  cached = unlocked;
-  if (unlocked.file.protection.mode === 'passphrase') {
-    await saveSessionKey(await exportDataKey(unlocked.dataKey));
-  }
+  // A lock that came while this turn opened the vault came after the request
+  // to open it, and wins.
+  if (!keep(unlocked)) return status();
+  if (unlocked.file.protection.mode === 'passphrase') await keepSessionKey(unlocked.dataKey);
   await markActive();
   await scheduleAutoLock(unlocked.file, unlocked.data.settings.autoLockMinutes);
+  // Again after those waits, or the toolbar would say unlocked over a lock.
+  if (lockedDuringTurn()) return status();
   await setLockedTitle(false);
+  // Only the page that asked gets the answer. Any other one open — the
+  // Settings tab a new install opens, a locked one left behind — is drawing
+  // the setup or unlock screen, and would keep drawing it until reloaded.
+  broadcastChange();
   return unlockedStatus(unlocked);
 }
 
@@ -362,10 +427,9 @@ async function syncInTurn(unlocked: UnlockedVault) {
   }
 
   if (outcome.recovery) {
-    cached = { ...unlocked, file: applyRecoveryState(unlocked.file, outcome.recovery) };
+    keep({ ...unlocked, file: applyRecoveryState(unlocked.file, outcome.recovery) });
   }
-  await persist(outcome.data);
-  return { unlocked: cached!, summary: outcome.summary };
+  return { unlocked: await persist(outcome.data), summary: outcome.summary };
 }
 
 /**
@@ -409,7 +473,7 @@ async function completeProviderSignIn(provider: SignInProvider, ticket: Provider
     const started = await startProviderSignIn(unlocked, provider, ticket);
     if (started.kind === 'signedIn') {
       await saveVaultFile(started.file);
-      cached = { ...unlocked, file: started.file, data: started.data };
+      keep({ ...unlocked, file: started.file, data: started.data });
       broadcastChange();
       await scheduleSync();
     }
@@ -429,10 +493,8 @@ async function completeProviderSignIn(provider: SignInProvider, ticket: Provider
  */
 async function adoptInTurn(joined: { file: VaultFile; dataKey: CryptoKey; data: VaultData }): Promise<void> {
   await saveVaultFile(joined.file);
-  cached = { file: joined.file, dataKey: joined.dataKey, data: joined.data };
-  if (joined.file.protection.mode === 'passphrase') {
-    await saveSessionKey(await exportDataKey(joined.dataKey));
-  }
+  keep({ file: joined.file, dataKey: joined.dataKey, data: joined.data });
+  if (joined.file.protection.mode === 'passphrase') await keepSessionKey(joined.dataKey);
   broadcastChange();
   await scheduleSync();
 }
@@ -464,7 +526,7 @@ async function changeAccountKit(
   const data = { ...unlocked.data, sync: { ...unlocked.data.sync, recoveryAt: issuedAt } };
   const sealed = await sealVault(file, unlocked.dataKey, data);
   await saveVaultFile(sealed);
-  cached = { ...unlocked, file: sealed, data };
+  keep({ ...unlocked, file: sealed, data });
   broadcastChange();
   return recoveryKey;
 }
@@ -497,8 +559,8 @@ async function issueKit(synced: UnlockedVault, issuedAt: number) {
 async function relockWith(unlocked: UnlockedVault, password: string): Promise<void> {
   const file = await rewrapVault(unlocked.file, unlocked.dataKey, await passphraseKeyring(password));
   await saveVaultFile(file);
-  cached = { ...unlocked, file };
-  await saveSessionKey(await exportDataKey(unlocked.dataKey));
+  keep({ ...unlocked, file });
+  await keepSessionKey(unlocked.dataKey);
   await scheduleAutoLock(file, unlocked.data.settings.autoLockMinutes);
 }
 
@@ -549,23 +611,34 @@ async function handle(request: Request): Promise<unknown> {
     case 'vault/status':
       return status();
 
-    case 'vault/create': {
-      if (await loadVaultFile()) fail('error.vaultExists');
-      const unlocked = await createVault(await keyringFor(request.protection));
-      await saveVaultFile(unlocked.file);
-      return openSession(unlocked);
-    }
+    // The check that no vault exists is in the turn too. Two surfaces pressing
+    // "Just start" together would otherwise both find none and both make one,
+    // each with a device key of its own: the key store keeps one key, storage
+    // keeps one vault, and when they are not a pair the vault opens only until
+    // this worker stops.
+    case 'vault/create':
+      return serial(async () => {
+        if (await loadVaultFile()) fail('error.vaultExists');
+        const unlocked = await createVault(await keyringFor(request.protection));
+        await saveVaultFile(unlocked.file);
+        return openSession(unlocked);
+      });
 
-    case 'vault/unlock': {
-      const file = await loadVaultFile();
-      if (!file) fail('error.noVault');
-      try {
-        return await openSession(await unlockVault(file, await keyringForFile(file, request.password)));
-      } catch (error) {
-        if (error instanceof DecryptionError) fail('error.wrongMasterPassword');
-        throw error;
-      }
-    }
+    // Nothing is written, but the file read here is the one every later write
+    // seals over. Read outside the queue, a recovery finishing in another
+    // surface meanwhile — its new password, its new kit — would be put back by
+    // the next write.
+    case 'vault/unlock':
+      return serial(async () => {
+        const file = await loadVaultFile();
+        if (!file) fail('error.noVault');
+        try {
+          return await openSession(await unlockVault(file, await keyringForFile(file, request.password)));
+        } catch (error) {
+          if (error instanceof DecryptionError) fail('error.wrongMasterPassword');
+          throw error;
+        }
+      });
 
     // Read-only: the stored file is opened with the password and thrown away.
     // Nothing is written and no session changes, so it needs no turn in the
@@ -626,10 +699,10 @@ async function handle(request: Request): Promise<unknown> {
 
       const file = await rewrapVault(unlocked.file, unlocked.dataKey, await keyringFor(request.next));
       await saveVaultFile(file);
-      cached = { ...unlocked, file };
+      keep({ ...unlocked, file });
 
       if (request.next.mode === 'passphrase') {
-        await saveSessionKey(await exportDataKey(unlocked.dataKey));
+        await keepSessionKey(unlocked.dataKey);
       } else {
         await clearSessionKey();
       }
@@ -658,7 +731,7 @@ async function handle(request: Request): Promise<unknown> {
         // working the moment a new one is made.
         const { file, recoveryKey } = await attachRecoveryKit(unlocked.file, unlocked.dataKey);
         await saveVaultFile(file);
-        cached = { ...unlocked, file };
+        keep({ ...unlocked, file });
         broadcastChange();
         return { recoveryKey };
       });
@@ -682,7 +755,7 @@ async function handle(request: Request): Promise<unknown> {
 
         const file = removeRecoveryKit(unlocked.file);
         await saveVaultFile(file);
-        cached = { ...unlocked, file };
+        keep({ ...unlocked, file });
         broadcastChange();
         return undefined;
       });
@@ -741,13 +814,19 @@ async function handle(request: Request): Promise<unknown> {
         return openSession({ file: reprotected, dataKey: opened.dataKey, data });
       });
 
+    // After whatever write is under way, not beside it. A sync or another
+    // surface's change finishing after the erase would save the vault back, on
+    // a browser its owner was told now holds nothing — and, for a vault that
+    // opens with the device key, under a key already destroyed.
     case 'vault/reset':
-      await clearVaultFile();
-      await destroyDeviceKey();
-      await tokenStore.clear();
-      await chrome.alarms.clear(SYNC_ALARM);
-      await lock();
-      return undefined;
+      return serial(async () => {
+        await clearVaultFile();
+        await destroyDeviceKey();
+        await tokenStore.clear();
+        await chrome.alarms.clear(SYNC_ALARM);
+        await lock();
+        return undefined;
+      });
 
     case 'account/startSignUp':
       return prepareSignUp(await requireUnlocked(), request.email, request.password);
@@ -758,7 +837,8 @@ async function handle(request: Request): Promise<unknown> {
         const unlocked = await requireUnlocked();
         const result = await signUp(unlocked, request.email, request.password, request.code);
         await saveVaultFile(result.file);
-        cached = { ...unlocked, file: result.file, data: result.data };
+        const signedUp = { ...unlocked, file: result.file, data: result.data };
+        keep(signedUp);
         // Said now, not left to the first sync's save: if that sync fails,
         // every open page would otherwise still show a signed-out vault.
         broadcastChange();
@@ -769,7 +849,7 @@ async function handle(request: Request): Promise<unknown> {
         // password away from gone. A failure here costs the account nothing —
         // Settings keeps asking until a key exists.
         try {
-          recoveryKey = await changeAccountKit(cached, { authHash: result.authHash }, issueKit);
+          recoveryKey = await changeAccountKit(signedUp, { authHash: result.authHash }, issueKit);
         } catch {
           recoveryKey = null;
         }
@@ -783,12 +863,10 @@ async function handle(request: Request): Promise<unknown> {
         const unlocked = await requireUnlocked();
         const result = await signIn(unlocked, request.email, request.password);
         await saveVaultFile(result.file);
-        cached = { file: result.file, dataKey: result.dataKey, data: result.data };
+        keep({ file: result.file, dataKey: result.dataKey, data: result.data });
         // The data key changed. A password-protected vault keeps it in session
         // memory; a device-key vault reads it through the device key instead.
-        if (result.file.protection.mode === 'passphrase') {
-          await saveSessionKey(await exportDataKey(result.dataKey));
-        }
+        if (result.file.protection.mode === 'passphrase') await keepSessionKey(result.dataKey);
         // Said now, not left to the first sync's save: if that sync fails,
         // every open page would otherwise still show a signed-out vault.
         broadcastChange();
@@ -803,12 +881,10 @@ async function handle(request: Request): Promise<unknown> {
         const unlocked = await requireUnlocked();
         const result = await recoverAccount(unlocked, request.email, request.recoveryKey, request.password);
         await saveVaultFile(result.file);
-        cached = { file: result.file, dataKey: result.dataKey, data: result.data };
+        keep({ file: result.file, dataKey: result.dataKey, data: result.data });
         // As with joining: the data key changed, and a password-protected vault
         // now opens with the new account password.
-        if (result.file.protection.mode === 'passphrase') {
-          await saveSessionKey(await exportDataKey(result.dataKey));
-        }
+        if (result.file.protection.mode === 'passphrase') await keepSessionKey(result.dataKey);
         // Said now, not left to the first sync's save: if that sync fails,
         // every open page would otherwise still show a signed-out vault.
         broadcastChange();
@@ -904,7 +980,7 @@ async function handle(request: Request): Promise<unknown> {
         if (isSignedIn(unlocked.data)) fail('error.alreadySignedIn');
         const result = await createProviderAccount(unlocked);
         await saveVaultFile(result.file);
-        cached = { ...unlocked, file: result.file, data: result.data };
+        keep({ ...unlocked, file: result.file, data: result.data });
         // Said now, not left to the first sync's save: if that sync fails,
         // every open page would otherwise still show a signed-out vault.
         broadcastChange();

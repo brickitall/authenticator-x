@@ -124,6 +124,19 @@ describe('the store listing', () => {
     expect(wrong).toEqual([]);
   });
 
+  // Chrome's keyword-spam policy (Yellow Argon) rejected 0.3.3 for naming the
+  // apps we import from and the sites we work with: a list of other
+  // companies' names reads as search bait, however true each one is.
+  it.skipIf(!existsSync(LISTINGS))('lists no other companies by name', () => {
+    const NAMES = /\b(Aegis|2FAS|andOTP|FreeOTP\+?|Ente Auth|Bitwarden|Proton|1Password|LastPass|Dashlane|KeePassXC|Authy|Microsoft|Amazon)\b/g;
+    const wrong = Object.keys(STORE_LOCALES).flatMap((code) => {
+      const path = resolve(LISTINGS, `${code}.txt`);
+      if (!existsSync(path)) return [];
+      return [...readFileSync(path, 'utf8').matchAll(NAMES)].map((match) => `${code}: ${match[0]}`);
+    });
+    expect(wrong).toEqual([]);
+  });
+
   it('names the brand, and only as the last words of a name', () => {
     // A name that leads with the brand spends the words search reads first on
     // a word nobody searches for yet.

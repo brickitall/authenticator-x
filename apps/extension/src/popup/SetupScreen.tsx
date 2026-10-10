@@ -19,10 +19,18 @@ const STRENGTH_COLORS = [
 ];
 
 export function SetupScreen({
+  onCreating,
   onCreated,
 }: {
-  /** `signIn` when the vault was made on the way to signing in. */
-  onCreated: (status: VaultStatus, then?: 'signIn') => void;
+  /**
+   * What comes once the vault exists: `signIn` when it is made on the way to
+   * signing in. Said before the vault is asked for, not with the answer — the
+   * service worker announces a new vault to every open page, this one
+   * included, and that can draw the vault first. Told afterwards, the popup
+   * would already have opened without its sign-in sheet.
+   */
+  onCreating: (then?: 'signIn') => void;
+  onCreated: (status: VaultStatus) => void;
 }) {
   const t = useT();
   const [step, setStep] = useState<'choose' | 'password'>('choose');
@@ -32,8 +40,9 @@ export function SetupScreen({
   async function create(protection: ProtectionChoice, then?: 'signIn') {
     setBusy(true);
     setError(null);
+    onCreating(then);
     try {
-      onCreated(await send({ type: 'vault/create', protection }), then);
+      onCreated(await send({ type: 'vault/create', protection }));
     } catch (cause) {
       setError(errorText(cause));
       setBusy(false);

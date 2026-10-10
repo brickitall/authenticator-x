@@ -1,0 +1,5 @@
+# Captions for the intro page's video. The host sends files it does not know
+# as application/octet-stream, with nosniff, and browsers then refuse a
+# <track>: WebVTT has to arrive as text/vtt. Only this folder; the domain's
+# own .htaccess belongs to the keyrook.com repository.
+AddType text/vtt .vtt

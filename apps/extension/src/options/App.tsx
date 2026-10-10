@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { liveItems } from '@authx/core';
 import { useActivityPing, useTheme, useVault } from '../ui/hooks.js';
 import { ArchiveIcon, CloudLockIcon, KeyIcon, Logo, SettingsIcon, ShieldIcon } from '../ui/icons.js';
@@ -55,6 +55,13 @@ export function App() {
   useTheme(data?.settings.theme);
   useActivityPing(status?.state === 'unlocked');
 
+  // Opened from the popup while this tab sat on the recovery form: there is
+  // nothing left to recover, and the next lock should ask for the password,
+  // not bring the form back.
+  useEffect(() => {
+    if (status?.state === 'unlocked') setRecovering(false);
+  }, [status?.state]);
+
   if (error) {
     return (
       <Shell>
@@ -85,10 +92,10 @@ export function App() {
             <RecoveryScreen onRecovered={authenticated} onCancel={() => setRecovering(false)} />
           ) : status.state === 'uninitialized' ? (
             <SetupScreen
-              onCreated={(next, then) => {
+              onCreating={(then) => {
                 if (then === 'signIn') setTab('sync');
-                authenticated(next);
               }}
+              onCreated={authenticated}
             />
           ) : (
             <UnlockScreen

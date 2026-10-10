@@ -44,10 +44,8 @@ export function App() {
   if (status.state === 'uninitialized') {
     return (
       <SetupScreen
-        onCreated={(next, then) => {
-          setSignInNext(then === 'signIn');
-          handleAuthenticated(next);
-        }}
+        onCreating={(then) => setSignInNext(then === 'signIn')}
+        onCreated={handleAuthenticated}
       />
     );
   }
